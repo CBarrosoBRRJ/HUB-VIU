@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  code, kbd, samp, pre, .font-mono, .font-code {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  }
+}
+
+/*
+  A escala responde aos **dois eixos** da janela.
+
+  Começou medindo só a altura (`vh`): o que faltava era linha visível, e uma janela estreita e alta
+  não ganha nada com letra menor. A grade contínua mudou isso — ela rola na horizontal, e num
+  monitor largo cabem mais colunas por vez, o que pede um corpo de texto um grau maior para a
+  leitura não ficar apertada.
+
+  `0.35vh + 0.25vw` dá peso maior à altura, que continua sendo o recurso escasso, sem ignorar a
+  largura. Os limites são medidos: 11px é o piso confortável, 13px o teto acima do qual a grade só
+  perde colunas por tela sem ganhar clareza.
+*/
+.grade-fluida {
+  --texto-grade: clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem);
+}
+
+/*
+  **Herança forçada**: a célula define o corpo, e tudo dentro dela obedece.
+
+  As duas tentativas anteriores listaram classes — `.text-xs`, `.text-sm`, `.text-[11px]` — e
+  falharam pelo mesmo motivo: a lista nunca fecha. Bastava uma célula nova com outra classe para o
+  descompasso voltar, e voltou duas vezes.
+
+  Aqui a regra é estrutural: **nada dentro de uma `<td>` escolhe o próprio tamanho.** As exceções
+  são três, declaradas abaixo com nome — status, entrada e os selos —, e cada uma tem um motivo
+  escrito. Qualquer outra diferença de corpo na grade é defeito, não decisão.
+*/
+/*
+  A hierarquia da grade, decidida pela operação em 03/08/2026:
+
+  | Camada | Corpo | Por quê |
+  |--------|-------|---------|
+  | Nome do projeto | `--texto-grade` | identifica a linha — é o que se procura |
+  | Cabeçalho | um degrau abaixo | placa de localização: bold + caixa alta já o distinguem |
+  | Dados | dois degraus abaixo | valores curtos de consulta; menores que a placa que os nomeia |
+  | Selos e legendas | dois degraus abaixo | metadado |
+
+  A régua é uma só (`--texto-grade`) e tudo deriva dela por `calc`: mudar a base move o conjunto
+  inteiro junto, e a proporção entre as camadas não se perde no redimensionamento.
+*/
+.grade-fluida td {
+  font-size: calc(var(--texto-grade) - 0.125rem);
+  line-height: 1.35;
+}
+
+.grade-fluida td * {
+  font-size: inherit;
+}
+
+/* O nome do projeto é a exceção para cima: é o dado que identifica a linha. */
+.grade-fluida td.col-projeto,
+.grade-fluida td.col-projeto * {
+  font-size: var(--texto-grade);
+}
+
+/*
+  O cabeçalho fica **um degrau abaixo do dado** — e isso é a hierarquia certa, não descuido.
+
+  Foram duas tentativas erradas antes: primeiro a regra cobriu só as `<td>`, e o dado saiu maior
+  que o rótulo que o nomeia; depois igualei os dois, e o cabeçalho em maiúsculas com `tracking`
+  ficou pesado, gritando por cima da grade.
+
+  Rótulo de coluna é **placa**, não conteúdo: se lê uma vez, para localizar, e some da atenção.
+  Ele se distingue por caixa alta, peso e espaçamento — três recursos que já bastam. Tamanho maior
+  seria o quarto, e é o que desequilibra.
+*/
+/*
+  O cabeçalho é **placa, não texto**: pequeno, espaçado, e agora num cinza escuro.
+
+  A hierarquia (nome do projeto > dados > cabeçalho) se mantém pelo **tamanho**, não pela cor:
+  o cinza claro (#94a3b8) recuava demais e a operação pediu contraste — em 03/08/2026 subiu para
+  o slate-600, escuro sem ser preto. Caixa alta + espaçamento seguem marcando que é rótulo.
+*/
+.grade-fluida th,
+.grade-fluida th .text-\[10px\] {
+  font-size: calc(var(--texto-grade) - 0.25rem);
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: #475569;
+}
+
+/*
+  A data de entrada é **dado auxiliar**: um grau abaixo, e sem folga lateral.
+
+  Ela responde "quando isto chegou" — pergunta de contexto, não de identificação. Com o corpo do
+  dado principal, competia com o nome do projeto ao lado, que é o que a pessoa procura na linha.
+*/
+.grade-fluida td.col-entrada,
+.grade-fluida td.col-entrada * {
+  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+/*
+  A etiqueta de status também encolhe — e o ganho vai para a coluna Projeto.
+
+  Ela é rótulo curto num fundo sólido: o contraste já a destaca, e o corpo grande só empurrava a
+  coluna para 132px. Com 106px sobram 26px, que somados aos 14px da Entrada foram para o nome do
+  projeto — o dado que mais precisa de espaço, porque identifica a linha e quebra em duas linhas.
+*/
+.grade-fluida td.col-status [class*="rounded"],
+.grade-fluida td.col-status [class*="rounded"] * {
+  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+/*
+  Os selos de estado — `Congelado`, `3d para encerrar`, `A conferir`.
+
+  Um degrau abaixo de propósito: são **metadado sobre a linha**, não dado dela. Se tivessem o corpo
+  do dado, competiriam com o nome do projeto ao lado, que é o que identifica a linha.
+*/
+.grade-fluida td .text-\[9px\],
+.grade-fluida td .text-\[10px\] {
+  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+}
+
+/*
+  A **segunda linha do nome do projeto** — marca · talento · input.
+
+  É legenda do que está acima, e não um segundo dado: com o mesmo corpo do nome, a célula ficava
+  com dois textos de igual peso e nenhum deles lia como principal.
+*/
+.grade-fluida td .legenda-linha {
+  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+}
+
+/*
+  As colunas congeladas — distintas sem chamar atenção.
+
+  Elas ficam paradas enquanto o resto rola, e precisam de um limite visível: sem ele, a coluna que
+  passa por baixo parece parte do bloco fixo por um instante. A distinção é um fundo um grau mais
+  frio e uma sombra curta na divisa — não uma cor, que competiria com as etiquetas de status.
+*/
+.grade-fluida .col-fixa {
+  background-color: #fcfcfd;
+}
+
+.grade-fluida tr:hover .col-fixa {
+  background-color: #f8fafc;
+}
+
+/*
+  Zebra: a faixa atravessa a parte congelada e a que rola, sem degrau na divisa.
+
+  A primeira tentativa usou `#fafbfc` — dois pontos de luminosidade abaixo do branco, invisível na
+  prática. "Nada chamativo" não é "imperceptível": a faixa existe para o olho seguir a linha até o
+  fim numa tabela larga, e para isso ela precisa ser vista. `#f1f5f9` (slate-100) é o menor tom que
+  cumpre isso sem virar cor.
+*/
+.grade-fluida tbody tr.linha-par td,
+.grade-fluida tbody tr.linha-par .col-fixa {
+  background-color: #f1f5f9;
+}
+
+.grade-fluida tbody tr:hover td,
+.grade-fluida tbody tr:hover .col-fixa {
+  background-color: #e6edf5;
+}
+
+/*
+  A linha **selecionada** — o realce que vence todos os outros.
+
+  Quem marca o checkbox precisa reencontrar a linha no meio de quarenta, e a marca de 14px do
+  checkbox não sustenta isso sozinha. Índigo porque é a cor de seleção do produto inteiro; o tom
+  claro mantém o texto legível e as etiquetas de status intactas.
+*/
+.grade-fluida tbody tr.linha-selecionada td,
+.grade-fluida tbody tr.linha-selecionada .col-fixa {
+  background-color: #e0e7ff;
+}
+
+.grade-fluida tbody tr.linha-selecionada:hover td,
+.grade-fluida tbody tr.linha-selecionada:hover .col-fixa {
+  background-color: #d7dff9;
+}
+
+/* A divisa do bloco congelado: sombra curta, só do lado que encosta no que rola. */
+.grade-fluida .col-fixa-ultima {
+  box-shadow: 6px 0 8px -6px rgb(15 23 42 / 0.12);
+}
+
+/*
+  **A divisa entre seções** — uma linha vertical, da cabeça ao pé da coluna.
+
+  A grade contínua juntou nove abas numa tabela só, e sem marca o olho não sabe onde um assunto
+  termina e o outro começa. A primeira tentativa pôs uma barra índigo no topo do rótulo — e ficou
+  errada duas vezes: parecia a coluna *ativa* (índigo é a cor de seleção do produto) e cortava a
+  faixa de cabeçalho num ponto aleatório.
+
+  A divisa certa é a que planilha usa desde sempre: um fio vertical que **desce pela coluna
+  inteira**, discreto no cabeçalho e mais sutil ainda nas células. Ele separa sem apontar — não é
+  destaque, é fronteira.
+*/
+.grade-fluida th[data-secao] {
+  border-left: 1px solid #cbd5e1;
+}
+
+.grade-fluida td[data-secao] {
+  border-left: 1px solid #e2e8f0;
+}
+
+/*
+  A linha que veio de integração e ninguém conferiu.
+
+  Vence a zebra e o hover porque é **estado do dado**, não ritmo de leitura: a faixa alternada
+  ajuda a percorrer a lista, esta cor diz que aquela linha precisa de alguém.
+*/
+.grade-fluida tbody tr.linha-conferir td,
+.grade-fluida tbody tr.linha-conferir .col-fixa {
+  background-color: #fffbeb;
+}
+
+.grade-fluida tbody tr.linha-conferir:hover td,
+.grade-fluida tbody tr.linha-conferir:hover .col-fixa {
+  background-color: #fef3c7;
+}
+
+/* Custom Scrollbar for Light Pastel Theme */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.5);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}

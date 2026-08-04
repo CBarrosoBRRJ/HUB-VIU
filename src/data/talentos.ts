@@ -1,0 +1,98 @@
+import { Talento } from '../types';
+
+/**
+ * Talentos de exemplo.
+ *
+ * Cobrem os dois vínculos e os graus de preenchimento que a tela precisa mostrar: um exclusivo
+ * completo, um exclusivo só começado e um de interveniência — que não tem responsáveis por área.
+ */
+export const TALENTOS_SEED: Talento[] = [
+  {
+    id: 'tal-exemplo-1',
+    nome: 'Marina Duarte',
+    tipo: 'exclusivo',
+    origem: 'casting',
+    nomeArtistico: 'Marina Duarte',
+    empresa: 'MD Produções',
+    email: 'contato@mdproducoes.com.br',
+    telefone: '(21) 98800-1122',
+    local: 'Rio de Janeiro, RJ',
+    redes: {
+      instagram: 'marinaduarte',
+      tiktok: 'marinaduarte',
+      youtube: 'marinaduarteoficial',
+      facebook: 'marinaduarteoficial',
+      x: 'marinaduarte',
+      site: 'marinaduarte.com.br',
+    },
+    observacoes: 'Exclusiva desde 2024. Agenda fechada por temporada.',
+    razaoSocial: 'MD Produções Artísticas LTDA',
+    cnpj: '12.345.678/0001-90',
+    faturamento: 'R$ 45.000 / mês',
+    condicaoPagamento: '30 dias após a entrega',
+    dadosBancarios: 'Itaú · Ag. 1234 · CC 56789-0',
+    responsaveis: {
+      talent: ['u3'],
+      orcamento: ['u2'],
+      gp: ['u4'],
+      // Produção com dupla — o caso que motivou a lista.
+      audiencia: ['u2'],
+      producao: ['u5', 'u1'],
+    },
+    criadoEm: '2026-07-20T13:00:00.000Z',
+  },
+  {
+    id: 'tal-exemplo-2',
+    nome: 'Rafael Nogueira',
+    tipo: 'exclusivo',
+    origem: 'globo',
+    nomeArtistico: 'Rafa Nogueira',
+    empresa: 'Nogueira Talentos',
+    email: 'rafa@nogueiratalentos.com',
+    telefone: '(11) 97744-9080',
+    local: 'São Paulo, SP',
+    redes: {
+      instagram: 'rafanogueira',
+      tiktok: 'rafanogueira',
+      youtube: '',
+      facebook: '',
+      x: '',
+      site: '',
+    },
+    observacoes: '',
+    razaoSocial: 'Nogueira Talentos ME',
+    cnpj: '98.765.432/0001-10',
+    faturamento: '',
+    condicaoPagamento: '',
+    dadosBancarios: '',
+    responsaveis: { talent: ['u3'] },
+    criadoEm: '2026-07-28T16:30:00.000Z',
+  },
+  {
+    id: 'tal-exemplo-3',
+    nome: 'Helena Prado',
+    tipo: 'interveniencia',
+    // Sem `origem`: 'não classificado' é um estado real, e a coluna precisa mostrá-lo.
+    nomeArtistico: '',
+    empresa: 'Prado Comunicação',
+    email: 'helena@pradocom.com.br',
+    telefone: '(31) 99120-4455',
+    local: 'Belo Horizonte, MG',
+    redes: {
+      instagram: 'helenaprado',
+      tiktok: '',
+      youtube: '',
+      facebook: '',
+      x: '',
+      site: '',
+    },
+    observacoes: 'Sem exclusividade. Contratos pontuais por campanha.',
+    razaoSocial: 'Prado Comunicação e Eventos LTDA',
+    cnpj: '45.678.912/0001-33',
+    faturamento: 'Por projeto',
+    condicaoPagamento: '50% na assinatura',
+    dadosBancarios: '',
+    responsaveis: {},
+    criadoEm: '2026-07-30T10:15:00.000Z',
+  },
+];

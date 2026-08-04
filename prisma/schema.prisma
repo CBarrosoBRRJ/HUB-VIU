@@ -1,0 +1,805 @@
+// ---------------------------------------------------------------------------
+// VIU Agenciamento — o modelo de dados, executável.
+//
+// Este schema espelha `src/types.ts`, que continua sendo o contrato do front.
+// Ele existe ANTES do backend de propósito: quando a Fase 1 começar (PRD 00 §8),
+// o primeiro dia é `prisma migrate dev`, não redesenho de modelo. Toda decisão
+// de produto que o front tomou está preservada — o que muda aqui é só a forma
+// de guardar, e cada divergência de forma está comentada no ponto em que ocorre.
+//
+// Decisões de mapeamento (o resumo; o detalhe está em cada modelo):
+//  1. Valores em dinheiro são String — texto livre é decisão de produto
+//     ("R$ 12.000", "12 mil", "a definir" — PRD 09 §2). NUNCA converter para
+//     Decimal sem decisão da operação.
+//  2. Datas `yyyy-mm-dd` do front viram `@db.Date`; timestamps viram DateTime.
+//     A API serializa de volta para o formato que o front já fala.
+//  3. As matrizes N:M (responsáveis por área, com papel) viram tabelas de
+//     relacionamento explícitas — o motivo de escolher Prisma.
+//  4. `duplicadaDeId` NÃO é foreign key, de propósito: o rastro sobrevive à
+//     exclusão da origem (PRD 08 §6.6). Uma FK com onDelete apagaria o rastro.
+//  5. Vínculos por nome (marca, talento na oportunidade) continuam por nome,
+//     com a FK opcional ao lado — é o estado atual do front, não uma meta.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // A URL de conexão vive em `prisma.config.ts` (contrato do Prisma 7) — e o
+  // valor real, no `.env`, que não sobe para o Git. Ver `.env.example`.
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- vocabulário
+
+/// Páginas do Workspace — espelha `AppPage`.
+enum PaginaApp {
+  backlog
+  contratos
+  talentos
+  clientes
+  equipes
+  usuarios
+  perfil
+}
+
+/// O teto de capacidade da pessoa na plataforma.
+enum PerfilSistema {
+  admin
+  responsavel
+  membro
+}
+
+enum SituacaoUsuario {
+  ativo
+  ferias
+  afastado
+  inativo
+  desligado
+}
+
+/// As oito áreas. Seis respondem por talento; Pagamento e Jurídico, por projeto
+/// (`areasDoTalento()` no front — a página Talentos só mostra as seis).
+enum AreaTalento {
+  talent
+  orcamento
+  gp
+  audiencia
+  conteudo
+  producao
+  pagamento
+  juridico
+  /// As duas frentes da produção, separadas em 03/08/2026. Respondem por
+  /// PROJETO, como Pagamento e Jurídico — "quem produz a Marina Duarte" não é
+  /// pergunta —, e por isso ficam fora de `areasDoTalento()`.
+  artistico
+  executivo
+}
+
+/// Responsável responde pela entrega; apoio ajuda sem responder — mas conta
+/// como nomeado para efeito de acesso.
+enum PapelNaArea {
+  responsavel
+  apoio
+}
+
+enum PapelEquipe {
+  responsavel
+  membro
+}
+
+enum TipoTalento {
+  exclusivo
+  interveniencia
+}
+
+/// Como o talento chegou à casa — atributo da FICHA, não de cada projeto.
+enum OrigemTalento {
+  casting
+  indicacao
+  prospeccao
+  globo
+  inbound
+}
+
+enum TipoMarca {
+  cliente
+  fornecedor
+  ambos
+}
+
+/// A máquina de estados do Backlog — transições fechadas em `fluxoStatus.ts`.
+enum StatusOportunidade {
+  entrada
+  elaboracao
+  revisao
+  aguardando_feedback
+  ajuste
+  standby
+  fechado
+  declinado
+  encerrado
+}
+
+/// Os três caminhos do declínio — qualificam o MESMO status `declinado`.
+enum MotivoDeclinio {
+  interno
+  mercado
+  talento
+}
+
+enum PrioridadeOportunidade {
+  baixa
+  media
+  alta
+}
+
+enum InputOportunidade {
+  interno
+  mercado
+  inbound
+  proativo
+  viu_first
+}
+
+enum OrigemComercial {
+  globoplay
+  tv_globo
+  canais_pagos
+  viu_agencia
+  outros
+}
+
+enum TipoProjeto {
+  patrocinio
+  sob_demanda
+  projeto_especial
+  outro
+}
+
+enum TipoOutput {
+  post
+  reels
+  stories
+  video
+  live
+  evento
+  merchandising
+}
+
+/// Tamanho, não urgência — prioridade é a outra coluna, com outra escala de cor.
+enum ImpactoProjeto {
+  alto
+  medio
+  baixo
+}
+
+/// **Quem** edita. A pergunta "tem edição?" é do tique `temEdicao`, no Escopo —
+/// `sem_edicao` saiu em 03/08/2026 para não haver dois caminhos para o mesmo fato.
+enum TipoEdicao {
+  interna
+  talento
+  agencia
+  produtora
+}
+
+/// O formato editorial da peça — do mais comercial ao menos.
+enum FormatoConteudo {
+  publieditorial
+  review
+  tutorial
+  depoimento
+  entretenimento
+  institucional
+}
+
+/// Porte do alcance — do mais amplo ao mais restrito.
+enum AlcanceAudiencia {
+  massa
+  amplo
+  segmentado
+  nicho
+}
+
+/// Como o material é GRAVADO (aba Escopo) — não confundir com TipoCaptacao.
+enum TipoCaptacaoProducao {
+  estudio
+  externa
+  remota
+  material_talento
+  sem_captacao
+}
+
+/// Como o NEGÓCIO chegou (campo `captacaoComercial`, hoje sem coluna).
+enum TipoCaptacao {
+  ativa
+  passiva
+  indicacao
+  renovacao
+}
+
+/// Por onde o dado ENTROU no sistema — a via técnica, não a comercial.
+enum EntradaPor {
+  manual
+  email
+  salesforce
+}
+
+/// Etapas do contrato de agenciamento — os rótulos com acento que a operação
+/// usa ficam no @map; o código fala o identificador.
+enum StatusContrato {
+  criacao             @map("Criação")
+  revisao_inicial     @map("Revisão Inicial")
+  aprovacao_inicial   @map("Aprovação Inicial")
+  chancela            @map("Chancela")
+  revisao_conecta     @map("Revisão Conecta")
+  via_cga             @map("Via CGA")
+  aprovacao_conecta   @map("Aprovação Conecta")
+  requisicao_enviada  @map("Requisição Enviada")
+  em_assinatura       @map("Em Assinatura")
+  concluido           @map("Concluído")
+  parado              @map("Parado")
+  cancelado           @map("Cancelado")
+  vencido             @map("Vencido")
+}
+
+// ---------------------------------------------------------------- pessoas
+
+model Usuario {
+  id         String          @id @default(cuid())
+  nome       String
+  /// Chave de identidade, normalizada em minúsculas na aplicação.
+  email      String          @unique
+  cargo      String          @default("")
+  telefone   String          @default("")
+  local      String          @default("")
+  nascimento DateTime?       @db.Date
+  perfil     PerfilSistema
+  situacao   SituacaoUsuario @default(ativo)
+  /// Criador da conta. Imutável: não pode ser rebaixado, inativado nem excluído
+  /// — a regra vale na aplicação E deve valer no backend (PRD 05).
+  ehDono     Boolean         @default(false)
+  /// Exclusivo do dono: a única identidade com mais de um e-mail de acesso.
+  emailsAlternativos String[]
+  /// Hoje é data URL redimensionada no navegador; com backend, vira URL de
+  /// objeto no storage — o campo não muda, o conteúdo sim.
+  fotoUrl    String?
+
+  equipes         MembroEquipe[]
+  areasEmTalentos TalentoResponsavel[]
+  areasEmOportunidades OportunidadeResponsavel[]
+  contratos       ContratoPessoa[]
+
+  // Onboarding e administração. Os pares "recebeu" × "concedeu" precisam de nome de relação
+  // explícito: são duas chaves para Usuario no mesmo modelo, e sem nome o Prisma não sabe qual
+  // lado cada uma alimenta.
+  convitesCriados       Convite[]
+  solicitacoesAbertas   SolicitacaoAcesso[] @relation("SolicitanteDoAcesso")
+  solicitacoesDecididas SolicitacaoAcesso[] @relation("DecisorDoAcesso")
+  concessoesRecebidas   Concessao[]         @relation("BeneficiarioDaConcessao")
+  concessoesConcedidas  Concessao[]         @relation("AutorDaConcessao")
+  trocasDeEmail         TrocaEmail[]
+  linksCriados          LinkEquipe[]
+  entradasPorLink       UsoLinkEquipe[]
+
+  criadoEm DateTime @default(now())
+}
+
+model Equipe {
+  id   String @id @default(cuid())
+  nome String
+
+  /// Páginas do Workspace visíveis para a equipe.
+  paginasPermitidas PaginaApp[]
+  /// Área que a equipe atende — liga a coluna de área aos seus candidatos.
+  /// TODA área precisa de uma equipe, senão o painel de pessoas abre vazio
+  /// (invariante verificado em `jornadaVisoes`).
+  areaTalento AreaTalento? @unique
+  /// Só as abas RESTRITAS passam por aqui (ids de `VISOES`, ex.
+  /// "backlog:financeiro"). As demais seguem o acesso do quadro.
+  visoesLiberadas String[]
+  /// Bloqueio por exceção: quem vê a aba vê as colunas dela, menos estas.
+  colunasOcultas String[]
+
+  membros      MembroEquipe[]
+  convites     Convite[]
+  links        LinkEquipe[]
+  solicitacoes SolicitacaoAcesso[]
+
+  criadaEm DateTime @default(now())
+}
+
+model MembroEquipe {
+  equipe    Equipe  @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId  String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  papel     PapelEquipe @default(membro)
+  /// Responsabilidade temporária: vencida, a pessoa volta a membro NA LEITURA
+  /// — sem rotina agendada, que seria mais um ponto de falha numa regra de
+  /// segurança (PRD 04).
+  responsavelAte DateTime?
+
+  @@id([equipeId, usuarioId])
+}
+
+// ---------------------------------------------------------------- talentos
+
+model Talento {
+  id   String      @id @default(cuid())
+  nome String
+  tipo TipoTalento
+  /// Ausente é "não classificado" — nunca um default. Vale para TODA
+  /// classificação opcional deste schema (PRD 08 §6.1).
+  origem OrigemTalento?
+
+  nomeArtistico String @default("")
+  empresa       String @default("")
+  email         String @default("")
+  telefone      String @default("")
+  local         String @default("")
+  observacoes   String @default("")
+
+  /// Redes achatadas em colunas — só o identificador, sem @ e sem URL.
+  redeInstagram String @default("")
+  redeYoutube   String @default("")
+  redeTiktok    String @default("")
+  redeFacebook  String @default("")
+  redeX         String @default("")
+  redeSite      String @default("")
+
+  // Aba financeira (restrita). Valores como texto — ver decisão nº 1 no topo.
+  razaoSocial      String @default("")
+  cnpj             String @default("")
+  faturamento      String @default("")
+  condicaoPagamento String @default("")
+  dadosBancarios   String @default("")
+
+  /// Nasceu de um quadro e espera curadoria — preencher qualquer campo limpa.
+  cadastroPendente Boolean @default(false)
+
+  responsaveis  TalentoResponsavel[]
+  oportunidades Oportunidade[]
+  contratos     Contrato[]
+
+  criadoEm DateTime @default(now())
+}
+
+/// A matriz área × pessoa do TALENTO. Sem papel: na ficha, cada área tem só
+/// responsáveis — apoio existe por projeto, não por pessoa agenciada.
+model TalentoResponsavel {
+  talento   Talento     @relation(fields: [talentoId], references: [id], onDelete: Cascade)
+  talentoId String
+  usuario   Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  area      AreaTalento
+
+  @@id([talentoId, area, usuarioId])
+}
+
+// ---------------------------------------------------------------- marcas
+
+model Marca {
+  id   String    @id @default(cuid())
+  nome String    @unique
+  tipo TipoMarca @default(cliente)
+
+  /// Segmento e categoria moram AQUI, nunca na oportunidade: a Coca-Cola é de
+  /// Bebidas em toda linha em que aparecer (PRD 07 §10.4).
+  segmento  String @default("")
+  categoria String @default("")
+
+  observacoes      String  @default("")
+  cadastroPendente Boolean @default(false)
+
+  /// Tabela própria, e não String[]: prepara o contato-por-papel (mídia ≠
+  /// jurídico) sem migração de forma — só se acrescenta a coluna `papel`.
+  contatos ContatoMarca[]
+
+  criadoEm DateTime @default(now())
+}
+
+model ContatoMarca {
+  id      String @id @default(cuid())
+  marca   Marca  @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+  marcaId String
+  /// Hoje é um e-mail ou nome livre; papel (mídia, jurídico…) entra aqui quando
+  /// a operação pedir.
+  valor String
+
+  @@unique([marcaId, valor])
+}
+
+// ---------------------------------------------------------------- backlog
+
+model Oportunidade {
+  id     String @id @default(cuid())
+  titulo String
+
+  /// O vínculo com a marca é POR NOME — estado atual do front, que casa por
+  /// nome normalizado. A FK entra quando o backend assumir a normalização.
+  marca String @default("")
+
+  /// Nome como escrito na linha; o vínculo com a ficha é opcional e se desfaz
+  /// com SetNull — o nome fica, o histórico não se apaga.
+  talento   String   @default("")
+  talentoRef Talento? @relation(fields: [talentoId], references: [id], onDelete: SetNull)
+  talentoId String?
+
+  /// O talento é exclusivo da casa? DERIVADO do vínculo na ficha, gravado por
+  /// desnormalização consciente: o front recalcula a cada troca de talento ou
+  /// de tipo. Era `interveniencia`, com o valor invertido, até 03/08/2026 — a
+  /// operação lê a coluna como "Exclusivo", e um campo guardando o oposto do
+  /// que a tela mostra é armadilha para quem escrever a próxima regra.
+  exclusivo Boolean @default(false)
+
+  // Classificações — ausente é "não classificado", não um default.
+  tipoProjeto TipoProjeto?
+  input       InputOportunidade?
+  origem      OrigemComercial?
+  prioridade  PrioridadeOportunidade?
+
+  // A máquina de estados.
+  status      StatusOportunidade @default(entrada)
+  /// Qualifica `declinado` — só existe junto dele.
+  motivoDeclinio MotivoDeclinio?
+  statusDesde DateTime @db.Date
+  entradaEm   DateTime @db.Date
+  /// Entrada + 5 dias úteis, calculado na criação — SLA que depende de alguém
+  /// lembrar de preencher não é SLA. Obrigatório porque os TRÊS caminhos de
+  /// criação (manual, e-mail, Salesforce) o calculam; nenhum deixa em branco.
+  prazoEm     DateTime @db.Date
+  encerradaAutomaticamente Boolean @default(false)
+
+  /// Os três tiques do Escopo — o que o projeto inclui.
+  ///
+  /// Cada um destrava a coluna de mesmo nome na aba Produção: sem o tique, o
+  /// campo correspondente é obrigatoriamente nulo, e a tela o mostra travado.
+  /// Desmarcar apaga o valor — guardar um dado que a tela afirma não existir
+  /// é o estado impossível que `qaBacklog` procura, e que o Power BI leria sem
+  /// saber que foi renegado.
+  ///
+  /// **Candidatos a CHECK constraint no dia 1 da Fase 1:**
+  /// `temEdicao = false → edicao IS NULL` (idem para os outros dois pares).
+  temEdicao    Boolean @default(false)
+  temConteudo  Boolean @default(false)
+  temAudiencia Boolean @default(false)
+
+  /// O que o projeto pede, em texto corrido — o briefing como ele chegou.
+  ///
+  /// Substituiu as quatro contagens (reels, vídeos, posts, cotas) em 03/08/2026:
+  /// um pedido real não cabe em quatro números. `String` sem limite, e não
+  /// `VarChar(n)`: o Postgres não ganha nada com o limite, e um briefing cortado
+  /// no meio é pior que um campo largo.
+  escopo String @default("")
+  captacaoProducao TipoCaptacaoProducao?
+  veiculacaoEm     DateTime? @db.Date
+
+  // Cliente — segmento e categoria NÃO estão aqui: são da marca.
+  contatoCliente    String @default("")
+  captacaoComercial TipoCaptacao?
+
+  // Entrega e Produção.
+  output  TipoOutput?
+  impacto ImpactoProjeto?
+  edicao  TipoEdicao?
+  /// O formato editorial da peça — coluna Conteúdo da aba Produção.
+  formatoConteudo FormatoConteudo?
+  /// Porte do alcance da peça. NÃO é `impacto`: aquele mede quanto o
+  /// projeto pesa para a casa, este mede quanta gente a peça atinge. Um
+  /// projeto pequeno pode falar com a massa, e um grande pode ser de nicho.
+  alcanceAudiencia AlcanceAudiencia?
+
+  // Financeiro e Pagamento — texto livre por decisão de produto (nº 1 no topo).
+  valorProjeto  String @default("")
+  cache         String @default("")
+  comissaoGlobo String @default("")
+  comissao      String @default("")
+  impostos      String @default("")
+  custoProducao String @default("")
+  saving        String @default("")
+  parcelas      Int?
+  pep           String @default("")
+
+  // Jurídico.
+  tipoContratacao String    @default("")
+  numeroContrato  String    @default("")
+  fechamentoEm    DateTime? @db.Date
+
+  // Links — sem validação de formato: caminho de rede é endereço legítimo.
+  linkProposta          String @default("")
+  linkSalesforce        String @default("")
+  linkPastaOrcamento    String @default("")
+  linkPastaPlanejamento String @default("")
+
+  observacoes String @default("")
+
+  /// Rastro da duplicação — DE PROPÓSITO sem foreign key: o rastro sobrevive à
+  /// exclusão da origem (PRD 08 §6.6). Uma FK com onDelete: SetNull apagaria
+  /// exatamente a informação que o campo existe para guardar.
+  duplicadaDeId String?
+
+  /// A via técnica de entrada e a chave de deduplicação da integração — o par
+  /// impede a mesma oportunidade de entrar duas vezes quando o e-mail ou o
+  /// Salesforce reprocessam. Nunca se copia na duplicação.
+  entradaPor EntradaPor @default(manual)
+  idExterno  String?
+  /// Quando a INTEGRAÇÃO recebeu o dado, se diferente da entrada no sistema —
+  /// a data do e-mail, o `CreatedDate` do Salesforce. Timestamp completo, não
+  /// `@db.Date`: a hora é o que distingue duas cargas do mesmo dia.
+  recebidoEm DateTime?
+  /// Veio por integração e ninguém confirmou? Entra no filtro "A conferir".
+  revisada Boolean @default(true)
+
+  pessoas OportunidadeResponsavel[]
+
+  pendencias Pendencia[]
+
+  criadoEm DateTime @default(now())
+
+  @@unique([entradaPor, idExterno])
+}
+
+/// Os "status extras" da planilha da operação, traduzidos (04/08/2026): não são
+/// etapas — são ESPERAS nomeadas ("com quem está a bola"). O menu é por status
+/// (Elaboração e Revisão), mas a pendência aberta viaja com o projeto se o
+/// status mudar — `statusAbertura` guarda o fato ("revisão parcelada").
+enum TipoPendencia {
+  retorno_marca_executivo
+  validacao_gestao_esporte
+  cotacao_gestao_elenco
+  validacao_externa
+  calculo_producao
+  validacao_planejamento
+  validacao_talent_manager
+  validacao_talento
+}
+
+/// O post-it com relógio. Abertas e chegadas ficam — o histórico é o dado do
+/// SLA. Descartar (aberta por engano) é DELETE de verdade: saiu da medição.
+model Pendencia {
+  id             String       @id @default(cuid())
+  oportunidade   Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  oportunidadeId String
+
+  tipo           TipoPendencia
+  statusAbertura StatusOportunidade
+  abertaEm       DateTime           @db.Date
+  /// NULL = ainda esperando. CHECK a criar na migração: chegouEm >= abertaEm.
+  chegouEm       DateTime?          @db.Date
+
+  @@index([oportunidadeId])
+}
+
+/// O log de transições de status — a FONTE do relatório de SLA no Power BI:
+/// tempo em cada status sai de `LAG(em)` numa view, loops de Ajustes contados.
+/// O front ainda NÃO grava este log (decisão de 04/08/2026: a contabilização
+/// por status entra com o banco); o modelo já nasce aqui para a migração e o
+/// relatório serem desenhados sobre ele.
+model StatusEvento {
+  id             String  @id @default(cuid())
+  oportunidadeId String
+
+  de   StatusOportunidade?
+  para StatusOportunidade
+  em   DateTime            @default(now())
+  /// Quem moveu — NULL quando foi o sistema (encerramento automático, ingestão).
+  porUsuarioId String?
+
+  @@index([oportunidadeId, em])
+}
+
+/// A matriz área × pessoa × papel do PROJETO — o caso N:M que motivou o Prisma.
+/// Uma linha por (projeto, área, pessoa); o papel diz se responde ou apoia.
+model OportunidadeResponsavel {
+  oportunidade   Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  oportunidadeId String
+  usuario        Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId      String
+  area           AreaTalento
+  papel          PapelNaArea  @default(responsavel)
+
+  @@id([oportunidadeId, area, usuarioId])
+}
+
+// ---------------------------------------------------------------- contratos
+
+model Contrato {
+  id String @id @default(cuid())
+
+  /// Nome como escrito na linha — contratos de interveniência não têm ficha,
+  /// por isso o vínculo é opcional (PRD 02).
+  talento    String
+  talentoRef Talento? @relation(fields: [talentoId], references: [id], onDelete: SetNull)
+  talentoId  String?
+
+  /// Do que é o contrato, em palavras de quem opera.
+  contrato String
+  numero   String
+  inicio   DateTime @db.Date
+  fim      DateTime @db.Date
+  status   StatusContrato
+
+  pessoas ContratoPessoa[]
+
+  criadoEm DateTime @default(now())
+}
+
+enum PapelNoContrato {
+  responsavel
+  /// "Parceiro" aqui, "apoio" no Backlog — a unificação do nome é pendência
+  /// registrada (PRD 08 §13.1). O banco guarda os dois até a decisão.
+  parceiro
+}
+
+model ContratoPessoa {
+  contrato   Contrato        @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+  contratoId String
+  usuario    Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId  String
+  papel      PapelNoContrato @default(responsavel)
+  /// O primeiro responsável é o principal — usado no agrupamento da lista.
+  ordem Int @default(0)
+
+  @@id([contratoId, usuarioId])
+}
+
+// ------------------------------------------------------- acesso e onboarding
+//
+// Estas seis entidades são as que faltavam para o schema cobrir o que o front
+// já faz. Elas guardam o CAMINHO DE ENTRADA na plataforma — convite, link,
+// pedido de acesso, concessão, troca de e-mail e domínio autorizado —, que é a
+// parte mais sensível do modelo: é por aqui que alguém passa a existir.
+//
+// Uma nota que vale para todas: os campos `token` são segredos de URL, com
+// `@unique` porque a busca é POR ELE (`getConvitePorToken`). No banco isso é
+// índice; na aplicação, a garantia de que dois links nunca colidem.
+
+enum StatusSolicitacao {
+  pendente
+  aprovada
+  recusada
+}
+
+/// Capacidades administrativas que o dono liga e desliga por pessoa — espelha
+/// `AcaoConcedivel`. O perfil dá o mínimo; estas se somam caso a caso.
+enum AcaoConcedivel {
+  gerenciar_usuarios
+  gerenciar_acessos
+  definir_perfis
+  criar_equipe
+  conceder_quadros
+  gerenciar_dominios
+  excluir_usuarios
+  decidir_solicitacoes
+}
+
+/// Convite nominal: 24h, uso único, preso a um e-mail.
+///
+/// `aceitoEm` e `revogadoEm` são datas, e não um enum de status, porque o
+/// estado é DERIVADO delas mais o relógio — um convite expira sozinho, sem
+/// ninguém gravar "expirado". Um campo de status precisaria de uma rotina para
+/// não mentir; a data não precisa de nada.
+model Convite {
+  id    String @id @default(cuid())
+  token String @unique
+
+  /// E-mail autorizado, normalizado. O aceite só vale para ele.
+  email    String
+  equipe   Equipe      @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId String
+  papel    PapelEquipe @default(membro)
+
+  criadoPor   Usuario @relation(fields: [criadoPorId], references: [id])
+  criadoPorId String
+
+  criadoEm   DateTime  @default(now())
+  expiraEm   DateTime
+  aceitoEm   DateTime?
+  revogadoEm DateTime?
+
+  @@index([email])
+}
+
+/// Link coletivo de equipe — qualquer pessoa de domínio autorizado entra, sempre
+/// como membro. Contido por quatro limites: domínio, 24h, rotação diária e
+/// desativação manual.
+model LinkEquipe {
+  id       String @id @default(cuid())
+  token    String @unique
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId String
+
+  criadoPor   Usuario @relation(fields: [criadoPorId], references: [id])
+  criadoPorId String
+
+  criadoEm      DateTime  @default(now())
+  expiraEm      DateTime
+  desativadoEm  DateTime?
+
+  usos UsoLinkEquipe[]
+}
+
+/// Auditoria do link coletivo: quem entrou por ele e quando.
+///
+/// Tabela própria, e não um JSON na linha do link: a pergunta "por onde esta
+/// pessoa entrou?" é feita a partir do USUÁRIO, e um array embutido obrigaria a
+/// varrer todos os links para respondê-la.
+model UsoLinkEquipe {
+  id        String     @id @default(cuid())
+  link      LinkEquipe @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId    String
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  em        DateTime   @default(now())
+
+  @@unique([linkId, usuarioId])
+}
+
+/// Pedido de acesso de quem não pode se conceder acesso sozinho.
+model SolicitacaoAcesso {
+  id            String  @id @default(cuid())
+  solicitante   Usuario @relation("SolicitanteDoAcesso", fields: [solicitanteId], references: [id], onDelete: Cascade)
+  solicitanteId String
+  equipe        Equipe  @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId      String
+
+  justificativa String            @default("")
+  status        StatusSolicitacao @default(pendente)
+
+  /// Preenchido ao aprovar ou recusar — quem decidiu.
+  decididaPor   Usuario? @relation("DecisorDoAcesso", fields: [decididaPorId], references: [id])
+  decididaPorId String?
+
+  criadaEm DateTime @default(now())
+}
+
+/// Capacidade administrativa concedida a uma pessoa, com janela opcional.
+///
+/// `@@unique([usuarioId, acao])` não é detalhe de índice: é a regra de produto
+/// "conceder o que já está concedido apenas atualiza o prazo, não duplica a
+/// linha" escrita onde ela não pode ser contornada. Sem ela, revogar precisaria
+/// apagar N linhas e bastaria uma sobrar para o acesso continuar de pé.
+model Concessao {
+  id        String         @id @default(cuid())
+  usuario   Usuario        @relation("BeneficiarioDaConcessao", fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  acao      AcaoConcedivel
+
+  concedidaPor   Usuario @relation("AutorDaConcessao", fields: [concedidaPorId], references: [id])
+  concedidaPorId String
+
+  criadaEm DateTime  @default(now())
+  /// Janela temporária (ex.: férias do dono). Nulo vale por tempo indeterminado.
+  expiraEm DateTime?
+
+  @@unique([usuarioId, acao])
+}
+
+/// Troca de e-mail de acesso pendente de confirmação.
+///
+/// O e-mail é a identidade: trocá-lo sem confirmar deixaria assumir a conta de
+/// outra pessoa apenas digitando o endereço dela. Por isso o novo endereço fica
+/// AQUI, e não em `Usuario`, até o clique no link provar acesso à caixa nova.
+model TrocaEmail {
+  id        String  @id @default(cuid())
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  novoEmail String
+  token     String  @unique
+
+  criadaEm     DateTime  @default(now())
+  expiraEm     DateTime
+  confirmadaEm DateTime?
+}
+
+/// Domínios de e-mail autorizados a entrar (`g.globo`, `globo.com`, `viu.com.br`).
+///
+/// Tabela, e não constante no código: o admin os edita em tela, e uma lista que
+/// muda em produção não pode exigir deploy. O domínio é a própria chave — a
+/// pergunta feita é sempre "este domínio está liberado?".
+model DominioAutorizado {
+  dominio  String   @id
+  criadoEm DateTime @default(now())
+}

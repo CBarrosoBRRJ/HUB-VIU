@@ -1,0 +1,6 @@
+{
+  "name": "Globo - VIU Agenciamento",
+  "description": "Sistema de gestão de projetos, talentos e entregas para a área Globo - VIU Agenciamento com visualização em tabelas, Kanban, calendário e analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

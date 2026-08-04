@@ -1,0 +1,323 @@
+import { motion } from 'motion/react';
+import {
+  Archive, CheckCircle2, ChevronDown, ChevronUp, CircleSlash, PauseCircle, RotateCcw, Zap,
+} from 'lucide-react';
+import { Oportunidade, StatusOportunidade } from '../../types';
+import {
+  DESFECHOS, DIAS_FINALIZADOS_VISIVEIS, ETAPAS_FLUXO, finalizadasAntigas, getStatus,
+  resumirDeclinios, resumirPorStatus,
+} from '../../utils/oportunidades';
+import { formatarMoeda } from '../../utils/moeda';
+
+const ICONE_DESFECHO: Record<string, typeof CheckCircle2> = {
+  fechado: CheckCircle2,
+  standby: PauseCircle,
+  declinado: CircleSlash,
+  encerrado: Archive,
+};
+
+const COR_DESFECHO: Record<string, string> = {
+  fechado: 'text-emerald-600',
+  standby: 'text-yellow-600',
+  declinado: 'text-rose-600',
+  encerrado: 'text-slate-500',
+};
+
+interface FluxoDoProcessoProps {
+  oportunidades: Oportunidade[];
+  /** Etapa em foco; `null` mostra todas. */
+  etapaAtiva: StatusOportunidade | null;
+  onEtapaChange: (status: StatusOportunidade | null) => void;
+  /**
+   * Recolhido, o bloco vira uma faixa de uma linha.
+   *
+   * Ele custa **216px** — numa tela de 950px, isso é a diferença entre ver 5 e ver 9 linhas da
+   * tabela. O estado vive na página e sobrevive ao F5: quem trabalha na lista o mantém fechado o
+   * dia todo, e reabri-lo a cada visita seria pedir o mesmo clique para sempre.
+   */
+  recolhido: boolean;
+  onRecolhidoChange: (valor: boolean) => void;
+}
+
+/**
+ * Cabeçalho do quadro: o processo antes da tabela.
+ *
+ * Quem abre o Backlog vê primeiro **o fluxo**, depois os números de fechamento, e só então as
+ * linhas. A ordem não é decorativa: uma tabela de 40 projetos sem o mapa do processo obriga cada
+ * pessoa a reconstruir mentalmente em que ponto cada linha está.
+ *
+ * As etapas são clicáveis e filtram o quadro — o mapa é também a navegação.
+ */
+export function FluxoDoProcesso({
+  oportunidades, etapaAtiva, onEtapaChange, recolhido, onRecolhidoChange,
+}: FluxoDoProcessoProps) {
+  const ativas = oportunidades.filter((op) => !getStatus(op.status).encerra).length;
+  const antigas = finalizadasAntigas(oportunidades);
+  /** Quebra por motivo, na mesma janela de 30 dias do card — senão as partes não somariam o todo. */
+  const declinios = resumirDeclinios(oportunidades);
+
+  /*
+    Recolhido: uma faixa que continua informando e continua navegando.
+
+    Não é o bloco escondido atrás de um botão mudo — o número de projetos em andamento fica à
+    vista, e a etapa em foco também, porque é ela que explica por que a lista está recortada. Sem
+    isso, quem recolhesse o bloco com uma etapa ativa veria uma tabela filtrada sem saber por quê.
+  */
+  if (recolhido) {
+    const etapa = etapaAtiva ? getStatus(etapaAtiva) : null;
+    return (
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
+        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <Zap className="size-3 text-indigo-500" />
+          Fluxo do processo
+          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] text-indigo-700">
+            {ativas} em andamento
+          </span>
+        </p>
+
+        {etapa && (
+          <button
+            type="button"
+            onClick={() => onEtapaChange(null)}
+            data-dica={`Filtrando por ${etapa.label}`}
+            data-dica-sub="Clique para ver todas as etapas"
+            data-dica-sempre
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-indigo-700"
+          >
+            {etapa.label}
+            <span className="text-indigo-200">×</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onRecolhidoChange(false)}
+          className="ml-auto flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50"
+        >
+          <ChevronDown className="size-3.5" />
+          Mostrar fluxo
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-4 grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+      {/* Fluxo */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <Zap className="size-3 text-indigo-500" />
+            Fluxo do processo
+            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] text-indigo-700">
+              {ativas} em andamento
+            </span>
+          </p>
+
+          <button
+            type="button"
+            onClick={() => onRecolhidoChange(true)}
+            data-dica="Recolher o fluxo"
+            data-dica-sub="Ganha espaço para a lista — o recorte por etapa continua visível na faixa"
+            data-dica-sempre
+            className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
+          >
+            <ChevronUp className="size-3.5" />
+            Recolher
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onEtapaChange(null)}
+            className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
+              etapaAtiva === null
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Todas
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-stretch gap-2">
+          {ETAPAS_FLUXO.map((etapa) => {
+            const status = getStatus(etapa.status);
+            const resumo = resumirPorStatus(oportunidades, etapa.status);
+            const ativa = etapaAtiva === etapa.status;
+
+            return (
+              <motion.button
+                key={etapa.status}
+                type="button"
+                onClick={() => onEtapaChange(ativa ? null : etapa.status)}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.14 }}
+                title={`${resumo.quantidade} em ${status.label}`}
+                className={`min-w-[7.5rem] flex-1 rounded-xl border px-3 py-2.5 text-left transition ${
+                  ativa
+                    ? 'border-indigo-300 bg-indigo-50'
+                    : etapa.loop
+                      ? 'border-amber-200 bg-amber-50/50 hover:border-amber-300'
+                      : 'border-slate-200 hover:border-indigo-200'
+                }`}
+              >
+                <span
+                  className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider ${
+                    etapa.loop ? 'text-amber-600' : 'text-slate-400'
+                  }`}
+                >
+                  {etapa.loop ? (
+                    <>
+                      <RotateCcw className="size-2.5" />
+                      Loop
+                    </>
+                  ) : (
+                    `${etapa.numero}. ${etapa.rotulo}`
+                  )}
+                </span>
+
+                <span className="mt-0.5 flex items-center justify-between gap-2">
+                  <span className="truncate text-xs font-semibold text-slate-700">
+                    {status.label}
+                  </span>
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      resumo.quantidade > 0
+                        ? 'bg-slate-100 text-slate-600'
+                        : 'text-slate-300'
+                    }`}
+                  >
+                    {resumo.quantidade}
+                  </span>
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+          <span className="flex items-center gap-1">
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            Fluxo sequencial do projeto
+          </span>
+          <span className="flex items-center gap-1 text-amber-600">
+            <RotateCcw className="size-2.5" />
+            Ajustes é um retorno entre Revisão e Feedback
+          </span>
+        </p>
+      </section>
+
+      {/* Finalização */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <CheckCircle2 className="size-3 text-emerald-500" />
+            Finalização
+            <span className="font-normal normal-case tracking-normal text-slate-400">
+              · últimos {DIAS_FINALIZADOS_VISIVEIS} dias
+            </span>
+          </p>
+          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
+            Totais &amp; qtd.
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {DESFECHOS.map((desfecho) => {
+            const status = getStatus(desfecho);
+            const resumo = resumirPorStatus(oportunidades, desfecho);
+            const Icone = ICONE_DESFECHO[desfecho] ?? Archive;
+            const ativa = etapaAtiva === desfecho;
+
+            return (
+              <motion.button
+                key={desfecho}
+                type="button"
+                onClick={() => onEtapaChange(ativa ? null : desfecho)}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.14 }}
+                className={`rounded-xl border px-3 py-2 text-left transition ${
+                  ativa ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className={`flex items-center gap-1.5 text-xs font-medium ${COR_DESFECHO[desfecho]}`}>
+                    <Icone className="size-3.5 shrink-0" />
+                    <span className="truncate">{status.label}</span>
+                    {/*
+                      StandBy vive neste bloco mas **não encerra**: volta para Aguardando Feedback.
+                      Sem esta marca, o card diria que o projeto acabou — e ele está só pausado.
+                    */}
+                    {!status.encerra && (
+                      <span
+                        title="Pausa reversível — volta para Aguardando Feedback"
+                        className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500"
+                      >
+                        Pausa
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                    {resumo.quantidade}
+                  </span>
+                </span>
+
+                <span className="mt-1 block text-xs font-semibold text-slate-700">
+                  {formatarMoeda(resumo.valor)}
+                  {/*
+                    Valor é texto livre, então parte dele pode não ser somável. Dizer quantos
+                    ficaram de fora evita que o total pareça completo quando não é.
+                  */}
+                  {resumo.ilegiveis > 0 && (
+                    <span
+                      title={`${resumo.ilegiveis} registro(s) com valor não numérico ficaram fora da soma`}
+                      className="ml-1 text-[10px] font-normal text-amber-600"
+                    >
+                      +{resumo.ilegiveis}?
+                    </span>
+                  )}
+                </span>
+
+                {/*
+                  Declinado abre por motivo — a distinção que o card existe para mostrar.
+
+                  Interno, mercado e talento são decisões de negócio diferentes, e "12 declinados"
+                  sem essa quebra não diz se o problema é de capacidade, de proposta ou de elenco.
+                  Só aparece no card de Declinado, e só com registros para mostrar.
+                */}
+                {desfecho === 'declinado' && declinios.length > 0 && (
+                  <span className="mt-1.5 flex flex-wrap gap-1">
+                    {declinios.map((item) => (
+                      <span
+                        key={item.id}
+                        title={`${item.label}: ${item.quantidade} — ${formatarMoeda(item.valor)}`}
+                        className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-rose-100"
+                      >
+                        {item.label} <strong className="font-bold">{item.quantidade}</strong>
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/*
+          O que saiu da janela não some sem aviso: dizer quantos ficaram para trás evita que os
+          números pareçam o total histórico quando são só o recorte recente.
+        */}
+        {antigas > 0 && (
+          <p className="mt-2.5 text-[10px] leading-snug text-slate-400">
+            <strong className="font-semibold text-slate-500">{antigas}</strong>{' '}
+            {antigas === 1 ? 'finalizada há mais' : 'finalizadas há mais'} de{' '}
+            {DIAS_FINALIZADOS_VISIVEIS} dias {antigas === 1 ? 'não aparece' : 'não aparecem'} aqui —
+            o histórico completo fica no banco, para o Power BI.
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
