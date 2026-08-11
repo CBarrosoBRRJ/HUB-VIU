@@ -221,6 +221,51 @@
 */
 .grade-fluida {
   --texto-grade: clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem);
+
+  /*
+    ============================================================================================
+    ## Os degraus, nomeados — e a hierarquia invertida em 11/08/2026
+    ============================================================================================
+
+    Até aqui os descontos eram números soltos espalhados pelos seletores, e o efeito foi um
+    **comentário mentindo por oito dias**: a tabela de hierarquia logo abaixo sempre descreveu
+    "dados menores que a placa que os nomeia", enquanto o código fazia o contrário. Ninguém
+    percebeu porque a relação só existia somando `calc`s em quatro lugares diferentes. Nomeados,
+    os degraus dizem a hierarquia na própria declaração.
+
+    ## A inversão — feita **descendo o dado**, não subindo o cabeçalho
+
+    Decisão do produto: o cabeçalho passa a ser maior que o dado, por pouco. A alternativa
+    descartada foi manter a convenção de tabela (dado ≥ cabeçalho, como Monday, Notion e Excel),
+    com o argumento de que o conteúdo é lido o dia todo e o rótulo apenas uma vez. O produto
+    preferiu a leitura estrutural: o cabeçalho ancora a coluna, e o dado se apoia nele.
+
+    **O caminho importou tanto quanto o destino.** A primeira tentativa subiu o cabeçalho até
+    passar o dado — e foi recusada na hora: *"você subiu o header, antes o tamanho do header estava
+    perfeito, era só diminuir os dados"*. O cabeçalho tinha acabado de ser calibrado em 9–10,5px e
+    aprovado; mexer nele para resolver outra coisa desfazia um acerto para tentar outro.
+
+    | Camada | Degrau | 1366px | 2535px |
+    |--------|--------|-------:|-------:|
+    | Nome do projeto | — (a régua) | 12,8px | 13,6px |
+    | **Cabeçalho** | −0,1875rem *(intacto)* | **9,8px** | **10,5px** |
+    | Dado da célula | −0,21875rem | 9,3px | 10,0px |
+    | Selos, entrada, status | −0,25rem | 8,8px | 9,6px |
+
+    A distância cabeçalho → dado fica em ~5%: o "pouco" do pedido.
+
+    > **O custo, registrado sem meio-termo:** o dado passa a ser o **menor texto de leitura** da
+    > grade, e em janela estreita chega a ~8,5px. É o preço da inversão, e foi aceito com ela — não
+    > há como descer o dado abaixo do cabeçalho sem que ele fique menor do que era. Se um dia a
+    > queixa for "o dado está pequeno", a saída não é mexer no degrau: é subir a régua inteira, que
+    > move as duas camadas juntas.
+
+    > **O nome do projeto continua no topo.** Ele identifica a linha — é o que se procura ao
+    > varrer a lista —, e perdê-lo para o rótulo da coluna trocaria o "o quê" pelo "onde".
+  */
+  --degrau-cabecalho: 0.1875rem;
+  --degrau-dado: 0.21875rem;
+  --degrau-selo: 0.25rem;
 }
 
 /*
@@ -235,20 +280,26 @@
   escrito. Qualquer outra diferença de corpo na grade é defeito, não decisão.
 */
 /*
-  A hierarquia da grade, decidida pela operação em 03/08/2026:
+  A hierarquia da grade — decidida em 03/08/2026, **cumprida pelo código em 11/08/2026**:
 
-  | Camada | Corpo | Por quê |
-  |--------|-------|---------|
-  | Nome do projeto | `--texto-grade` | identifica a linha — é o que se procura |
-  | Cabeçalho | um degrau abaixo | placa de localização: bold + caixa alta já o distinguem |
-  | Dados | dois degraus abaixo | valores curtos de consulta; menores que a placa que os nomeia |
-  | Selos e legendas | dois degraus abaixo | metadado |
+  | Camada | Degrau | Por quê |
+  |--------|--------|---------|
+  | Nome do projeto | `--texto-grade` | identifica a linha — é o que se procura ao varrer a lista |
+  | Cabeçalho | `--degrau-cabecalho` | ancora a coluna; caixa alta e cor já o distinguem, o corpo confirma |
+  | Dados | `--degrau-dado` | valores curtos de consulta; **menores que a placa que os nomeia** |
+  | Selos e legendas | `--degrau-selo` | metadado sobre a linha |
+
+  > **Esta tabela descreveu por oito dias uma hierarquia que o código não fazia.** Ela sempre disse
+  > "dados menores que a placa que os nomeia", e o CSS entregava o inverso — o dado maior que o
+  > cabeçalho. Ninguém notou porque a relação só aparecia somando `calc`s espalhados por quatro
+  > seletores; foi a operação que a leu na tela e perguntou por que não batia. Os degraus nomeados
+  > existem para que a próxima divergência seja visível na declaração, não só no monitor.
 
   A régua é uma só (`--texto-grade`) e tudo deriva dela por `calc`: mudar a base move o conjunto
   inteiro junto, e a proporção entre as camadas não se perde no redimensionamento.
 */
 .grade-fluida td {
-  font-size: calc(var(--texto-grade) - 0.0625rem);
+  font-size: calc(var(--texto-grade) - var(--degrau-dado));
   /* 1.3 em vez de 1.35: devolve parte da altura que o corpo maior tomou. */
   line-height: 1.3;
 }
@@ -332,7 +383,7 @@
 */
 .grade-fluida th,
 .grade-fluida th .text-rotulo {
-  font-size: calc(var(--texto-grade) - 0.1875rem);
+  font-size: calc(var(--texto-grade) - var(--degrau-cabecalho));
   line-height: 1.3;
   /* 0.02em: o suficiente para a caixa alta respirar, sem esticar a placa. */
   letter-spacing: 0.02em;
@@ -348,7 +399,7 @@
 */
 .grade-fluida td.col-entrada,
 .grade-fluida td.col-entrada * {
-  font-size: calc(var(--texto-grade) - 0.125rem) !important;
+  font-size: calc(var(--texto-grade) - var(--degrau-selo)) !important;
   padding-left: 0.25rem;
   padding-right: 0.25rem;
   letter-spacing: -0.01em;
@@ -363,7 +414,7 @@
 */
 .grade-fluida td.col-status [class*="rounded"],
 .grade-fluida td.col-status [class*="rounded"] * {
-  font-size: calc(var(--texto-grade) - 0.125rem) !important;
+  font-size: calc(var(--texto-grade) - var(--degrau-selo)) !important;
   padding-left: 0.375rem;
   padding-right: 0.375rem;
 }
@@ -376,7 +427,7 @@
 */
 .grade-fluida td .text-selo,
 .grade-fluida td .text-rotulo {
-  font-size: calc(var(--texto-grade) - 0.125rem) !important;
+  font-size: calc(var(--texto-grade) - var(--degrau-selo)) !important;
 }
 
 /*
@@ -386,7 +437,7 @@
   com dois textos de igual peso e nenhum deles lia como principal.
 */
 .grade-fluida td .legenda-linha {
-  font-size: calc(var(--texto-grade) - 0.125rem) !important;
+  font-size: calc(var(--texto-grade) - var(--degrau-selo)) !important;
 }
 
 /*

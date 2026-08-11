@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.2 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 3.3 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -120,9 +120,38 @@ A correção foi **só nos degraus**; a régua ficou onde estava:
 > **As duas leituras estavam certas**: o problema não era o tamanho absoluto, era a distância —
 > com 8% e caixa alta, o rótulo competia com o dado que ele nomeia.
 >
-> O desconto voltou para −0,1875rem, devolvendo os ~17% da grade original. `tipografia.test.tsx`
-> passou a travar **os dois eixos**: o piso absoluto nas quatro telas-alvo (9px no menor, 1024px) e
-> a distância mínima de 14% entre as camadas.
+> O desconto do cabeçalho voltou para −0,1875rem, e **ficou lá**: é o valor calibrado e aprovado,
+> travado por teste.
+
+#### A inversão — o cabeçalho passa o dado, 11/08/2026
+
+Decisão do produto, e ela alinha o código com o que esta documentação sempre descreveu: a tabela
+de hierarquia dizia *"dados menores que a placa que os nomeia"* desde 03/08, enquanto o CSS
+entregava o inverso. **A divergência sobreviveu oito dias** porque a relação só existia somando
+`calc`s espalhados por quatro seletores — foi a operação que a leu na tela e perguntou por que não
+batia.
+
+| Camada | Degrau | 1366px | 2535px |
+|--------|--------|-------:|-------:|
+| Nome do projeto | — (a régua) | 12,8px | 13,6px |
+| **Cabeçalho** | −0,1875rem *(intacto)* | **9,8px** | **10,5px** |
+| Dado da célula | −0,21875rem | 9,3px | 10,0px |
+| Selos, entrada, status | −0,25rem | 8,8px | 9,6px |
+
+> **O caminho importou tanto quanto o destino.** A primeira tentativa subiu o cabeçalho até passar
+> o dado, e foi recusada na hora: *"você subiu o header, antes o tamanho do header estava perfeito,
+> era só diminuir os dados"*. Mexer numa camada recém-calibrada para resolver outra desfaz um
+> acerto para tentar outro — a regra que fica é **ajustar a camada que está errada, não a que está
+> ao lado dela**.
+
+**O custo, registrado sem meio-termo:** o dado passa a ser o menor texto de leitura da grade, e em
+janela estreita chega a ~8,5px. Não há como pô-lo abaixo do cabeçalho sem que desça. Se a queixa
+um dia for "o dado está pequeno", a saída **não** é mexer no degrau — isso desfaz a inversão em
+silêncio: é subir a régua inteira, que move as duas camadas juntas.
+
+Os degraus agora são **variáveis nomeadas** (`--degrau-cabecalho`, `--degrau-dado`, `--degrau-selo`)
+justamente para que a próxima divergência entre o que se documenta e o que se entrega apareça na
+declaração, e não só no monitor de quem usa.
 
 A hierarquia entre nome, dado e rótulo **não precisa de quatro pixels** — ela já vem do peso, da
 caixa alta e do espaçamento. Os quatro pixels só empurravam o último degrau para fora do legível.

@@ -100,9 +100,13 @@ describe('a escala de texto', () => {
     expect(clamp, 'a régua da grade precisa do clamp fluido').toBeTruthy();
     const [pisoRem, baseRem, vh, vw, tetoRem] = clamp!.slice(1).map(Number);
 
-    const descontos = [...css.matchAll(/var\(--texto-grade\)\s*-\s*([\d.]+)rem/g)]
-      .map((m) => Number(m[1]));
-    expect(descontos.length, 'os degraus da grade precisam existir').toBeGreaterThan(0);
+    // Os degraus são lidos **pelo nome**: é o que permite ao teste falar da hierarquia, e não de
+    // um `Math.max` sobre números anônimos que não diz qual camada é qual.
+    const descontos = ['cabecalho', 'dado', 'selo'].map((papel) => {
+      const achado = new RegExp(`--degrau-${papel}:\\s*([\\d.]+)rem`).exec(css);
+      expect(achado, `--degrau-${papel} precisa estar declarado`).toBeTruthy();
+      return Number(achado![1]);
+    });
 
     /*
       A conta roda nas **telas-alvo declaradas**, não no piso teórico do `clamp`.
@@ -120,38 +124,85 @@ describe('a escala de texto', () => {
 
     for (const [largura, altura] of [[1024, 768], [1366, 768], [1920, 1080], [2535, 1315]]) {
       const { r, valor } = regua(largura, altura);
-      const dado = valor - Math.min(...descontos) * r;
-      const rotulo = valor - Math.max(...descontos) * r;
+      const [degrauCabecalho, degrauDado] = descontos;
+      const rotulo = valor - degrauCabecalho * r;
+      const dado = valor - degrauDado * r;
 
-      // Leitura corrida em caixa baixa: 10px é o piso.
-      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(10);
+      /*
+        O piso do dado caiu de 10px para 8,4px com a inversão de 11/08/2026 — e isso é
+        consequência aceita, não descuido: o produto decidiu que o dado fica **abaixo** do
+        cabeçalho, e o cabeçalho estava calibrado em 9px no menor alvo. Não há como pôr o dado
+        sob ele sem que desça junto.
+
+        Se um dia o dado ficar pequeno demais na prática, a saída **não** é mexer neste degrau
+        (isso desfaz a inversão em silêncio): é subir a régua inteira, que move as duas camadas.
+      */
+      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(8.4);
       /*
         O cabeçalho é caixa alta: 9px ali tem altura de maiúscula equivalente à de um texto comum
         bem maior, e é o valor da grade original — que nunca foi objeto de queixa. O inaceitável
-        eram os 7px, que vinham de um desconto de 0.25rem.
+        eram os 7px, que vinham de um desconto de 0.25rem sobre a régua.
       */
       expect(rotulo, `cabeçalho ficaria em ${rotulo.toFixed(1)}px em ${largura}px`)
         .toBeGreaterThanOrEqual(8.9);
     }
   });
 
-  it('o cabeçalho recua o bastante para não competir com o dado', () => {
+  it('o cabeçalho fica acima do dado — a hierarquia que a tabela sempre descreveu', () => {
     const css = readFileSync('src/index.css', 'utf8');
-    const descontos = [...css.matchAll(/var\(--texto-grade\)\s*-\s*([\d.]+)rem/g)].map((m) => Number(m[1]));
+    const degrau = (papel: string) =>
+      Number(new RegExp(`--degrau-${papel}:\\s*([\\d.]+)rem`).exec(css)![1]);
 
     /*
-      A queixa "cabeçalho grande em monitor grande" não era sobre o número — 11,5px é pequeno. Era
-      **relativa**: os degraus comprimidos deixaram o rótulo a 8% do dado, e caixa alta fez o resto.
-      A grade original tinha 18%. Abaixo de ~14% a hierarquia deixa de se sustentar sozinha.
-    */
-    const r = 16;
-    const base = 0.8125 * r;
-    const dado = base - Math.min(...descontos) * r;
-    const rotulo = base - Math.max(...descontos) * r;
-    const distancia = (dado - rotulo) / dado;
+      A inversão de 11/08/2026, decidida pelo produto.
 
-    expect(distancia, `só ${(distancia * 100).toFixed(0)}% entre dado e cabeçalho`)
-      .toBeGreaterThanOrEqual(0.14);
+      O comentário da hierarquia sempre descreveu "dados menores que a placa que os nomeia", e o
+      código entregava o contrário — divergência que sobreviveu oito dias porque a relação só
+      existia somando `calc`s espalhados. Agora ela é uma comparação de dois números nomeados, e
+      este teste é o que impede a volta silenciosa.
+
+      A alternativa descartada foi a convenção de tabela (dado ≥ cabeçalho, como Monday e Excel):
+      o produto preferiu a leitura estrutural, com o cabeçalho ancorando a coluna.
+    */
+    expect(degrau('cabecalho'), 'o cabeçalho precisa ser MAIOR que o dado')
+      .toBeLessThan(degrau('dado'));
+    expect(degrau('dado'), 'o dado precisa ser maior que os selos')
+      .toBeLessThan(degrau('selo'));
+
+    /*
+      **O cabeçalho não se mexe para resolver isto.** Ele foi calibrado com a operação em
+      −0.1875rem e aprovado; a inversão foi feita descendo o dado, e a primeira tentativa — subir o
+      cabeçalho até passar o dado — foi recusada na hora ("antes o tamanho do header estava
+      perfeito, era só diminuir os dados"). Este número trava o acerto.
+    */
+    expect(degrau('cabecalho'), 'o degrau do cabeçalho é calibrado — desça o dado, não suba ele')
+      .toBe(0.1875);
+
+    /*
+      "Por pouco" é parte do pedido: a distância fica na faixa de 5% a 15%. Acima disso o rótulo
+      em caixa alta domina a grade; abaixo, a inversão não se percebe e o custo de encolher o dado
+      não compra nada.
+    */
+    const base = 0.8125 * 16;
+    const cabecalho = base - degrau('cabecalho') * 16;
+    const dado = base - degrau('dado') * 16;
+    const distancia = (cabecalho - dado) / cabecalho;
+
+    expect(distancia, `${(distancia * 100).toFixed(0)}% entre cabeçalho e dado`)
+      .toBeGreaterThanOrEqual(0.05);
+    expect(distancia, `${(distancia * 100).toFixed(0)}% entre cabeçalho e dado`)
+      .toBeLessThanOrEqual(0.15);
+  });
+
+  it('o nome do projeto continua no topo da hierarquia', () => {
+    const css = readFileSync('src/index.css', 'utf8');
+    /*
+      Ele identifica a linha — é o que se procura ao varrer a lista. A inversão trocou a ordem
+      entre cabeçalho e dado; deixar o rótulo da coluna passar o nome do projeto trocaria o "o quê"
+      pelo "onde", que é outra coisa.
+    */
+    expect(css, 'a coluna do projeto usa a régua cheia, sem desconto')
+      .toMatch(/\.grade-fluida td\.col-projeto[\s\S]{0,120}font-size:\s*var\(--texto-grade\)/);
   });
 });
 
