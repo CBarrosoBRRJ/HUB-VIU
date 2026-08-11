@@ -24,30 +24,43 @@
   está decidindo hierarquia, e quem escolhe entre "9px" e "10px" está chutando um pixel. Nomear
   pelo papel é também o que impede a escala de crescer para dezoito degraus.
 
-  | Degrau | rem | ≈ px | Papel |
-  |--------|-----|-----:|-------|
-  | `text-selo`   | 0.625   | 10 | Selos, contadores, badges — metadado sobre a linha |
-  | `text-rotulo` | 0.6875  | 11 | Cabeçalho de coluna, rótulo de seção — placa de localização |
-  | `text-apoio`  | 0.75    | 12 | Texto auxiliar, legendas, ajuda |
+  | Degrau | rem | ≈ px (raiz 16) | Papel |
+  |--------|-----|---------------:|-------|
+  | `text-selo`   | 0.5625  |  9 | Selos, contadores, badges — metadado sobre a linha |
+  | `text-rotulo` | 0.625   | 10 | Cabeçalho de coluna, rótulo de seção — placa de localização |
+  | `text-apoio`  | 0.6875  | 11 | Texto auxiliar, legendas, ajuda |
   | `text-dado`   | 0.8125  | 13 | Valores de consulta fora da grade |
 
-  ## O piso subiu um degrau
+  ## O piso NÃO sobe aqui — e a tentativa de subir estourou o layout
 
-  O que era 9px virou 10, e o que era 10 virou 11. **9px não é texto, é ruído com forma de texto**
-  — abaixo do limite em que a maioria consegue ler sem aproximar do monitor, e a operação passa o
-  dia nessa tela. O degrau extra custa alguns pixels de largura em telas de administração, que têm
-  folga; na grade não custa nada, porque lá o corpo vem de `--texto-grade` (abaixo) e não daqui.
+  A primeira versão desta escala subiu cada degrau em 1px (9→10, 10→11, 11→12), com o argumento de
+  que 9px é pequeno demais. O argumento estava certo sobre o número e **errado sobre o lugar**:
+
+  1. A queixa que originou tudo era o **cabeçalho da grade em 7px** — e a grade tem régua própria
+     (`--texto-grade`, abaixo), corrigida separadamente. Os 9px da interface nunca foram a queixa.
+  2. Os contêineres não acompanharam. A sidebar é `w-64`, o avatar é `size-8`, o chip de perfil tem
+     `px-2`: todos escalam com a **raiz**, não com o degrau. Subir só o texto o engordou ~10%
+     **dentro da mesma caixa** — e a sidebar passou a exibir "Backlog de Agenciad…", "Caio Cesar
+     Mour…" e um "DONO DO SISTEMA" quebrado em duas linhas.
+
+  **Quem dá legibilidade nas telas grandes é a raiz fluida**, não o degrau: com a raiz em 17,25px,
+  `text-selo` vira 9,7px e `text-apoio` 11,9px — o ganho chega junto com o contêiner, que cresce na
+  mesma proporção. Mexer no degrau isolado quebra a razão texto/caixa que o layout inteiro assume.
+
+  > **Regra:** estes quatro números são a proporção interna do desenho e **não se ajustam para
+  > resolver legibilidade**. Para isso existem a raiz fluida (§ acima) e a régua pessoal de Meu
+  > Perfil — as duas movem texto e caixa juntos.
 
   > **Dentro da grade, esta escala não manda.** As regras de `.grade-fluida` sobrepõem tudo o que
   > está numa `<td>`, de propósito — ver o bloco seguinte. A escala vale para o resto do produto:
   > sidebar, cabeçalhos, painéis, administração e diálogos.
 */
 @theme {
-  --text-selo: 0.625rem;
+  --text-selo: 0.5625rem;
   --text-selo--line-height: 1.4;
-  --text-rotulo: 0.6875rem;
+  --text-rotulo: 0.625rem;
   --text-rotulo--line-height: 1.4;
-  --text-apoio: 0.75rem;
+  --text-apoio: 0.6875rem;
   --text-apoio--line-height: 1.5;
   --text-dado: 0.8125rem;
   --text-dado--line-height: 1.5;

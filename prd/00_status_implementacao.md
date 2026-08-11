@@ -626,6 +626,20 @@ células de seleção. **Nenhum pixel de letra foi cedido** — o piso de 9px se
 > leitura — e foi ele que produziu o cabeçalho de 7px. As rodadas de 11/08 percorreram os três
 > eixos na ordem errada.
 
+### O degrau inflado estourou o layout — e foi revertido
+
+A escala tinha subido cada degrau em 1px "de brinde", junto com a correção do cabeçalho de 7px. Era
+o lugar errado: **os contêineres escalam com a raiz, não com o degrau**, então o texto ficou ~10%
+maior dentro da mesma caixa. A sidebar passou a exibir "Backlog de Agenciad…", "Caio Cesar Mour…" e
+um "DONO DO SISTEMA" quebrado em duas linhas.
+
+Revertido aos valores originais (9 · 10 · 11 · 13px em raiz 16), com os quatro travados por teste.
+A legibilidade nas telas grandes continua vindo de onde deve: a raiz fluida e a régua pessoal, que
+movem texto **e** caixa na mesma proporção.
+
+> **A lição fecha a trinca do dia:** espaçamento → peso → tamanho, e *nunca* o degrau isolado.
+> Mexer no corpo do texto sem mexer no contêiner quebra a razão texto/caixa que toda tela assume.
+
 ### A convenção agora tem teste
 
 [`testes-ui/tipografia.test.tsx`](../testes-ui/tipografia.test.tsx) — 5 verificações que falham se

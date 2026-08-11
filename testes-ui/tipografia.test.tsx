@@ -43,20 +43,35 @@ describe('a escala de texto', () => {
       .toEqual([]);
   });
 
-  it('declara os quatro degraus, e nenhum abaixo de 10px', () => {
+  it('declara os quatro degraus, na proporção que o layout assume', () => {
     const css = readFileSync('src/index.css', 'utf8');
-    const degraus = ['--text-selo', '--text-rotulo', '--text-apoio', '--text-dado'];
 
-    for (const degrau of degraus) {
+    /*
+      Os valores são **fixos**, e o teste os trava um a um de propósito.
+
+      A tentativa de subi-los 1px cada (9→10, 10→11, 11→12) para "melhorar a legibilidade" estourou
+      o layout: os contêineres — `w-64` da sidebar, `size-8` do avatar — escalam com a **raiz**, não
+      com o degrau, então o texto engordou ~10% dentro da mesma caixa e a sidebar passou a cortar
+      "Backlog de Agenciad…" e a quebrar "DONO DO SISTEMA" em duas linhas.
+
+      Legibilidade se resolve na raiz fluida e na régua de Meu Perfil, que movem texto e caixa
+      juntos. Estes quatro números são proporção interna do desenho — mexer neles isoladamente é
+      quebrar a razão texto/caixa que toda tela assume.
+    */
+    const esperado: Record<string, number> = {
+      '--text-selo': 0.5625,
+      '--text-rotulo': 0.625,
+      '--text-apoio': 0.6875,
+      '--text-dado': 0.8125,
+    };
+
+    for (const [degrau, rem] of Object.entries(esperado)) {
       const valor = new RegExp(`${degrau}:\\s*([\\d.]+)rem`).exec(css);
       expect(valor, `${degrau} precisa estar declarado no @theme`).toBeTruthy();
-
-      /*
-        O piso de 10px não é gosto: abaixo disso o texto deixa de ser lido e passa a ser
-        reconhecido pelo formato — e um rótulo que se adivinha não é rótulo.
-      */
-      const px = Number(valor![1]) * 16;
-      expect(px, `${degrau} está em ${px}px`).toBeGreaterThanOrEqual(10);
+      expect(
+        Number(valor![1]),
+        `${degrau} mudou — se é por legibilidade, o lugar é a raiz fluida, não o degrau`,
+      ).toBe(rem);
     }
   });
 

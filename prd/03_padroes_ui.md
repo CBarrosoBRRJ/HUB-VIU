@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.0 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 3.1 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -62,12 +62,27 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 **Nenhum tamanho de fonte se escreve em pixel.** Quatro degraus, declarados no `@theme` do
 [`index.css`](../src/index.css) e nomeados pelo **papel**:
 
-| Degrau | rem | ≈ px | Papel |
-|--------|----:|-----:|-------|
-| `text-selo` | 0.625 | 10 | Selos, contadores, badges — metadado sobre a linha |
-| `text-rotulo` | 0.6875 | 11 | Cabeçalho de coluna, rótulo de seção |
-| `text-apoio` | 0.75 | 12 | Texto auxiliar, legendas, ajuda |
+| Degrau | rem | ≈ px (raiz 16) | Papel |
+|--------|----:|---------------:|-------|
+| `text-selo` | 0.5625 | 9 | Selos, contadores, badges — metadado sobre a linha |
+| `text-rotulo` | 0.625 | 10 | Cabeçalho de coluna, rótulo de seção |
+| `text-apoio` | 0.6875 | 11 | Texto auxiliar, legendas, ajuda |
 | `text-dado` | 0.8125 | 13 | Valores de consulta fora da grade |
+
+> #### Estes quatro números não se ajustam por legibilidade — e a tentativa quebrou a tela
+>
+> A primeira versão subiu cada degrau em 1px (9→10, 10→11, 11→12), com o argumento de que 9px é
+> pequeno demais. O argumento estava certo sobre o número e **errado sobre o lugar**:
+>
+> - a queixa de origem era o **cabeçalho da grade em 7px** — e a grade tem régua própria, corrigida
+>   à parte (§1.2.1). Os 9px da interface nunca foram reclamados;
+> - os contêineres não acompanham o degrau. `w-64` da sidebar, `size-8` do avatar e todo `px-*`
+>   escalam com a **raiz**. Subir só o texto o engordou ~10% dentro da mesma caixa, e a sidebar
+>   passou a cortar "Backlog de Agenciad…" e a quebrar "DONO DO SISTEMA" em duas linhas.
+>
+> **Quem entrega legibilidade são a raiz fluida (§1.2.5) e a régua pessoal** — as duas movem texto
+> e caixa juntos, mantendo a razão de 0,051 entre `text-dado` e a largura da sidebar em qualquer
+> tela. O degrau é proporção interna do desenho. `tipografia.test.tsx` trava os quatro valores.
 
 > **Por que `rem`, e não px.** `text-[9px]` é 9px sempre — inclusive para quem aumentou a fonte no
 > sistema operacional **porque precisa disso para enxergar**. `rem` acompanha essa preferência. Era
