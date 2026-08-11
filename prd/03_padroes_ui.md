@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.4 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 3.5 | **Status:** Vigente · **tipografia congelada** | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -47,6 +47,50 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 > ⚠️ Classes do Tailwind 4 precisam existir **literais** no código. Nunca `bg-${cor}-500`.
 
 ### 1.2. Tipografia
+
+> # ⛔ A TIPOGRAFIA ESTÁ CONGELADA — 11/08/2026
+>
+> **Nenhum tamanho de fonte se altera sem pedido explícito da operação.** Não como sugestão de
+> melhoria, não "de brinde" junto com outra correção, não porque um número parece pequeno lido
+> fora da tela.
+>
+> ## O que está aprovado
+>
+> | Camada | 1024–1366px | 2535px |
+> |--------|------------:|-------:|
+> | Raiz | 16px | ~16,8px |
+> | Escala da interface (`text-selo` … `text-dado`) | 9 · 10 · 11 · 13px | escala com a raiz |
+> | Grade: nome do projeto | 13,0px | 13,6px |
+> | Grade: **cabeçalho** | 10,0px | 10,5px |
+> | Grade: dado | 9,5px | 10,0px |
+> | Grade: selos | 9,0px | 9,6px |
+>
+> ## Por que congelado
+>
+> Este conjunto custou **oito rodadas de ajuste num único dia**, cada uma validada na tela real da
+> operação. Quatro delas foram correções de tentativas minhas que erraram o eixo:
+>
+> | Tentativa | O que quebrou |
+> |-----------|---------------|
+> | Subir o piso da escala "de brinde" | Sidebar cortando "Backlog de Agenciad…" e "DONO DO SISTEMA" em duas linhas |
+> | Régua + degraus ao mesmo tempo | Cabeçalho saltou 43%, grade perdeu densidade |
+> | Comprimir os degraus | Hierarquia achatada: rótulo competindo com o dado |
+> | Subir o cabeçalho para inverter | Desfez uma camada que já estava aprovada |
+>
+> **O tamanho de fonte não é um detalhe ajustável em passagem.** Cada valor aqui é o resultado de
+> uma queixa concreta, medida e corrigida — e mexer em um deles isoladamente reintroduz uma das
+> quebras acima, porque as camadas se compõem (raiz × régua × degrau × contêiner).
+>
+> ## O que fazer quando alguém achar que está pequeno ou grande
+>
+> 1. **Não mexer no código.** A régua pessoal em **Meu Perfil › Tamanho do texto** (90–115%)
+>    resolve por pessoa e por navegador, que é onde o desconforto de fato mora (§1.2.5).
+> 2. Se a queixa vier da operação e a régua pessoal não resolver, aí sim é conversa de código — e
+>    começa por **medir**, não por ajustar: qual camada, em qual tela, quantos pixels.
+> 3. A ordem de ajuste, quando houver: **espaçamento → peso → tamanho** (§1.2.6).
+>
+> `tipografia.test.tsx` trava os valores um a um. Um teste vermelho ali não é obstáculo a
+> contornar — é este parágrafo cobrando o pedido explícito.
 
 | Uso | Classe |
 |-----|--------|

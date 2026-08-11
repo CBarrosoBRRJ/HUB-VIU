@@ -136,6 +136,9 @@ por reler o registro correspondente.
 | Seleção é a interseção com o que está visível | [03 §7.6](03_padroes_ui.md) |
 | Ordenação segue a ordem da operação, não o alfabeto | [03 §7.7](03_padroes_ui.md) |
 | Criar é um gesto só: o botão insere a linha, com a chave em edição | [03 §7.8](03_padroes_ui.md) |
+| **Tipografia congelada: nenhum tamanho muda sem pedido explícito** | [03 §1.2](03_padroes_ui.md) |
+| Legibilidade se resolve na raiz fluida e na régua pessoal, nunca no degrau | [03 §1.2.1](03_padroes_ui.md) |
+| Quando pedirem "menor": espaçamento → peso → tamanho, nessa ordem | [03 §1.2.6](03_padroes_ui.md) |
 | Confirmação é diálogo próprio, centrado — a caixa do navegador saiu do produto | [03 §8.1](03_padroes_ui.md) |
 | O botão da confirmação **nomeia a ação**; em destrutivo, o foco começa em Cancelar | [03 §8.1](03_padroes_ui.md) |
 | Desfazer observa o resultado, não a intenção — nenhuma mutação é instrumentada | [03 §8.2](03_padroes_ui.md) |

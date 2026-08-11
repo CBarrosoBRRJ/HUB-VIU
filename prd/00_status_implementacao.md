@@ -22,7 +22,8 @@
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
 | Testes | ✅ 34 suítes · 1.503 verificações · **0 falhas** + 116 testes de UI com cliques reais (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
-| **Legibilidade** | 🟡 Escala de texto em `rem`, piso de 10px, pilha de fontes por SO, contraste AA e movimento reduzido (§5.14) — **falta o layout por faixa de largura** |
+| **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
+| Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
 | Exportação de Dados | ✅ Exportação nativa em **`.xlsx` (Excel)** via Blob ArrayBuffer em **Backlog**, **Contratos** e **Talentos** |
 | Modelo de dados | ✅ `prisma/schema.prisma` — 18 tabelas e 25 enums, `prisma validate` OK e SQL de migração gerado (§8) |
 | Escopo desta fase | Front-end + regras de negócio + **o modelo de dados, executável** |
