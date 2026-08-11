@@ -143,7 +143,7 @@ export function CelulaReferencia({
               transition={{ duration: 0.12 }}
               className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-xl custom-scrollbar"
             >
-              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="px-3 py-1 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                 Já cadastrados
               </p>
               {lista.map((opcao) => (
@@ -177,7 +177,7 @@ export function CelulaReferencia({
             >
               <div className="flex items-start gap-2 border-b border-amber-100 bg-amber-50 px-3 py-2">
                 <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-                <p className="text-[11px] leading-snug text-amber-800">
+                <p className="text-apoio leading-snug text-amber-800">
                   Já existe {entidade} parecido. Você quis dizer um destes?
                 </p>
               </div>

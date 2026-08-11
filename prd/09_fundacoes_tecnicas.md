@@ -1,6 +1,6 @@
 # PRD 09 — Fundações Técnicas
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 1.5 | **Status:** Vigente | **Data:** 04/08/2026
+**Versão:** 1.6 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Datas, moeda, persistência e IDs*
 
@@ -75,6 +75,28 @@ export function finalizadaRecentemente(op: Oportunidade, referencia = new Date()
 Em produção ninguém passa o argumento; nos testes, passa-se uma data fixa. Sem esse parâmetro, a
 única forma de testar seria mexer no relógio da máquina — e a suíte passaria a falhar em datas
 específicas do calendário.
+
+#### A convenção é antiga; cumpri-la em toda parte é que faltava
+
+Em 11/08/2026 duas funções de permissão foram alinhadas: `podeGerenciarEquipe` e `podeExcluirEquipe`
+consultavam o relógio **lá no fundo**, via `getPapelNaEquipe`, e não deixavam ninguém escolher qual
+era o "hoje". A responsabilidade temporária vence na leitura ([04 §4](04_pagina_equipes.md)), então
+a resposta delas muda com o calendário — e o teste que montava uma janela de sete dias a partir de
+uma data fixa **passou a falhar sozinho** quando o tempo andou.
+
+O sintoma vale reconhecer, porque é sempre o mesmo: **um teste que passava começa a falhar sem que
+o código mude.** A causa nunca é a regra; é a regra sendo consultada com um "hoje" que ninguém
+controla. Registro completo em [00 §5.13](00_status_implementacao.md).
+
+#### O mesmo vale para dado de exemplo
+
+O seed do Backlog tem datas absolutas de julho, e a regra dos 20 dias vai arquivando as linhas
+conforme o tempo passa: **a demonstração esvazia sozinha** — em 11/08 já abre com 9 linhas em vez
+de 12 — e a suíte de UI ia junto, falhando mais a cada dia.
+
+O relógio dos testes foi fixado (`testes-ui/setup.ts`), o que devolve à suíte a propriedade de
+falhar só quando o código muda. O seed continua envelhecendo: é problema de produto, e está no
+débito nº 10 de [00 §6](00_status_implementacao.md).
 
 ---
 

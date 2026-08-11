@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 2.5 | **Status:** Vigente | **Data:** 04/08/2026
+**Versão:** 3.0 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -53,9 +53,236 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 | Títulos e números de destaque | `font-display` (Outfit) |
 | Corpo | Plus Jakarta Sans (padrão do `body`) |
 | Códigos e números de contrato | `font-mono` (JetBrains Mono) |
-| Cabeçalho de coluna (quadros) | `text-[10px] font-bold uppercase tracking-wide text-slate-500` (§7.10) — no Backlog o `index.css` sobrescreve pela régua da grade: corpo `calc(var(--texto-grade) - 0.25rem)`, `letter-spacing: 0.06em`, peso 600, cor `#475569` (§3.5) |
-| Cabeçalho de coluna (Administração) | `text-[11px] font-bold uppercase tracking-wider text-slate-500` — o 11px com `tracking-wider` só sobrevive aqui, onde as colunas são largas e a caixa alta não disputa pixel (§7.10) |
-| Rótulo de seção | `text-[10px] font-bold uppercase tracking-wider text-slate-400` — o `tracking-[0.16em]` existe numa instância só, os rótulos da Sidebar |
+| Cabeçalho de coluna (quadros) | `text-rotulo font-medium uppercase tracking-tight text-slate-500` (§7.10) — no Backlog o `index.css` sobrescreve pela régua da grade (§1.2.1) e pelo peso de §1.2.6 |
+| Cabeçalho de coluna (Administração) | `text-rotulo font-bold uppercase tracking-wider text-slate-500` — o `tracking-wider` só sobrevive aqui, onde as colunas são largas e a caixa alta não disputa pixel (§7.10) |
+| Rótulo de seção | `text-rotulo font-bold uppercase tracking-wider text-slate-500` — o `tracking-[0.16em]` existe numa instância só, os rótulos da Sidebar |
+
+### 1.2.1. A escala de texto — 11/08/2026
+
+**Nenhum tamanho de fonte se escreve em pixel.** Quatro degraus, declarados no `@theme` do
+[`index.css`](../src/index.css) e nomeados pelo **papel**:
+
+| Degrau | rem | ≈ px | Papel |
+|--------|----:|-----:|-------|
+| `text-selo` | 0.625 | 10 | Selos, contadores, badges — metadado sobre a linha |
+| `text-rotulo` | 0.6875 | 11 | Cabeçalho de coluna, rótulo de seção |
+| `text-apoio` | 0.75 | 12 | Texto auxiliar, legendas, ajuda |
+| `text-dado` | 0.8125 | 13 | Valores de consulta fora da grade |
+
+> **Por que `rem`, e não px.** `text-[9px]` é 9px sempre — inclusive para quem aumentou a fonte no
+> sistema operacional **porque precisa disso para enxergar**. `rem` acompanha essa preferência. Era
+> a diferença entre um sistema legível e um que *parece* legível para quem tem um monitor bom.
+
+> **Por que nomes de papel, e não de tamanho.** Quem escolhe entre "selo" e "rótulo" decide
+> hierarquia; quem escolhe entre "9px" e "10px" chuta um pixel. É também o que impede a escala de
+> virar dezoito degraus na terceira tela nova.
+
+**O piso é 10px, e ele é verificado.** [`testes-ui/tipografia.test.tsx`](../testes-ui/tipografia.test.tsx)
+falha se um `text-[Npx]` voltar ao código, se um degrau cair abaixo de 10px, ou se a régua da grade
+passar a produzir texto menor que isso. Convenção sem teste derrete — esta já derreteu uma vez, em
+silêncio, 202 vezes.
+
+#### A régua da grade, e a conta que faltava
+
+O Backlog não usa a escala: tem régua fluida própria (`--texto-grade`) e cada camada desconta um
+degrau dela. **Ninguém somava as duas coisas** — e o cabeçalho de coluna, que é a régua menos o
+maior desconto, chegava a **7px numa tela de notebook**.
+
+A correção foi **só nos degraus**; a régua ficou onde estava:
+
+| | Original | **Agora** |
+|---|------:|------:|
+| Régua (`--texto-grade`) | 11–13px | **11–13px** |
+| Nome do projeto | 11–13px | **11–13px** |
+| Dado da célula | 9–11px | **10–12px** |
+| Cabeçalho e selos | **7–9px** | **9–11px** |
+
+A hierarquia entre nome, dado e rótulo **não precisa de quatro pixels** — ela já vem do peso, da
+caixa alta e do espaçamento. Os quatro pixels só empurravam o último degrau para fora do legível.
+
+**9px sustenta o cabeçalho, e só ele:** caixa alta e negrito dão a ele uma altura de maiúscula
+equivalente à de um texto comum bem maior, e o rótulo de coluna se lê uma vez, para localizar. O
+dado, que é leitura em caixa baixa, não desce de 10px. Os dois pisos são verificados
+separadamente em [`tipografia.test.tsx`](../testes-ui/tipografia.test.tsx).
+
+> #### A tentativa que passou do ponto, no mesmo dia
+>
+> A primeira correção mexeu em **duas variáveis ao mesmo tempo**: subiu a régua para 12–14px *e*
+> comprimiu os degraus. O cabeçalho recebeu as duas somadas e saltou 43% — a operação olhou a tela
+> e disse, com razão, que estava grande. A grade tinha deixado de ser densa, e densidade ali não é
+> capricho: é quantas linhas se vê sem rolar.
+>
+> **Ajuste de tipografia mexe numa variável por vez.** Com duas, não há como saber qual foi longe
+> demais, e a correção vira outro chute.
+
+### 1.2.2. Fora da rede, e fora do Windows
+
+As quatro fontes vêm do Google Fonts. Se a rede corporativa bloquear `fonts.googleapis.com`, nada
+carrega e o navegador cai na pilha de alternativas — que agora **nomeia uma por sistema** em vez de
+deixar `system-ui` sortear: `-apple-system` e `BlinkMacSystemFont` (macOS), `Segoe UI Variable` e
+`Segoe UI` (Windows), `Roboto` e `Noto Sans` (Linux/Android).
+
+Não impede a troca de fonte — nem deveria. Torna o resultado **previsível por sistema**, que é o
+que faltava para o mesmo layout não chegar com três larguras diferentes.
+
+### 1.2.5. A raiz acompanha a tela — 11/08/2026
+
+A validação nos **quatro monitores reais da operação** (1051 a 2535px de largura) mostrou o mesmo
+defeito em graus diferentes: quanto maior a tela, menor o sistema parecia. O texto batia no teto
+fixo das réguas (~13px) e parava — e 13px num monitor de 2500px é proporcionalmente minúsculo.
+
+A correção é **uma regra**, e é o pagamento da conversão para `rem` (§1.2.1):
+
+```css
+html { font-size: clamp(16px, 15.1px + 0.065vw, 17.25px); }
+```
+
+| Largura da janela | Raiz | Efeito |
+|-------------------|-----:|--------|
+| até ~1366px | 16px | **o desenho aprovado, intacto** — "nas menores estão ótimo" |
+| 1920px | ~16,4px | +2,3% |
+| 2535px | ~16,8px | +5% |
+
+> #### A curva foi calibrada por bissecção, e a régua é o veredito da operação
+>
+> A primeira versão (teto 19px, +19% na tela grande) foi recusada como "imensa" — pela mesma
+> operação que tinha recusado o 16px fixo como "pequeno, não dá para ver". **Os dois vereditos
+> juntos são o dado**: o ponto bom da tela de 2535px está entre 16 e 19, e a curva atual mira
+> ~16,8, com folga para o lado do discreto, porque "grande demais" incomodou mais.
+>
+> A lição: **presença de interface não escala linear com a tela.** Quem troca de monitor não muda
+> a distância do olho — o ganho certo é sutil (+2 a +5%), não proporcional. O ganho grande de
+> legibilidade nas telas grandes veio da compressão dos degraus da grade (cabeçalho de 7px para
+> 9–11px, §1.2.1); a raiz faz só o acabamento.
+
+#### O tamanho do texto é escolha de quem usa — Meu Perfil › Tamanho do texto
+
+A calibração provou em três rodadas que **não existe um tamanho certo**: a mesma interface foi
+"pequena" e "imensa" para o mesmo olho em telas diferentes. A curva resolve a *tela*; a pessoa é
+resolvida por um controle de três posições, como no Gmail e no Notion:
+
+| Posição | Fator | Para quem |
+|---------|------:|-----------|
+| Compacto | ×0,94 | quer mais linhas por tela |
+| Padrão | ×1 | a calibração do sistema |
+| Confortável | ×1,07 | quer texto um degrau maior |
+| **Régua fina** | ×0,90 a ×1,15, passo de 1% | o ponto exato, achado ao vivo |
+
+> **Por que a régua existe além dos atalhos.** No monitor de 32" da operação, 16px foi "pequeno",
+> +8% foi "imenso" e +2% "ainda ruim" — a janela de conforto de uma tela real é mais estreita que
+> qualquer degrau pré-definido, e não se acerta por tentativa remota. A régua aplica a cada passo,
+> **vendo o efeito**, na tela em que o conforto será vivido. Calibração por chat termina aqui.
+
+O fator multiplica a raiz (`--texto-pessoal`, aplicado por [`utils/aparencia.ts`](../src/utils/aparencia.ts))
+— e como tudo é `rem`, o sistema inteiro acompanha na hora, coerente. A escolha vale **por
+navegador** (localStorage, fora do dado de sessão): é conforto de quem está na frente da tela, não
+atributo da conta. Os fatores são de conforto, não de zoom (±7%; zoom é papel do navegador), e o
+teste trava a faixa.
+
+> **Mudar o fator também remede a grade**: `useEscalaRaiz` escuta o evento `viu:raiz` disparado
+> pela aplicação do fator — sem ele, as larguras ficariam medidas na raiz antiga até o próximo
+> resize.
+
+Como nenhum tamanho do produto está mais em pixel, a raiz escala **tudo junto** — sidebar,
+cabeçalhos, grade, diálogos, espaçamentos — na mesma proporção. O piso de 16px garante que tela
+pequena nunca encolhe abaixo do desenho; o teto de 19px é o "que não fique imenso" do pedido.
+As duas pontas são verificadas em [`tipografia.test.tsx`](../testes-ui/tipografia.test.tsx).
+
+> **Ajuste fino por tela é uma variável.** Mexer nos três números do clamp move o produto inteiro
+> junto, coerente — o oposto de caçar 202 tamanhos espalhados, que era o estado anterior.
+
+#### As larguras acompanham a raiz — a segunda metade, encontrada em uso
+
+A raiz fluida sozinha tinha um efeito colateral que a operação viu no mesmo dia: o **texto**
+crescia nas telas grandes e as **caixas** não — larguras de coluna, mínimos de tabela e os cartões
+do fluxo estavam em pixel fixo, e a palavra passou a ser comida ("Aguardando F…").
+
+| Onde | Como escala |
+|------|-------------|
+| Grade do Backlog | `useEscalaRaiz` multiplica **todas** as larguras na fonte — coluna, congeladas e scroll crescem juntos, e a aritmética "exata por construção" (§3.5) continua exata. `rem` aqui quebraria o `scrollTo`, que fala pixel |
+| Contratos · Talentos · Administração | Mínimos de tabela em `rem` (`min-w-[83.75rem]` etc.) — as colunas são percentuais, então escalar o contêiner escala tudo |
+| Cartões do fluxo | `min-w-fit`: etiqueta de navegação **não se corta** — o cartão nunca fica menor que o próprio rótulo, e o `flex-wrap` quebra a linha com cartões inteiros |
+
+> A regra geral que fica: **texto que escala exige caixa que escala.** Toda largura nova entra em
+> `rem` — ou, na grade do Backlog, passa pelo fator de `useEscalaRaiz`. Largura fixa em px ao lado
+> de texto fluido é palavra comida na tela de alguém.
+
+### 1.2.6. Presença ≠ tamanho: o peso do cabeçalho — 11/08/2026
+
+A operação apontou "sensação de grande nos títulos da coluna" **depois** de a régua já ter voltado
+ao original. A medição explicou o que o olho via e o número escondia:
+
+| | Valor |
+|---|------:|
+| Corpo real (monitor de 32") | 11,5px |
+| Altura de maiúscula (caixa alta ≈ 0,72 em) | 8,3px |
+| **Presença equivalente** em caixa baixa | **~16px** |
+
+**Caixa alta + peso 600 + `letter-spacing` somam presença.** Um rótulo de 11,5px assim ocupa o
+campo visual como um texto de 16px — e disputa com o dado que ele deveria apenas nomear.
+
+| | Antes | Agora |
+|---|---|---|
+| Peso | 600 | **500** |
+| Tracking | 0,06em | **0,02em** |
+| Corpo | 11,5px | **11,5px — inalterado** |
+
+Baixar o corpo devolveria o problema de origem (o cabeçalho ilegível), e o piso de 9px está
+protegido por teste. O peso não tem esse custo: 500 em caixa alta continua perfeitamente legível, e
+a placa volta a ser placa.
+
+> #### A ordem de ajuste, destilada de três rodadas no mesmo dia
+>
+> Quando pedirem "menor", ceda nesta ordem:
+>
+> **1. espaçamento → 2. peso → 3. só então tamanho.**
+>
+> Espaçamento e peso são quase sempre onde está o excesso, e nenhum dos dois custa legibilidade.
+> Tamanho é a última coisa a ceder — foi ele que produziu o cabeçalho de 7px, e é o único eixo que
+> tira gente de fora da leitura. As três rodadas de 11/08 percorreram os três eixos na ordem
+> errada; esta nota existe para a próxima começar pela ponta certa.
+
+### 1.2.7. A caixa dos seletores da grade — 11/08/2026
+
+Na mesma leitura, "onde seleciona os dados" também pesava. O corpo do texto **já estava igual ao
+dado ao lado** (12,6px, herdado da régua): o que inflava era a caixa — `py-1.5` mais anel mais
+fundo branco, e **seis lado a lado** na aba Demanda.
+
+`py-1.5` → `py-1` nas 11 células de seleção do Backlog (`OpcaoSelect`, `EtiquetaSelect`,
+`StatusOportunidadeSelect` e as células da grade): ~4px por célula, sem tirar um pixel de letra.
+
+### 1.2.4. Densidade do topo do quadro — 11/08/2026
+
+Entre a borda do card e a primeira linha há **três faixas empilhadas**: abas temáticas, barra de
+ações e cabeçalho da tabela. Somadas, custavam ~135px — numa janela de notebook, o equivalente a
+quatro linhas do quadro gastas em cromo.
+
+| Faixa | Antes | Agora |
+|-------|------:|------:|
+| Abas temáticas | 49px | **35px** |
+| Barra de ações | 49px | **35px** |
+
+> **O corte veio do espaçamento, não do corpo do texto.** `py-2.5` → `py-1.5` nas faixas, `py-1.5`
+> → `py-1` nos botões, ícones de 14px para 12px, raio `lg` → `md`. O texto desceu um degrau só
+> (12px → `text-rotulo`), e em elemento de navegação — que tem ícone ao lado e alto contraste sobre
+> o navy.
+>
+> A ordem importa: **quando pedirem "menor", tire ar antes de tirar letra.** Reduzir o corpo é o
+> caminho curto e é o que estraga a legibilidade que a §1.2.1 acabou de comprar; o espaçamento
+> quase sempre tem mais a ceder, e ninguém sente falta dele.
+
+Aplicado **só ao Backlog** nesta rodada — é o quadro onde a operação passa o dia e o que a queixa
+apontou. Contratos e Talentos seguem com o topo antigo até que a mesma decisão seja tomada para
+eles.
+
+### 1.2.3. Contraste
+
+**Texto pequeno não usa cinza claro.** `slate-400` sobre branco dá 3,4:1 e `slate-300`, 2,2:1 —
+ambos abaixo dos 4,5:1 que a WCAG pede para texto pequeno. Nos 96 pontos em que um degrau da escala
+convivia com esses tons, a cor subiu para `slate-500`.
+
+A regra vale para **texto**; ícone continua podendo ser `slate-400`, porque forma se reconhece com
+menos contraste que letra.
 
 ### 1.3. Formas
 
@@ -405,6 +632,14 @@ Curto e discreto. Nunca gratuito.
 | Etiqueta e seletor | `whileTap` encolhe 3% (`scale: 0.97`) |
 | Item ativo de navegação | Barra que desliza (`layoutId`) |
 | Barras de proporção | Largura animada por spring |
+| Diálogo | Véu em fade de 150ms; cartão entra com escala 0.96→1 e 8px, 180ms (§8.1) |
+| Aviso do desfazer | Sobe 12px com fade, 180ms; sai em 3,2s (§8.2) |
+
+> **Quem pediu para reduzir movimento não recebe nada disto.** A preferência do sistema operacional
+> é respeitada nas duas metades: o `index.css` desliga transições e animações de CSS, e o
+> `<MotionConfig reducedMotion="user">` no `App.tsx` desliga as do `motion`, que são calculadas em
+> JavaScript e escapariam da regra de CSS. Esquecer uma das metades deixa metade do produto
+> animando — e é o tipo de coisa que ninguém percebe sem ligar a preferência para testar.
 
 > O "pop de escala + clarão + anel que expande" na troca de valor saiu desta lista em 04/08/2026:
 > nunca chegou ao código atual. A troca já se confirma pelo próprio conteúdo da etiqueta, e o
@@ -885,7 +1120,17 @@ algumas linhas e não em outras faria a coluna parecer desalinhada.
 
 ## 8. Interações destrutivas
 
-Toda exclusão pede `window.confirm` com o nome do alvo. Não há desfazer.
+**Duas proteções, para dois problemas diferentes.** Elas não se substituem, e confundi-las produz
+ou uma tela que pergunta o tempo todo, ou uma que nunca perdoa:
+
+| Proteção | Protege de | Onde |
+|----------|-----------|------|
+| **Confirmação em diálogo** (§8.1) | o gesto **deliberado e irreversível** — excluir, apagar tudo | 12 pontos do sistema |
+| **Desfazer com `Ctrl+Z`** (§8.2) | o gesto **acidental e reversível** — sobrescrever uma célula | dado dos três quadros |
+
+Pedir confirmação a cada célula editada tornaria a grade impraticável; oferecer desfazer sem
+confirmação deixaria a exclusão em lote a um clique de distância. Cada uma cobre o que a outra não
+alcança.
 
 Distinguir sempre:
 
@@ -893,6 +1138,135 @@ Distinguir sempre:
 |------|-------------|
 | **Remover** | Desfaz um vínculo — a pessoa sai da equipe, mas continua na base |
 | **Excluir** | Apaga o registro |
+
+---
+
+### 8.1. O diálogo — [`components/ui/Dialogo.tsx`](../src/components/ui/Dialogo.tsx)
+
+**Versão 11/08/2026.** Substituiu o `window.confirm` em todos os pontos, a pedido da gestão. A
+referência visual pedida foi o alerta do macOS.
+
+#### Por que a caixa do navegador saiu
+
+| Problema | Consequência |
+|----------|--------------|
+| Aparece colada ao **topo da janela** | A 600px de onde o olho está — fora do campo de atenção de quem clicou numa linha |
+| Botões **"OK" e "Cancelar"** | O rótulo não diz o que vai acontecer |
+| Tipografia e moldura **do navegador** | Anuncia o endereço do site em cima da pergunta |
+| **Trava a aba inteira** | Nenhuma animação corre, nenhum estado atualiza |
+| **Não existe no `jsdom`** | Devolvia `undefined`, e **toda exclusão passava sem confirmação nos testes** — a pergunta que protegia o dado era invisível para a suíte que deveria protegê-la |
+
+O último item é o que transforma isto de gosto em correção: a suíte media um caminho que nenhuma
+pessoa percorre.
+
+#### Anatomia
+
+Véu `bg-slate-900/25` com `backdrop-blur-[2px]` · cartão `rounded-2xl` centrado, `max-w-sm`,
+`shadow-2xl` · ícone opcional em círculo, na cor do tom · título `font-display` · descrição em
+`slate-500`, uma frase por linha · botões de largura igual, **confirmação à direita**.
+
+| Regra | Motivo |
+|-------|--------|
+| O botão **nomeia a ação** — "Excluir", "Duplicar", "Desativar" | "OK" não diz o que se está aprovando (§7) |
+| A descrição diz **consequência**, nunca instrução de teclado | "Dá para desfazer com Ctrl+Z" chegou a entrar e saiu no mesmo dia: quem está prestes a excluir precisa decidir se quer excluir, e a dica de atalho disputa a atenção com a única pergunta da tela — some junto com o diálogo, antes da hora em que serviria. O atalho se apresenta **depois**, no aviso do desfazer (§8.2) |
+| Sem consequência a declarar, **não há descrição** | Título e dois botões bastam. Texto de enfeite ensina a clicar sem ler |
+| Ação destrutiva em `rose-500`; as demais em `indigo-600` | A cor de destruição já é a da lixeira (§1.1) |
+| **Foco começa em Cancelar** quando é destrutivo | O Enter reflexo de quem confirma tudo não pode apagar uma linha. Nos demais, o foco vai para a confirmação |
+| `Esc` e **clique no véu** cancelam | Sair é sempre não fazer nada |
+| `Tab` circula **dentro** do diálogo | Sem isto o foco cai na grade atrás do véu, e a pessoa editaria o que a tela mostra como suspenso |
+| Três ou mais ações **empilham em coluna** | Lado a lado, nenhum rótulo cabe |
+| Um diálogo por vez — o anterior resolve como cancelado | Empilhados, a pergunta de baixo fica escondida e quem a abriu espera para sempre |
+
+#### A API é imperativa
+
+`await confirmar(...)`, não `<Modal aberto={...}>`. Os 12 pontos viviam como uma linha só
+(`if (!window.confirm(…)) return;`) dentro de funções que já faziam outra coisa; a forma declarativa
+obrigaria cada um a criar estado, guardar o alvo pendente e partir a função em duas — doze vezes.
+
+| Função | Para |
+|--------|------|
+| `confirmar({ titulo, descricao, rotuloConfirmar, destrutivo })` | Sim ou não |
+| `pedirTexto({ titulo, valorInicial, tipo })` | Uma resposta escrita — o antigo `prompt` |
+| `perguntar({ acoes: [...] })` | **Três ou mais saídas** |
+| `avisar({ titulo, descricao })` | Um botão só — o antigo `alert` |
+
+> **`perguntar` nasceu de um defeito real.** A saída de alguém que fica sem equipe era um
+> `window.confirm` cujo texto pedia para ler "OK" como *Desligado* e "Cancelar" como *Inativo* —
+> uma escolha de três vias espremida em dois botões, onde o gesto universal de desistir produzia
+> **uma alteração de cadastro**. Hoje cada saída tem seu botão, inclusive a de não fazer nada
+> ([04 §7](04_pagina_equipes.md)).
+
+#### Onde está montado
+
+`DialogoProvider` envolve o `App` **por fora do `DadosProvider`**: não depende de dado nenhum, e
+quem entra por convite ou por link também merece uma pergunta decente.
+
+> ⚠️ **Teste que monta uma página precisa do `DialogoProvider`.** Sem ele, `useDialogo` lança — de
+> propósito: um componente que pergunta sem ter onde perguntar é defeito, não caso a tratar.
+
+---
+
+### 8.2. O desfazer — [`utils/historico.ts`](../src/utils/historico.ts)
+
+**Versão 11/08/2026.** `Ctrl+Z` desfaz; `Ctrl+Shift+Z` e `Ctrl+Y` refazem.
+
+#### O problema
+
+A edição é estilo planilha: clicar já é editar, sair do campo já é salvar. **Não havia momento para
+hesitar.** Quem sobrescrevia o valor certo tinha de lembrar o anterior e digitá-lo de novo — e em
+coluna de escolha fechada (status, prioridade, responsável) nem isso, porque o valor antigo não
+aparece em lugar nenhum depois da troca.
+
+#### O que alcança
+
+| Alcança | Não alcança |
+|---------|-------------|
+| Oportunidades, contratos, talentos e marcas — o dado dos quadros | **Usuários, equipes, concessões, convites** |
+| Editar, criar, duplicar, excluir, mudar status, nomear responsável | Configuração de acesso e situação de conta |
+
+> **Por que permissão fica de fora.** Um `Ctrl+Z` distraído que devolva acesso a quem acabou de ser
+> desligado é um furo de segurança com cara de conveniência. Mudança de permissão é ato deliberado,
+> tem tela própria, e o caminho de voltar atrás é refazer o gesto — conscientemente.
+
+#### As três regras que o sustentam
+
+1. **Observa o resultado, não a intenção.** Nenhuma das ~50 mutações do provider é instrumentada; o
+   histórico compara as coleções antes e depois e **deriva** a descrição. Instrumentar envelhece: a
+   mutação nº 51 nasceria fora do desfazer, e o defeito só apareceria quando alguém perdesse
+   trabalho.
+2. **Dentro de um campo em edição, o `Ctrl+Z` é do texto.** É a guarda `ehCampoDeTexto`. Roubar a
+   tecla ali trocaria "apagar a última palavra" por "reverter a linha inteira" — o oposto do pedido,
+   no momento de menor expectativa de surpresa.
+3. **Registro no `useLayoutEffect`, não no `useEffect`.** O efeito passivo abre uma janela entre o
+   commit da mudança e o registro do passo, em que o dado já mudou e o histórico ainda não sabe. No
+   navegador são milissegundos; num teste que dispara a tecla logo após o clique, é sempre.
+
+| Decisão | Motivo |
+|---------|--------|
+| 20 passos de teto | Quem erra percebe em um ou dois gestos. Cada entrada segura as quatro listas do momento em que nasceu |
+| **Não sobrevive ao F5** | Desfazer amanhã algo de ontem, que ninguém lembra ter feito — e, com backend, o que outra pessoa fez no meio-tempo |
+| Encerramento automático **fora** do histórico | Arquivamento é regra do processo, não gesto de alguém: um `Ctrl+Z` na abertura desarquivaria projetos sem que ninguém tivesse feito nada |
+| Bloqueado em **"Ver como"** | Se a escrita está bloqueada, desfazer também está — senão vira a porta dos fundos para alterar dado no lugar de outra pessoa |
+| Um caminho novo **apaga o futuro** | Refazer o que foi abandonado montaria um estado que ninguém pediu |
+
+#### O aviso — [`components/ui/AvisoHistorico.tsx`](../src/components/ui/AvisoHistorico.tsx)
+
+Pílula escura no rodapé central, 3,2s, com botão **Refazer**.
+
+Existe porque **desfazer é invisível quando dá certo**: a linha volta ao que era, e quem apertou a
+tecla não sabe se o sistema entendeu, se desfez a coisa certa, ou se desfez duas. Pior no caso
+comum — o valor anterior de uma célula costuma ser vazio, e a tela depois do desfazer fica idêntica
+à de quem não fez nada. O aviso responde as três perguntas de uma vez, e é também **como o atalho de
+refazer se apresenta**: ninguém descobre `Ctrl+Shift+Z` sozinho.
+
+Fica no rodapé, e não junto da linha, porque a alteração pode ter saído da vista — desfazer o valor
+de um filtro devolve a linha a um grupo fora da tela.
+
+#### Comportamento conhecido
+
+Depois de **duplicar**, o painel de talento abre com o cursor na busca. Enquanto ele estiver aberto,
+o `Ctrl+Z` pertence ao campo (regra 2) e não desfaz a duplicação: é preciso fechar o painel antes.
+Previsível, e o preço de a regra 2 não ter exceções.
 
 ---
 
@@ -912,6 +1286,8 @@ destes já resolve** — a divergência visual entre telas quase sempre começa 
 | [`BuscaQuadro`](../src/components/ui/BuscaQuadro.tsx) | Campo de busca da barra de ações | Esc limpa · cresce ao focar · mostra "N de M" |
 | [`Switch`](../src/components/ui/Switch.tsx) | Interruptor de duas posições | Estado pela **forma**, não só pela cor (§7.2) |
 | [`Dica`](../src/components/ui/Dica.tsx) | **Tooltip do sistema — um só para o app** | Delegação de evento + portal único; só abre quando o texto não coube (§7.9) |
+| [`Dialogo`](../src/components/ui/Dialogo.tsx) | **Diálogo do sistema — um só para o app** | API imperativa (`await confirmar`), porque a forma declarativa partiria em duas cada uma das 12 funções que perguntam (§8.1) |
+| [`AvisoHistorico`](../src/components/ui/AvisoHistorico.tsx) | Aviso do desfazer | Desfazer é invisível quando dá certo — o aviso é a única prova de que a tecla funcionou (§8.2) |
 | [`EtiquetaSelect`](../src/components/backlog/EtiquetaSelect.tsx) | Etiqueta colorida de lista fechada | Para **escalas**, onde a cor é a informação — cada catálogo traz a sua ([08 §6](08_backlog_e_integracoes.md)) |
 | [`CelulaNumero`](../src/components/ui/CelulaNumero.tsx) | Quantidade inteira | Recusa não-dígito **na digitação**; vazio ≠ zero; alinhada à direita |
 | [`CelulaData`](../src/components/ui/CelulaData.tsx) | Data | `input type=date` nativo; mostra pt-BR, guarda ISO |

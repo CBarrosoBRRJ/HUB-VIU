@@ -9,6 +9,7 @@ import {
 } from '../../utils/permissoes';
 import { EditableCell } from '../ui/EditableCell';
 import { Floating } from '../ui/Floating';
+import { useDialogo } from '../ui/Dialogo';
 import { Avatar } from './Avatar';
 import { PerfilSelect } from './PerfilSelect';
 import { SituacaoSelect, SITUACAO_STYLE } from './SituacaoSelect';
@@ -26,6 +27,7 @@ export function AbaPessoas() {
     usuarios, equipes, sessao, usuarioAtualId, atualizarUsuario, definirPerfil, definirSituacao,
     excluirUsuario, definirMembroDaEquipe, removerMembroDaEquipe,
   } = useDados();
+  const { confirmar, avisar } = useDialogo();
 
   const [busca, setBusca] = useState('');
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
@@ -71,14 +73,20 @@ export function AbaPessoas() {
    *
    * Silenciar os ignorados faria o operador acreditar que mudou 10 quando mudou 7.
    */
-  function aplicarSituacao(situacao: SituacaoUsuario) {
+  async function aplicarSituacao(situacao: SituacaoUsuario) {
     const permitidos = alvos.filter((usuario) => podeDefinirSituacao(sessao, usuario, situacao));
     const ignorados = alvos.length - permitidos.length;
+    if (permitidos.length === 0) return;
 
-    const aviso = `Marcar ${permitidos.length} ${permitidos.length === 1 ? 'pessoa' : 'pessoas'} como ${SITUACAO_LABEL[situacao]}?${
-      ignorados > 0 ? `\n\n${ignorados} ${ignorados === 1 ? 'foi ignorada' : 'foram ignoradas'} por falta de permissão.` : ''
-    }`;
-    if (permitidos.length === 0 || !window.confirm(aviso)) return;
+    const ok = await confirmar({
+      titulo: `Marcar ${permitidos.length} ${permitidos.length === 1 ? 'pessoa' : 'pessoas'} como ${SITUACAO_LABEL[situacao]}?`,
+      descricao:
+        ignorados > 0
+          ? `${ignorados} ${ignorados === 1 ? 'foi ignorada' : 'foram ignoradas'} por falta de permissão.`
+          : undefined,
+      rotuloConfirmar: 'Aplicar',
+    });
+    if (!ok) return;
 
     permitidos.forEach((usuario) => definirSituacao(usuario.id, situacao));
     setSelecionados(new Set());
@@ -97,18 +105,38 @@ export function AbaPessoas() {
     setMenuAberto(null);
   }
 
-  function excluirSelecionados() {
+  async function excluirSelecionados() {
     const permitidos = alvos.filter((usuario) => podeExcluirUsuario(sessao, usuario));
     const ignorados = alvos.length - permitidos.length;
     if (permitidos.length === 0) {
-      window.alert('Nenhuma das pessoas selecionadas pode ser excluída por você.');
+      await avisar({
+        titulo: 'Nenhuma pode ser excluída',
+        descricao: 'As pessoas selecionadas estão fora do seu alcance: o dono, você mesmo, ou quem você não administra.',
+      });
       return;
     }
 
-    const aviso = `Excluir ${permitidos.length} ${permitidos.length === 1 ? 'pessoa' : 'pessoas'} da base? Esta ação não pode ser desfeita.${
-      ignorados > 0 ? `\n\n${ignorados} ${ignorados === 1 ? 'será ignorada' : 'serão ignoradas'} (dono, você mesmo ou sem permissão).` : ''
-    }\n\nPara preservar o histórico, prefira a situação "Desligado".`;
-    if (!window.confirm(aviso)) return;
+    /*
+      "Não pode ser desfeita" continua verdade **aqui**.
+
+      O `Ctrl+Z` alcança o dado dos quadros, não a base de pessoas — ver `utils/historico.ts`. A
+      diferença é deliberada, e é justamente por isso que o texto desta confirmação precisa
+      divergir do das outras: prometer um desfazer que não existe seria pior que não prometer.
+    */
+    const ok = await confirmar({
+      titulo: `Excluir ${permitidos.length} ${permitidos.length === 1 ? 'pessoa' : 'pessoas'} da base?`,
+      descricao: [
+        'Esta ação não pode ser desfeita.',
+        ignorados > 0
+          ? `${ignorados} ${ignorados === 1 ? 'será ignorada' : 'serão ignoradas'} (dono, você mesmo ou sem permissão).`
+          : '',
+        'Para preservar o histórico, prefira a situação "Desligado".',
+      ].join('\n'),
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+      icone: 'excluir',
+    });
+    if (!ok) return;
 
     permitidos.forEach((usuario) => excluirUsuario(usuario.id));
     setSelecionados(new Set());
@@ -230,7 +258,7 @@ export function AbaPessoas() {
                     <button
                       type="button"
                       onClick={() => aplicarEquipe(equipe.id, 'membro')}
-                      className="flex flex-1 items-center justify-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:bg-slate-200"
+                      className="flex flex-1 items-center justify-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-rotulo font-medium text-slate-600 transition hover:bg-slate-200"
                     >
                       <UserPlus className="size-3" />
                       Adicionar
@@ -238,7 +266,7 @@ export function AbaPessoas() {
                     <button
                       type="button"
                       onClick={() => aplicarEquipe(equipe.id, null)}
-                      className="flex flex-1 items-center justify-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600 transition hover:bg-rose-50 hover:text-rose-600"
+                      className="flex flex-1 items-center justify-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-rotulo font-medium text-slate-600 transition hover:bg-rose-50 hover:text-rose-600"
                     >
                       <X className="size-3" />
                       Remover
@@ -255,7 +283,7 @@ export function AbaPessoas() {
       </AnimatePresence>
 
       <div className="overflow-x-auto custom-scrollbar">
-        <table className="w-full min-w-[1080px] border-collapse">
+        <table className="w-full min-w-[67.5rem] border-collapse">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/70">
               <th className="w-10 px-3 py-2.5">
@@ -270,7 +298,7 @@ export function AbaPessoas() {
               {['Nome', 'Contato', 'Cargo', 'Perfil', 'Situação', 'Equipes'].map((label, indice) => (
                 <th
                   key={label}
-                  className={`px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${
+                  className={`px-3 py-2.5 text-apoio font-bold uppercase tracking-wider text-slate-500 ${
                     indice === 0 ? 'w-[20%] text-left' : 'text-center'
                   }`}
                 >
@@ -317,7 +345,7 @@ export function AbaPessoas() {
                         align="left"
                         className="flex-1 text-sm font-semibold text-slate-800"
                       />
-                      {ehVoce && <span className="shrink-0 text-[10px] text-slate-400">(você)</span>}
+                      {ehVoce && <span className="shrink-0 text-rotulo text-slate-500">(você)</span>}
                     </div>
                   </td>
 
@@ -375,12 +403,12 @@ export function AbaPessoas() {
                       {times.map((equipe) => (
                         <span
                           key={equipe.id}
-                          className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                          className="rounded-full bg-slate-100 px-2 py-0.5 text-rotulo font-medium text-slate-600"
                         >
                           {equipe.nome}
                         </span>
                       ))}
-                      {times.length === 0 && <span className="text-[11px] text-slate-300">Sem equipe</span>}
+                      {times.length === 0 && <span className="text-apoio text-slate-500">Sem equipe</span>}
                     </div>
                   </td>
                 </tr>
@@ -398,7 +426,7 @@ export function AbaPessoas() {
         </table>
       </div>
 
-      <div className="flex items-center gap-1.5 border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400">
+      <div className="flex items-center gap-1.5 border-t border-slate-100 px-4 py-2 text-apoio text-slate-500">
         <Check className="size-3 text-emerald-500" />
         Nome, contato e cargo são editáveis na grade. Perfil e capacidades ficam na aba Acessos.
       </div>

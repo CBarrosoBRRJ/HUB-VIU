@@ -116,7 +116,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
                       onChange(status);
                       setIsOpen(false);
                     }}
-                    className={`flex items-center justify-center gap-1 rounded-md px-2 py-2 text-[11px] font-semibold text-white ${STATUS_STYLE[status].solid}`}
+                    className={`flex items-center justify-center gap-1 rounded-md px-2 py-2 text-apoio font-semibold text-white ${STATUS_STYLE[status].solid}`}
                   >
                     <span className="truncate">{status}</span>
                     {status === value && <Check className="size-3 shrink-0" />}

@@ -9,7 +9,7 @@ import {
 import {
   destinosPermitidos, ehEstadoFinal, motivosPermitidosDoDeclinio,
 } from '../../utils/fluxoStatus';
-import { todayISO } from '../../utils/dates';
+import { formatDate, formatDiaMes, todayISO } from '../../utils/dates';
 import { Floating } from '../ui/Floating';
 
 interface StatusOportunidadeSelectProps {
@@ -141,7 +141,7 @@ export function StatusOportunidadeSelect({
 
   const seloBadge = badge && (
     <span
-      className={`absolute -right-1.5 -top-1.5 flex h-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white ${badge.cor}`}
+      className={`absolute -right-1.5 -top-1.5 flex h-4 items-center justify-center rounded-full px-1 text-selo font-bold leading-none text-white ring-2 ring-white ${badge.cor}`}
     >
       {badge.texto}
     </span>
@@ -164,7 +164,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold leading-tight text-white ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white ${status.solid}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -185,7 +185,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold leading-tight text-white transition hover:brightness-110 ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white transition hover:brightness-110 ${status.solid}`}
       >
         {conteudoSelo}
         {seloBadge}
@@ -195,7 +195,13 @@ export function StatusOportunidadeSelect({
         {aberto && (
           <Floating
             anchorRef={botaoRef}
-            width={260}
+            /*
+              320, e não os 260 de antes: as pendências ganharam a linha de datas (11/08/2026), e
+              no painel estreito "Cotação de Elenco" abria cortado — "Cotação …" no print da
+              operação. O nome inteiro é o mínimo; o corte por reticências fica como último
+              recurso, não como estado normal.
+            */
+            width={320}
             /*
               Declinar ocupa três linhas, não uma; o bloco de pendências cresce com o que a linha
               tem. A conta é estimativa de altura para o painel abrir para o lado certo.
@@ -204,7 +210,8 @@ export function StatusOportunidadeSelect({
               260
               + (destinos.includes('declinado') ? (motivosVisiveis.length - 1) * 36 : 0)
               + (catalogo.length > 0 || listaPendencias.length > 0 ? 34 : 0)
-              + (abertas.length + chegadas.length) * 30
+              // Cada pendência tem duas linhas desde as datas: rótulo + percurso da espera.
+              + (abertas.length + chegadas.length) * 46
               + (escolhendoPendencia ? disponiveis.length * 28 : catalogo.length > 0 ? 28 : 0)
               + (confirmando ? 64 : 0)
             }
@@ -217,7 +224,7 @@ export function StatusOportunidadeSelect({
               transition={{ duration: 0.14, ease: 'easeOut' }}
               className="overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
             >
-              <p className="flex items-center gap-1 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="flex items-center gap-1 px-3 py-1 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                 {status.label}
                 <ArrowRight className="size-2.5" />
                 {destinos.length === 1 ? 'próxima etapa' : 'para onde vai'}
@@ -253,7 +260,7 @@ export function StatusOportunidadeSelect({
                         data-dica="Encerra o projeto"
                         data-dica-sub="Não há volta pelo fluxo"
                         data-dica-sempre
-                        className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-slate-400"
+                        className="shrink-0 text-selo font-bold uppercase tracking-wide text-slate-500"
                       >
                         Final
                       </span>
@@ -301,7 +308,7 @@ export function StatusOportunidadeSelect({
                         data-dica="Encerra o projeto"
                         data-dica-sub="Não há volta pelo fluxo"
                         data-dica-sempre
-                        className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-slate-400"
+                        className="shrink-0 text-selo font-bold uppercase tracking-wide text-slate-500"
                       >
                         Final
                       </span>
@@ -316,7 +323,7 @@ export function StatusOportunidadeSelect({
               */}
               {confirmando && (
                 <div className="mx-2 mt-1 rounded-lg bg-amber-50 px-3 py-2">
-                  <p className="text-[11px] font-semibold leading-snug text-amber-700">
+                  <p className="text-apoio font-semibold leading-snug text-amber-700">
                     Há {abertas.length} {abertas.length === 1 ? 'pendência aberta' : 'pendências abertas'} —
                     avançar assim mesmo?
                   </p>
@@ -324,14 +331,14 @@ export function StatusOportunidadeSelect({
                     <button
                       type="button"
                       onClick={() => avancar(confirmando.destino, confirmando.motivo)}
-                      className="rounded-md bg-amber-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-amber-700"
+                      className="rounded-md bg-amber-600 px-2.5 py-1 text-apoio font-semibold text-white transition hover:bg-amber-700"
                     >
                       Avançar
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmando(null)}
-                      className="rounded-md px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition hover:bg-white"
+                      className="rounded-md px-2.5 py-1 text-apoio font-semibold text-slate-500 transition hover:bg-white"
                     >
                       Cancelar
                     </button>
@@ -346,49 +353,59 @@ export function StatusOportunidadeSelect({
               */}
               {(catalogo.length > 0 || listaPendencias.length > 0) && (
                 <div className="mt-1 border-t border-slate-100 pt-1">
-                  <p className="px-3 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="px-3 py-0.5 text-selo font-bold uppercase tracking-wider text-slate-500">
                     Pendências
                     {abertas.length > 0 &&
                       ` · ${abertas.length} ${abertas.length === 1 ? 'aberta' : 'abertas'}`}
                   </p>
 
+                  {/*
+                    Cada espera tem duas linhas desde 11/08/2026: o rótulo em cima, o **percurso**
+                    embaixo — quando abriu, quando chegou (ou "hoje", se ainda espera) e quantos
+                    dias correu. As datas sempre existiram no modelo (`abertaEm`, `chegouEm` — são
+                    a matéria-prima do SLA); o painel só mostrava a contagem, e "3d esperando" não
+                    responde a pergunta que a operação faz de verdade: *desde quando?*
+                  */}
                   {abertas.map((p) => {
                     const tipo = getTipoPendencia(p.tipo);
                     return (
                       <div
                         key={p.id}
-                        className="flex items-center gap-2 px-3 py-1"
+                        className="px-3 py-1.5"
                         data-dica={tipo?.label}
-                        data-dica-sub={`${tipo?.hint ?? ''} · esperando há ${diasDeEspera(p, hoje)}d`}
+                        data-dica-sub={`${tipo?.hint ?? ''} · aberta em ${formatDate(p.abertaEm)}`}
                       >
-                        <span className="shrink-0 text-[10px]">⏳</span>
-                        <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
-                          {tipo?.label ?? p.tipo}
-                        </span>
-                        <span className="shrink-0 font-mono text-[9px] text-slate-400">
-                          {diasDeEspera(p, hoje)}d
-                        </span>
-                        {onPendenciaChegou && (
-                          <button
-                            type="button"
-                            onClick={() => onPendenciaChegou(p.id)}
-                            className="shrink-0 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-emerald-700"
-                          >
-                            ✓ Chegou
-                          </button>
-                        )}
-                        {onDescartarPendencia && (
-                          <button
-                            type="button"
-                            aria-label={`Descartar ${tipo?.label ?? p.tipo}`}
-                            data-dica="Abri por engano"
-                            data-dica-sub="Descarta a espera — ela sai da medição"
-                            onClick={() => onDescartarPendencia(p.id)}
-                            className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                          >
-                            ✕
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="shrink-0 text-rotulo">⏳</span>
+                          <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
+                            {tipo?.label ?? p.tipo}
+                          </span>
+                          {onPendenciaChegou && (
+                            <button
+                              type="button"
+                              onClick={() => onPendenciaChegou(p.id)}
+                              className="shrink-0 rounded-md bg-emerald-600 px-2 py-0.5 text-rotulo font-semibold text-white transition hover:bg-emerald-700"
+                            >
+                              ✓ Chegou
+                            </button>
+                          )}
+                          {onDescartarPendencia && (
+                            <button
+                              type="button"
+                              aria-label={`Descartar ${tipo?.label ?? p.tipo}`}
+                              data-dica="Abri por engano"
+                              data-dica-sub="Descarta a espera — ela sai da medição"
+                              onClick={() => onDescartarPendencia(p.id)}
+                              className="shrink-0 rounded-md px-1.5 py-0.5 text-rotulo font-semibold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                        {/* "→ hoje" e não uma segunda data: a espera aberta ainda não tem fim. */}
+                        <p className="pl-6 font-mono text-selo text-slate-500">
+                          {formatDiaMes(p.abertaEm)} → hoje · {diasDeEspera(p, hoje)}d esperando
+                        </p>
                       </div>
                     );
                   })}
@@ -396,25 +413,33 @@ export function StatusOportunidadeSelect({
                   {chegadas.map((p) => {
                     const tipo = getTipoPendencia(p.tipo);
                     return (
-                      <div key={p.id} className="flex items-center gap-2 px-3 py-1">
-                        <span className="shrink-0 text-[10px] text-emerald-600">✓</span>
-                        <span className="min-w-0 flex-1 truncate text-xs text-slate-400">
-                          {tipo?.label ?? p.tipo}
-                        </span>
-                        <span className="shrink-0 font-mono text-[9px] text-slate-400">
-                          {diasDeEspera(p, hoje)}d esperando
-                        </span>
-                        {onReabrirPendencia && (
-                          <button
-                            type="button"
-                            data-dica="Marquei sem querer — ou a resposta veio incompleta"
-                            data-dica-sub="Reabre a espera; o relógio original segue valendo"
-                            onClick={() => onReabrirPendencia(p.id)}
-                            className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                          >
-                            ↩ Reabrir
-                          </button>
-                        )}
+                      <div
+                        key={p.id}
+                        className="px-3 py-1.5"
+                        data-dica={tipo?.label}
+                        data-dica-sub={`Aberta em ${formatDate(p.abertaEm)} · chegou em ${formatDate(p.chegouEm ?? '')}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="shrink-0 text-rotulo text-emerald-600">✓</span>
+                          <span className="min-w-0 flex-1 truncate text-xs text-slate-400">
+                            {tipo?.label ?? p.tipo}
+                          </span>
+                          {onReabrirPendencia && (
+                            <button
+                              type="button"
+                              data-dica="Marquei sem querer — ou a resposta veio incompleta"
+                              data-dica-sub="Reabre a espera; o relógio original segue valendo"
+                              onClick={() => onReabrirPendencia(p.id)}
+                              className="shrink-0 rounded-md px-1.5 py-0.5 text-rotulo font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-600"
+                            >
+                              ↩ Reabrir
+                            </button>
+                          )}
+                        </div>
+                        <p className="pl-6 font-mono text-selo text-slate-400">
+                          {formatDiaMes(p.abertaEm)} → {formatDiaMes(p.chegouEm ?? '')} ·{' '}
+                          {diasDeEspera(p, hoje)}d de espera
+                        </p>
                       </div>
                     );
                   })}
@@ -422,7 +447,7 @@ export function StatusOportunidadeSelect({
                   {onAbrirPendencia && disponiveis.length > 0 && (
                     escolhendoPendencia ? (
                       <>
-                        <p className="px-3 pt-1 text-[9px] uppercase tracking-wider text-slate-300">
+                        <p className="px-3 pt-1 text-selo uppercase tracking-wider text-slate-500">
                           Estou esperando…
                         </p>
                         {disponiveis.map((tipo) => (
@@ -438,7 +463,7 @@ export function StatusOportunidadeSelect({
                             }}
                             className="flex w-full items-center gap-2 px-3 py-1.5 text-left transition hover:bg-slate-50"
                           >
-                            <span className="shrink-0 text-[10px]">⏳</span>
+                            <span className="shrink-0 text-rotulo">⏳</span>
                             <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
                               {tipo.label}
                             </span>
@@ -463,7 +488,7 @@ export function StatusOportunidadeSelect({
                 não é o momento deles — ensina o fluxo. Esconder faria a pessoa procurar.
               */}
               <div className="mt-1 border-t border-slate-100 pt-1">
-                <p className="px-3 py-0.5 text-[9px] uppercase tracking-wider text-slate-300">
+                <p className="px-3 py-0.5 text-selo uppercase tracking-wider text-slate-500">
                   Indisponíveis a partir daqui
                 </p>
                 {STATUS_OPORTUNIDADE.filter(
@@ -471,7 +496,7 @@ export function StatusOportunidadeSelect({
                 ).map((item) => (
                   <span
                     key={item.id}
-                    className="flex items-center gap-2 px-3 py-1 text-[11px] text-slate-300"
+                    className="flex items-center gap-2 px-3 py-1 text-apoio text-slate-500"
                   >
                     <span className="size-1.5 shrink-0 rounded-full bg-slate-200" />
                     <span className="truncate">{item.label}</span>

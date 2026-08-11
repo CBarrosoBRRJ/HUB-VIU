@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 21.0 | **Data:** 03/08/2026 | **Base:** código em `src/`
+**Versão:** 22.0 | **Data:** 11/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -14,13 +14,15 @@
 
 | Indicador | Situação |
 |-----------|----------|
-| Superfície de código | 21.142 linhas TS/TSX em 93 arquivos |
+| Superfície de código | 24.205 linhas TS/TSX em 96 arquivos |
 | Páginas | 6 — **todas funcionais**: Backlog, Contratos, Talentos, Equipes, Usuários e Meu Perfil |
 | Controle de acesso | ✅ Dono + 3 perfis + escopo por equipe + filtro de linhas por nomeação + **permissão por aba e por coluna** + concessões com janela |
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 31 suítes · 1.414 verificações · **0 falhas** + 97 testes de UI com cliques reais (ver §5) |
+| Testes | ✅ 34 suítes · 1.503 verificações · **0 falhas** + 116 testes de UI com cliques reais (ver §5) |
+| **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
+| **Legibilidade** | 🟡 Escala de texto em `rem`, piso de 10px, pilha de fontes por SO, contraste AA e movimento reduzido (§5.14) — **falta o layout por faixa de largura** |
 | Exportação de Dados | ✅ Exportação nativa em **`.xlsx` (Excel)** via Blob ArrayBuffer em **Backlog**, **Contratos** e **Talentos** |
 | Modelo de dados | ✅ `prisma/schema.prisma` — 18 tabelas e 25 enums, `prisma validate` OK e SQL de migração gerado (§8) |
 | Escopo desta fase | Front-end + regras de negócio + **o modelo de dados, executável** |
@@ -80,6 +82,8 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | **Prazo como barra na borda da linha** — sem coluna Deadline em aba nenhuma | ✅ |
 | **Quadro cabe na tela**: fluxo recolhível, linhas densas, cabeçalho denso, fonte fluida | ✅ |
 | **Duplicar projeto** — mesmo trabalho, outro talento; sem vínculo entre as linhas | ✅ |
+| **Duplicar pergunta antes** — diálogo com o que a cópia leva ([08 §6.6](08_backlog_e_integracoes.md)) | ✅ |
+| **Ctrl+Z** desfaz edição, criação, duplicação, exclusão e status ([03 §8.2](03_padroes_ui.md)) | ✅ |
 | **Busca**: Projeto, Marca e Talento sempre, mais as colunas da **aba aberta** | ✅ |
 | Segmento, categoria e contatos vêm do **cadastro da marca**, e a célula escreve nele | ✅ |
 | Campos de escolha: Input · Origem comercial · Tipo · Origem do talento | ✅ |
@@ -184,7 +188,17 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `utils/permissoes.ts` | 534 | **Todas** as regras de acesso, em funções puras |
 | `components/equipes/MembrosTable.tsx` | 520 | Membros da equipe, papéis e situação |
 
-### Os que nasceram nesta rodada
+### Os que nasceram na rodada de 11/08/2026
+
+| Arquivo | Linhas | Papel | Documentado em |
+|---------|-------:|-------|----------------|
+| `components/ui/Dialogo.tsx` | 420 | **Diálogo do sistema — um só para o app.** Provider + `confirmar`/`pedirTexto`/`perguntar`/`avisar` | [03 §8.1](03_padroes_ui.md) |
+| `utils/historico.ts` | 250 | Regras puras do desfazer: instantâneo, descrição da mudança, pilhas, atalhos | [03 §8.2](03_padroes_ui.md) |
+| `components/ui/AvisoHistorico.tsx` | 85 | O aviso do desfazer, com botão Refazer | [03 §8.2](03_padroes_ui.md) |
+| `testes-regras/testeHistorico.mjs` | — | 51 verificações das regras do histórico | §5 |
+| `testes-ui/confirmacao-e-desfazer.test.tsx` | — | 19 testes de UI: diálogo, foco, atalhos, aviso | §5.13 |
+
+### Os que nasceram na rodada anterior
 
 | Arquivo | Papel | Onde está documentado |
 |---------|-------|----------------------|
@@ -239,7 +253,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | TypeScript | `strict: true`, `noUnusedLocals`, `noUnusedParameters` — desde 03/08 (§5.6) |
 | Comandos | `npm run dev` · `npm run build` · `npm run typecheck` · `npm run test:ui` |
 | Porta | **3001** (`strictPort`) |
-| Bundle | 674 kB (187 kB gzip) — acima do aviso de 500 kB do Vite |
+| Bundle | 995 kB (294 kB gzip) — acima do aviso de 500 kB do Vite; o SheetJS responde pela maior parte ([09 §6](09_fundacoes_tecnicas.md)) |
 
 > A porta 3000 foi liberada para o projeto `viu-saas`, que roda em paralelo na mesma máquina.
 > Enquanto os dois coexistirem, manter portas distintas evita servir o app errado.
@@ -248,12 +262,13 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 
 ## 5. Testes
 
-31 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
+34 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
 `src/utils/` e `src/data/` para JS e rodando no Node, via `rodar.sh`:
 
 | Suíte | Cobre |
 |-------|-------|
 | `testePermissoes` | Nível de acesso, edição, exclusão, criação |
+| **`testeHistorico`** | O desfazer: o passo guardado é o estado **anterior**, simetria entre desfazer e refazer, teto da pilha descartando pela base, atalhos, e a guarda que preserva o `Ctrl+Z` dentro de campo de texto |
 | `testeVisoes` · `testeColunas` | Permissão por aba e por coluna; pesos somando o total fixo; **as espelhadas são a mesma coluna** entre abas; colunas de área declarando a sua |
 | `testeCliente` | Segmento, categoria e contatos lidos do cadastro da marca; a ponte nome → cadastro; captação como lista fechada |
 | `testeDuplicacao` | O contrato da duplicação: o que se herda, o que se zera, e por que o status final volta ao começo |
@@ -316,17 +331,23 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-78 testes com **cliques reais** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable`
-verdadeiro, nenhum mock. Vitest + jsdom + Testing Library.
+**116 testes** com **cliques reais** sobre a aplicação montada: `DadosProvider` verdadeiro,
+`BacklogTable` verdadeiro, nenhum mock. Vitest + jsdom + Testing Library. Em dois arquivos —
+`backlog.test.tsx` (97) e `confirmacao-e-desfazer.test.tsx` (19, desde 11/08).
 
-**Por que existem, se há 1.414 verificações de regra.** As suítes puras provam que a regra está
-certa; não provam que ela chegou à tela. Os dois primeiros defeitos que estes testes acharam eram
-exatamente disso:
+**Por que existem, se há 1.503 verificações de regra.** As suítes puras provam que a regra está
+certa; não provam que ela chegou à tela. Os defeitos que estes testes acharam são todos disso:
 
 | Defeito | Por que nenhuma suíte de regra pegaria |
 |---------|---------------------------------------|
 | `EditableCell` nunca chamava `focus()` | A regra de edição estava certa. O cursor é que ficava no `body` |
 | O painel normalizava mais fraco que a entidade | `garantirMarca` reconhecia "coca cola"; o painel oferecia **criar** |
+| **A confirmação de exclusão não existia no `jsdom`** | A regra não tem confirmação — ela é da tela. E `window.confirm` devolvia `undefined`, deixando tudo passar (§5.13) |
+| **O passo do desfazer chegava depois da tecla** | A pilha estava correta; o **momento** do registro é que não era (§5.13) |
+
+> **O relógio da suíte é fixo em 04/08/2026** (`testes-ui/setup.ts`). O seed tem datas absolutas e
+> o produto arquiva o que fica 20 dias parado — sem fixar, a suíte falha mais a cada dia que passa,
+> sem que uma linha de código mude (§5.13).
 
 O que eles cobrem hoje:
 
@@ -503,6 +524,218 @@ forma, não no fim do dia.*
 O rastro de refatorações do dia: um comentário citava o `AREA_DA_ABA` já removido como se existisse,
 e outro prometia que `praca`, `alcanceEstimado` e `publicoAlvo` "continuam no modelo" — a auditoria
 da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem lê confia.
+
+---
+
+## 5.14. Legibilidade: a escala de texto — 11/08/2026, nona rodada
+
+Pedido da gestão: *"o sistema tem que ser legível em todo tamanho de tela e sistema operacional."*
+Esta rodada é a **fundação** — o que vale para as seis páginas de uma vez. O ajuste de layout por
+faixa de largura (1024 · 1366 · 1920) vem em seguida, quadro a quadro.
+
+### O que a medição mostrou
+
+| Achado | Número |
+|--------|-------:|
+| Classes responsivas (`sm:` `md:` `lg:`) em 96 arquivos | **19** — quase todas `grid-cols` |
+| Tamanhos de fonte cravados em px | **202**, sendo **115 abaixo de 11px** |
+| Larguras mínimas fixas nas tabelas | 900 a **1340px** |
+| Texto pequeno em cinza claro (abaixo de AA) | **96** literais de classe |
+| `prefers-reduced-motion` | não respeitado |
+
+### O cabeçalho de coluna estava em 7px, e ninguém tinha somado
+
+O achado central da rodada, e ele não estava visível em lugar nenhum: a grade tem régua fluida
+própria (`--texto-grade`, 11–13px) e **cada camada desconta um degrau dela**. O cabeçalho descontava
+`0.25rem`. Onze menos quatro dá **sete** — e era o corpo com que estavam escritos os nomes de todas
+as colunas do quadro onde a operação passa o dia. Num monitor grande chegava a 9px.
+
+Cada número isolado parecia defensável; o problema só existia na soma, que nenhum documento fazia.
+
+**A primeira correção passou do ponto, e foi refeita no mesmo dia.** Ela mexeu em duas variáveis ao
+mesmo tempo — subiu a régua para 12–14px *e* comprimiu os degraus —, e o cabeçalho recebeu as duas
+somadas: saltou 43% de uma vez. A operação olhou a tela e recusou: a grade tinha deixado de ser
+densa, e densidade ali é quantas linhas se vê sem rolar.
+
+A régua voltou ao original; o que ficou foi a compressão dos degraus, que era o que resolvia o 7px
+sem inchar nada. Cabeçalho e selos passaram de **7–9px para 9–11px**, o dado de 9–11 para 10–12, e
+o nome do projeto não mudou. Nove pixels sustentam o cabeçalho porque ele é caixa alta e negrito —
+o dado, que é leitura corrida, tem piso de 10px, e os dois são verificados separadamente.
+
+> **A lição, registrada porque vai se repetir:** ajuste de tipografia mexe numa variável por vez.
+> Com duas, não há como saber qual foi longe demais — e a correção vira outro chute.
+
+### Pixel ignora quem precisa enxergar
+
+Os 202 tamanhos em px viraram uma escala em `rem` com quatro degraus nomeados pelo papel
+(`text-selo` · `text-rotulo` · `text-apoio` · `text-dado` — [03 §1.2.1](03_padroes_ui.md)). O ganho
+não é estético: **`text-[9px]` é 9px inclusive para quem aumentou a fonte do sistema porque precisa
+disso para ler.** `rem` acompanha a preferência; px a ignora. O piso subiu junto — nada abaixo de
+10px.
+
+### O mesmo layout chegava com três larguras diferentes
+
+As fontes vêm do Google Fonts, e a pilha de alternativas era `system-ui` sozinho. Numa rede que
+bloqueie o domínio — hipótese nada remota aqui —, o Windows resolvia para Segoe UI, o macOS para SF
+Pro e o Linux para o que houvesse: três métricas, três larguras de texto, e um layout calculado
+para nenhuma delas. A pilha agora **nomeia uma alternativa por sistema**.
+
+### Duas metades da mesma preferência
+
+`prefers-reduced-motion` não era respeitado. Foi ligado nas duas pontas, porque uma sem a outra
+deixa metade do produto animando: o `index.css` cobre transições e animações de CSS, e o
+`<MotionConfig reducedMotion="user">` cobre as do `motion`, que são feitas em JavaScript.
+
+### Os quatro monitores, e a raiz fluida
+
+A validação com as telas reais da operação (1051 a 2535px de largura) mostrou o defeito que nenhuma
+régua interna resolvia: o texto batia no teto fixo (~13px) e parava, então **quanto maior o
+monitor, menor o sistema parecia**. A correção coroa a conversão para `rem`: a raiz do documento
+virou fluida (`html { font-size: clamp(16px, 12.6px + 0.25vw, 19px) }`), e o produto inteiro escala
+por tela — 16px até ~1366px (o desenho aprovado, intacto), ~19px num monitor de 2535px. Piso e teto
+verificados por teste ([03 §1.2.5](03_padroes_ui.md)).
+
+### A curva recalibrada por bissecção, e o controle por pessoa
+
+A primeira curva da raiz (teto 19px) foi recusada como "imensa" — pela mesma operação que tinha
+recusado o 16px fixo como "pequeno". Os dois vereditos viraram o dado da recalibração: teto em
+17,25px, +5% na tela de 2535px (o meio do intervalo, com folga para o discreto).
+
+E a conclusão das três rodadas virou produto: **Meu Perfil ganhou o controle "Tamanho do texto"**
+(Compacto · Padrão · Confortável), porque o tamanho confortável varia por pessoa e monitor e
+nenhuma curva automática fecha essa conta. O fator multiplica a raiz por navegador — detalhes em
+[03 §1.2.5](03_padroes_ui.md) e [`utils/aparencia.ts`](../src/utils/aparencia.ts).
+
+### Presença ≠ tamanho — e a ordem de ajuste que faltava
+
+A última leitura da operação foi a mais informativa: "sensação de grande nos títulos da coluna e
+onde seleciona os dados" — com a régua **já de volta ao original**. A medição mostrou que nenhum
+dos dois era tamanho de letra:
+
+| Ponto | Corpo real | O que pesava |
+|-------|-----------:|--------------|
+| Título de coluna | 11,5px | caixa alta + peso 600 + tracking = presença de um texto de ~16px |
+| Célula de seleção | 12,6px (igual ao dado ao lado) | a **caixa**: `py-1.5` + anel + fundo, seis lado a lado |
+
+Corrigidos pela causa: peso 600→500 e tracking 0,06→0,02em no cabeçalho; `py-1.5`→`py-1` nas 11
+células de seleção. **Nenhum pixel de letra foi cedido** — o piso de 9px segue protegido por teste.
+
+> **A ordem destilada das rodadas do dia, agora escrita em [03 §1.2.6](03_padroes_ui.md):** quando
+> pedirem "menor", ceda em **espaçamento → peso → tamanho**, nessa ordem. Os dois primeiros quase
+> sempre têm o excesso e não custam legibilidade; tamanho é o único eixo que tira gente de fora da
+> leitura — e foi ele que produziu o cabeçalho de 7px. As rodadas de 11/08 percorreram os três
+> eixos na ordem errada.
+
+### A convenção agora tem teste
+
+[`testes-ui/tipografia.test.tsx`](../testes-ui/tipografia.test.tsx) — 5 verificações que falham se
+um `text-[Npx]` voltar, se um degrau cair abaixo de 10px, se a régua da grade voltar a produzir
+texto ilegível, se a pilha de fontes perder uma alternativa, ou se o movimento reduzido for
+esquecido em qualquer das duas metades.
+
+**É um teste de convenção, e é o tipo que faltava.** Nenhum teste de comportamento pegaria isto:
+`text-[9px]` renderiza, clica e passa em tudo — o defeito só aparece na mesa de quem precisa
+aproximar o rosto do monitor. A escala derreteu para pixel uma vez, em silêncio, 202 vezes.
+
+### Os números da rodada
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Tamanhos em px no código | 202 | **0** |
+| Menor texto da grade | 7px | **9px** (cabeçalho, caixa alta) · **10px** (dado) |
+| Menor texto fora da grade | 9px | **10px** |
+| Texto pequeno abaixo do contraste AA | 96 | **0** |
+| Testes de UI | 116 | **121** |
+
+---
+
+## 5.13. Confirmação em diálogo e desfazer — 11/08/2026, oitava rodada
+
+Três pedidos da gestão, numa entrega só: **`Ctrl+Z`** para voltar atrás numa edição errada, uma
+**pergunta antes de duplicar**, e a substituição da *"mensagem feia no topo da tela"* por um
+diálogo centrado, no estilo do alerta do macOS.
+
+O padrão vive em [03 §8](03_padroes_ui.md); aqui ficam os achados da rodada.
+
+### O `window.confirm` desligava a proteção justamente nos testes
+
+A "mensagem feia" era a caixa nativa do navegador, em 12 pontos do sistema. Trocá-la parecia
+assunto de aparência até a primeira execução da suíte: **o `jsdom` não implementa `window.confirm`**
+e o devolvia como `undefined`. Toda exclusão passava direto — o teste dizia que a linha sumia, e
+sumia, por um caminho que nenhuma pessoa percorre. A pergunta que protegia o dado era invisível
+para a suíte que deveria protegê-la.
+
+Com o diálogo em React, a pergunta existe no DOM e o teste tem de respondê-la. Cinco testes novos
+cobrem o que antes não existia: cancelar não exclui, `Esc` não exclui, confirmar exclui, e o foco
+começa em **Cancelar** quando a ação é destrutiva.
+
+### Uma escolha de três vias vivia espremida em dois botões
+
+Quando alguém sai da última equipe, o sistema pergunta o que fazer com a conta. A pergunta era um
+`window.confirm` cujo texto pedia para ler **"OK" como Desligado** e **"Cancelar" como Inativo** —
+de modo que o gesto universal de desistir produzia **uma alteração de cadastro**. Quem fechasse a
+caixa sem ler inativava alguém sem saber.
+
+`MOTIVOS_SAIDA`, em `utils/saida.ts`, já descrevia as duas situações **desde que o módulo nasceu,
+sem nunca ter sido usado** — a lista estava pronta, faltava a tela. Registrado em
+[04 §7.2](04_pagina_equipes.md).
+
+### O desfazer expôs uma janela entre o commit e o registro
+
+A primeira versão registrava o passo do histórico num `useEffect`. Efeito passivo roda depois da
+pintura, e entre o commit da mudança e o registro abria-se uma janela em que **o dado já mudou e o
+histórico ainda não sabe**. No navegador são milissegundos e nenhuma mão a alcança; num teste que
+dispara a tecla logo após o clique, ela é alcançada sempre — e foi assim que apareceu.
+
+Trocado por `useLayoutEffect`: o passo passa a ser gravado no mesmo commit da alteração, e não
+existe instante em que os dois discordem. **O teste não estava sendo chato; estava certo.**
+
+### O teste da reordenação encontrou um comentário mentindo
+
+`descreverMudanca` prometia, em comentário, tratar reordenação de lista — e não tratava: comparava
+índice a índice e acusava a primeira linha que mudou de lugar como se tivesse sido editada. O aviso
+nomearia uma linha em que ninguém tocou. Corrigido comparando identidade antes de posição.
+
+### Duas funções de permissão consultavam "hoje" sem deixar ninguém escolher qual
+
+`podeGerenciarEquipe` e `podeExcluirEquipe` dependem do relógio — a responsabilidade temporária
+vence na leitura ([04 §4](04_pagina_equipes.md)) — e **não aceitavam referência de tempo**, contra
+a convenção do próprio projeto ([03 §9](03_padroes_ui.md)). O efeito: `testeGestaoEquipe` montava
+uma janela de sete dias a partir de uma data fixa e **passou a falhar sozinho quando o calendário
+andou**. Não era defeito da regra; era a regra sendo consultada com um "hoje" que o teste não
+controlava. Agora recebem `agora = new Date()`, como todas as outras.
+
+### A suíte de UI apodrecia com o calendário — e ninguém veria isso chegando
+
+O seed do Backlog tem datas absolutas de julho, e o produto encerra sozinho o que fica 20 dias
+parado. A conta é contra o relógio do sistema, então **a cada dia mais linhas do seed cruzam o
+limite e saem da lista**:
+
+| Data da execução | Testes de UI falhando |
+|------------------|----------------------:|
+| 04/08/2026 (quando foram escritos) | 0 |
+| 10/08/2026 | 8 |
+| 11/08/2026 | 10 |
+
+Nenhuma linha de código havia mudado. Pior: as mensagens acusavam contagens de linha e apontavam
+para a grade, quando a causa era o calendário. O relógio da suíte foi fixado em 04/08/2026
+(`testes-ui/setup.ts`), devolvendo a ela a propriedade que a torna útil — **falhar só quando o
+código muda**.
+
+> **O envelhecimento do seed continua no produto, e é dele que se trata agora.** Em 11/08 o
+> Backlog abre com **9 linhas em andamento**, não 12: três já foram arquivadas pela regra dos 20
+> dias. A demonstração vai esvaziando sozinha, e em algumas semanas abre quase vazia. A correção é
+> de produto — seed com datas relativas a hoje — e está no débito nº 10.
+
+### Os números da rodada
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| `window.confirm` · `alert` · `prompt` no produto | 12 | **0** |
+| Suítes de regra | 33 | **34** |
+| Verificações de regra | 1.452 | **1.503** |
+| Testes de UI | 97 (8–10 falhando) | **116 (0 falhando)** |
+| Linhas TS/TSX | 23.244 | 24.205 |
 
 ---
 
@@ -1190,6 +1423,9 @@ Ordenado por impacto real, não por facilidade.
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
 | 8 | **Arquivos de tabela grandes** (1.500+ linhas) | Custo de leitura; sem defeito associado | §3 |
 | 9 | **Gesto de "marcar revisada" sem interface** | Dá para entrar no filtro "A conferir" e não dá para sair | §5.6 |
+| 10 | **Seed com datas absolutas** | A demonstração **esvazia sozinha**: a regra dos 20 dias arquiva o seed conforme o calendário anda. Em 11/08 o Backlog já abre com 9 linhas em vez de 12 | §5.13 |
+| 11 | **Layout não se adapta à largura da tela** | 19 classes responsivas no projeto inteiro; a grade pede 1340px mais a sidebar de 256px, e num notebook de 1366px já rola na horizontal. A tipografia foi resolvida (§5.14); o layout, não | §5.14 |
+| 12 | **Desfazer não alcança a administração** | Decisão, não esquecimento (§5.13 e [03 §8.2](03_padroes_ui.md)) — mas quem desfaz no quadro vai tentar desfazer em Usuários | [03 §8.2](03_padroes_ui.md) |
 
 > **Os três primeiros são o mesmo assunto: falta o servidor.** Não adianta atacar do 5 em diante
 > antes disso — paginação sem servidor é otimização de um problema que muda de forma quando os
@@ -1201,6 +1437,15 @@ Ordenado por impacto real, não por facilidade.
 |--------|------------------|
 | ~~Testes fora do repositório~~ | As 31 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou parte do item 4 |
 | ~~`strict` do TypeScript desligado~~ | Medido: 3 erros no projeto inteiro. Corrigidos, e `strict` + `noUnusedLocals` + `noUnusedParameters` entraram (§5.6) |
+
+### Fechados em 11/08/2026
+
+| Débito | Como foi fechado |
+|--------|------------------|
+| ~~Sem Git~~ | O repositório existe desde 04/08 e tem histórico. O item 4 encolheu para **falta de CI** |
+| ~~"Não há desfazer"~~ | `Ctrl+Z` no dado dos três quadros ([03 §8.2](03_padroes_ui.md)). A frase estava em [03 §8] desde a primeira versão do documento |
+| ~~Confirmação pela caixa do navegador~~ | Diálogo próprio nos 12 pontos — e, com ele, a confirmação passou a **existir nos testes** (§5.13) |
+| ~~Suíte de UI dependente do dia da execução~~ | Relógio fixo em `testes-ui/setup.ts`. O envelhecimento do **seed** continua, e virou o débito nº 10 |
 
 ---
 

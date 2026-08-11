@@ -176,7 +176,7 @@ export function AreaResponsavelCell({
         />
       ))}
 
-      {vazio && !editavel && <span className="text-[11px] text-slate-300">—</span>}
+      {vazio && !editavel && <span className="text-apoio text-slate-500">—</span>}
 
       {editavel && (
         <motion.button
@@ -207,7 +207,7 @@ export function AreaResponsavelCell({
               className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
             >
               <div className="border-b border-slate-100 px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="text-rotulo font-bold uppercase tracking-wider text-slate-500">
                   {config?.label}
                   {usuarioIds.length > 1 && (
                     <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
@@ -215,7 +215,7 @@ export function AreaResponsavelCell({
                     </span>
                   )}
                 </p>
-                <p className="truncate text-[11px] text-slate-500">
+                <p className="truncate text-apoio text-slate-500">
                   {equipe ? equipe.nome : 'Nenhuma equipe atende esta área'}
                 </p>
               </div>
@@ -258,10 +258,10 @@ export function AreaResponsavelCell({
                           <span className="block truncate text-xs font-medium text-slate-700">
                             {usuario.nome}
                             {usuario.id === usuarioAtualId && (
-                              <span className="ml-1 text-[10px] font-normal text-slate-400">(você)</span>
+                              <span className="ml-1 text-rotulo font-normal text-slate-500">(você)</span>
                             )}
                           </span>
-                          <span className="block truncate text-[10px] text-slate-400">{usuario.email}</span>
+                          <span className="block truncate text-rotulo text-slate-500">{usuario.email}</span>
                         </span>
                         {nomeado && <Check className="size-3.5 shrink-0 text-emerald-600" />}
                       </button>
@@ -286,10 +286,10 @@ export function AreaResponsavelCell({
                         <span className="block truncate text-xs font-medium text-slate-700">
                           {usuario.nome}
                           {usuario.id === usuarioAtualId && (
-                            <span className="ml-1 text-[10px] font-normal text-slate-400">(você)</span>
+                            <span className="ml-1 text-rotulo font-normal text-slate-500">(você)</span>
                           )}
                         </span>
-                        <span className="block truncate text-[10px] text-slate-400">{usuario.email}</span>
+                        <span className="block truncate text-rotulo text-slate-500">{usuario.email}</span>
                       </span>
 
                       <span className="flex shrink-0 items-center gap-1">
@@ -297,10 +297,10 @@ export function AreaResponsavelCell({
                           type="button"
                           onClick={() => onAlternarPapel!(usuario.id, 'responsavel')}
                           title={ehResponsavel ? 'Tirar da área' : 'Definir como responsável'}
-                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide transition ${
+                          className={`rounded px-1.5 py-0.5 text-rotulo font-bold uppercase tracking-wide transition ${
                             ehResponsavel
                               ? 'bg-indigo-600 text-white'
-                              : 'text-slate-400 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600'
+                              : 'text-slate-500 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600'
                           }`}
                         >
                           Resp.
@@ -309,10 +309,10 @@ export function AreaResponsavelCell({
                           type="button"
                           onClick={() => onAlternarPapel!(usuario.id, 'apoio')}
                           title={ehApoio ? 'Tirar da área' : 'Definir como apoio'}
-                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide transition ${
+                          className={`rounded px-1.5 py-0.5 text-rotulo font-bold uppercase tracking-wide transition ${
                             ehApoio
                               ? 'bg-slate-500 text-white'
-                              : 'text-slate-400 ring-1 ring-slate-200 hover:bg-white hover:text-slate-600'
+                              : 'text-slate-500 ring-1 ring-slate-200 hover:bg-white hover:text-slate-600'
                           }`}
                         >
                           Apoio

@@ -28,7 +28,7 @@ export function VinculoTalento({ contrato }: { contrato: TalentContract }) {
     return (
       <span
         title="Este nome não corresponde a nenhum talento cadastrado. Reescreva o nome para abrir a ficha."
-        className="ml-2 flex items-center gap-1 text-[10px] text-slate-400"
+        className="ml-2 flex items-center gap-1 text-rotulo text-slate-500"
       >
         <CircleAlert className="size-2.5" />
         sem cadastro
@@ -41,7 +41,7 @@ export function VinculoTalento({ contrato }: { contrato: TalentContract }) {
     return (
       <span
         title={`Ficha de ${talento.nome} criada a partir deste contrato — falta completar em Talentos`}
-        className="ml-2 flex items-center gap-1 text-[10px] font-medium text-amber-600"
+        className="ml-2 flex items-center gap-1 text-rotulo font-medium text-amber-600"
       >
         <CircleAlert className="size-2.5" />
         cadastro pendente
@@ -54,7 +54,7 @@ export function VinculoTalento({ contrato }: { contrato: TalentContract }) {
   return (
     <span
       title={`Vinculado à ficha de ${talento.nome} — ${tipo.label.toLowerCase()}`}
-      className="ml-2 flex items-center gap-1 text-[10px] text-slate-400"
+      className="ml-2 flex items-center gap-1 text-rotulo text-slate-500"
     >
       {talento.tipo === 'exclusivo' ? (
         <Star className="size-2.5 text-indigo-500" />

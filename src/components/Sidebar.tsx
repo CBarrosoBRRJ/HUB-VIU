@@ -70,7 +70,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
     <nav className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
       <div className="border-b border-slate-100 px-5 py-4">
         <p className="font-display text-sm font-bold text-slate-900">VIU Agenciamento</p>
-        <p className="text-[11px] text-slate-400">Gestão de talentos</p>
+        <p className="text-apoio text-slate-500">Gestão de talentos</p>
       </div>
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3 custom-scrollbar">
@@ -90,7 +90,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
           return (
             <div key={secao.titulo}>
-              <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              <p className="px-3 pb-2 pt-1 text-rotulo font-bold uppercase tracking-[0.16em] text-slate-500">
                 {secao.titulo}
               </p>
 
@@ -111,7 +111,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                           ? 'Sem acesso — peça a um responsável para incluir você na equipe deste quadro'
                           : undefined
                       }
-                      className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] whitespace-nowrap transition-colors ${
+                      className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-dado whitespace-nowrap transition-colors ${
                         bloqueado
                           ? 'cursor-not-allowed text-slate-300'
                           : isActive
@@ -137,7 +137,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                       {item.nivel === 'nomeado' && (
                         <span
                           title="Você vê apenas os registros em que foi nomeado"
-                          className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400"
+                          className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-500"
                         >
                           Meus
                         </span>
@@ -166,11 +166,11 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             >
               <Avatar usuario={usuario} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium text-slate-700">
+                <span className="block truncate text-dado font-medium text-slate-700">
                   {usuario.nome}
                 </span>
                 <span
-                  className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ring-1 ${perfilStyle?.chip}`}
+                  className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-selo font-bold uppercase tracking-wider ring-1 ${perfilStyle?.chip}`}
                 >
                   {ehDono(usuario) ? 'Dono do Sistema' : PERFIL_LABEL[usuario.perfil]}
                 </span>
@@ -204,7 +204,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                   transition={{ duration: 0.14, ease: 'easeOut' }}
                   className="overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
                 >
-                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="px-3 py-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                     Entrar como (demo)
                   </p>
                   {usuarios.map((candidato) => (
@@ -222,7 +222,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                         <span className="block truncate text-xs font-medium text-slate-700">
                           {candidato.nome}
                         </span>
-                        <span className="block truncate text-[10px] text-slate-400">
+                        <span className="block truncate text-rotulo text-slate-500">
                           {PERFIL_LABEL[candidato.perfil]}
                         </span>
                       </span>

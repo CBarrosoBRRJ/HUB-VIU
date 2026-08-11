@@ -132,13 +132,13 @@ export function ConvidarPessoa({ equipe }: { equipe: Equipe }) {
                     <Check className="size-3.5" />
                     Convite criado
                   </p>
-                  <p className="mt-1 text-[11px] leading-snug text-slate-500">
+                  <p className="mt-1 text-apoio leading-snug text-slate-500">
                     Envie este link para <strong className="text-slate-700">{normalizarEmail(email)}</strong>.
                     Ele vale por {VALIDADE_HORAS} horas, serve uma única vez e só funciona para esse e-mail.
                   </p>
 
                   <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-slate-50 p-2">
-                    <code className="min-w-0 flex-1 truncate text-[10px] text-slate-600">{linkGerado}</code>
+                    <code className="min-w-0 flex-1 truncate text-rotulo text-slate-600">{linkGerado}</code>
                     <motion.button
                       type="button"
                       onClick={copiar}
@@ -162,7 +162,7 @@ export function ConvidarPessoa({ equipe }: { equipe: Equipe }) {
                   </motion.button>
 
                   {envioEhManual && (
-                    <p className="mt-1.5 text-[10px] leading-snug text-slate-400">
+                    <p className="mt-1.5 text-rotulo leading-snug text-slate-500">
                       Abre seu cliente de e-mail com a mensagem pronta. O envio automático pela
                       plataforma entra junto com o backend.
                     </p>
@@ -181,7 +181,7 @@ export function ConvidarPessoa({ equipe }: { equipe: Equipe }) {
                 </div>
               ) : (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="text-rotulo font-bold uppercase tracking-wider text-slate-500">
                     Convidar para {equipe.nome}
                   </p>
 
@@ -195,16 +195,16 @@ export function ConvidarPessoa({ equipe }: { equipe: Equipe }) {
                     className="mt-2 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                   />
 
-                  {erro && <p className="mt-1.5 text-[11px] text-rose-600">{erro}</p>}
+                  {erro && <p className="mt-1.5 text-apoio text-rose-600">{erro}</p>}
 
-                  <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mt-3 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                     Entra como
                   </p>
                   <div className="mt-1.5 flex gap-1.5">
                     <button
                       type="button"
                       onClick={() => setPapel('membro')}
-                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-apoio font-semibold transition ${
                         papel === 'membro' ? 'bg-slate-500 text-white' : 'bg-slate-50 text-slate-500'
                       }`}
                     >
@@ -221,7 +221,7 @@ export function ConvidarPessoa({ equipe }: { equipe: Equipe }) {
                           ? undefined
                           : 'Somente o Admin do Sistema nomeia responsáveis'
                       }
-                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-apoio font-semibold transition ${
                         papel === 'responsavel' ? 'bg-amber-500 text-white' : 'bg-slate-50 text-slate-500'
                       } ${podeNomearResponsavel ? '' : 'cursor-not-allowed opacity-50'}`}
                     >

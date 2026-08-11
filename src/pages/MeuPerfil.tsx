@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
-  AtSign, Camera, Check, Clock, Copy, IdCard, Mail, ShieldCheck, Trash2, Users, X,
+  AtSign, Camera, Check, Clock, Copy, IdCard, Mail, ShieldCheck, Trash2, Type, Users, X,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Avatar } from '../components/usuarios/Avatar';
@@ -13,6 +13,7 @@ import { mensagemErroIdentidade, validarEmail } from '../utils/identidade';
 import { linkDaConfirmacao, trocaPendenteDe, VALIDADE_HORAS_EMAIL } from '../utils/trocaEmail';
 import { mensagemErroFoto, processarFoto } from '../utils/foto';
 import { formatDate } from '../utils/dates';
+import { aplicarFatorTexto, FAIXA_FATOR, fatorTextoSalvo, TAMANHOS_TEXTO } from '../utils/aparencia';
 
 /** Campos que a própria pessoa mantém. O e-mail fica fora: muda por confirmação. */
 const CAMPOS: {
@@ -40,9 +41,15 @@ export function MeuPerfil() {
   } = useDados();
 
   const [novoEmail, setNovoEmail] = useState('');
+  // O aplicado é a fonte (aparencia.ts); o estado só reflete a escolha na tela.
+  const [fatorTexto, setFatorTexto] = useState(() => fatorTextoSalvo());
   const [erroFoto, setErroFoto] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const inputFoto = useRef<HTMLInputElement>(null);
+
+  function mudarFator(fator: number) {
+    setFatorTexto(aplicarFatorTexto(fator));
+  }
 
   const eu = sessao.usuario;
   const editavel = podeEditarProprioCadastro(sessao, eu);
@@ -154,9 +161,83 @@ export function MeuPerfil() {
                 )}
               </div>
 
-              {erroFoto && <p className="mt-2 text-[11px] text-rose-600">{erroFoto}</p>}
-              <p className="mt-2 text-[11px] text-slate-400">
+              {erroFoto && <p className="mt-2 text-apoio text-rose-600">{erroFoto}</p>}
+              <p className="mt-2 text-apoio text-slate-500">
                 JPG, PNG ou WebP de até 5 MB. A imagem é recortada em quadrado e reduzida a 256 px.
+              </p>
+            </div>
+          </div>
+
+          {/*
+            Aparência — o tamanho de texto de quem está nesta tela.
+
+            Nasceu da calibração de 11/08/2026: três rodadas provaram que o tamanho confortável
+            varia por pessoa e por monitor, e nenhuma curva automática fecha essa conta. A curva
+            resolve a tela; este controle resolve a pessoa — ver `utils/aparencia.ts`.
+          */}
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2.5">
+              <Type className="size-4 text-slate-400" />
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Tamanho do texto
+              </p>
+            </div>
+
+            <div className="p-4">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Tamanho do texto">
+                {TAMANHOS_TEXTO.map((opcao) => {
+                  // O atalho acende quando a régua está exatamente nele — arrastou, apagou.
+                  const ativa = Math.abs(fatorTexto - opcao.fator) < 0.005;
+                  return (
+                    <motion.button
+                      key={opcao.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={ativa}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => mudarFator(opcao.fator)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-left transition ${
+                        ativa
+                          ? 'border-indigo-300 bg-indigo-50'
+                          : 'border-slate-200 hover:border-indigo-200'
+                      }`}
+                    >
+                      <span className={`block text-sm font-semibold ${ativa ? 'text-indigo-700' : 'text-slate-700'}`}>
+                        {opcao.label}
+                      </span>
+                      <span className="block text-apoio text-slate-500">{opcao.descricao}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/*
+                A régua fina — o motivo de este card existir do jeito que existe.
+
+                A calibração por tentativa provou que a janela de conforto de um monitor grande é
+                mais estreita que qualquer degrau pré-definido (16px "pequeno", +8% "imenso", +2%
+                "ainda ruim" — a mesma tela, 11/08/2026). O ponto exato só se encontra **vendo o
+                efeito**: a régua aplica ao vivo, a cada passo de 1%.
+              */}
+              <div className="mt-3 flex items-center gap-3">
+                <input
+                  type="range"
+                  min={Math.round(FAIXA_FATOR.min * 100)}
+                  max={Math.round(FAIXA_FATOR.max * 100)}
+                  step={1}
+                  value={Math.round(fatorTexto * 100)}
+                  onChange={(evento) => mudarFator(Number(evento.target.value) / 100)}
+                  aria-label="Ajuste fino do tamanho do texto"
+                  className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                />
+                <span className="w-12 text-right font-mono text-apoio font-semibold text-slate-600">
+                  {Math.round(fatorTexto * 100)}%
+                </span>
+              </div>
+
+              <p className="mt-2 text-apoio text-slate-500">
+                Aplica na hora, ao sistema inteiro, e vale para este navegador — ajuste em cada
+                monitor até ficar confortável.
               </p>
             </div>
           </div>
@@ -173,7 +254,7 @@ export function MeuPerfil() {
             <div className="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-2">
               {CAMPOS.map((item) => (
                 <div key={item.campo}>
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mb-1 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                     {item.label}
                   </p>
                   {editavel ? (
@@ -220,13 +301,13 @@ export function MeuPerfil() {
                     <Clock className="size-3.5" />
                     Aguardando confirmação em {pendente.novoEmail}
                   </p>
-                  <p className="mt-1 text-[11px] text-amber-800">
+                  <p className="mt-1 text-apoio text-amber-800">
                     O link vale por {VALIDADE_HORAS_EMAIL}h. A troca só acontece depois que ele for
                     aberto.
                   </p>
 
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <code className="min-w-0 flex-1 truncate rounded-lg bg-white/70 px-2 py-1.5 text-[10px] text-slate-600">
+                    <code className="min-w-0 flex-1 truncate rounded-lg bg-white/70 px-2 py-1.5 text-rotulo text-slate-600">
                       {linkDaConfirmacao(pendente)}
                     </code>
                     <button
@@ -247,7 +328,7 @@ export function MeuPerfil() {
                     </button>
                   </div>
 
-                  <p className="mt-2 text-[10px] text-amber-700">
+                  <p className="mt-2 text-rotulo text-amber-700">
                     Sem servidor de e-mail, o link aparece aqui. Em produção, ele é enviado ao
                     endereço novo.
                   </p>
@@ -278,7 +359,7 @@ export function MeuPerfil() {
                       Solicitar troca
                     </motion.button>
 
-                    {erroEmail && <p className="w-full text-[11px] text-rose-600">{erroEmail}</p>}
+                    {erroEmail && <p className="w-full text-apoio text-rose-600">{erroEmail}</p>}
                   </div>
                 )
               )}
@@ -305,7 +386,7 @@ export function MeuPerfil() {
                     <p key={equipe.id} className="flex items-center gap-2 text-sm text-slate-700">
                       <span className="size-1.5 rounded-full bg-indigo-400" />
                       <span className="flex-1">{equipe.nome}</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-apoio text-slate-500">
                         {getPapelNaEquipe(equipe, eu.id) === 'responsavel' ? 'responsável' : 'membro'}
                       </span>
                     </p>
@@ -313,7 +394,7 @@ export function MeuPerfil() {
                 </div>
               )}
 
-              <p className="mt-3 text-[11px] text-slate-400">
+              <p className="mt-3 text-apoio text-slate-500">
                 Equipes e perfil são definidos pela administração — se algo estiver errado, fale com
                 um administrador.
               </p>

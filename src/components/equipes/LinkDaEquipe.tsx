@@ -7,6 +7,7 @@ import {
   horasRestantesLink, linkDeEntrada, mensagemDeCompartilhamento, VALIDADE_HORAS_LINK,
 } from '../../utils/linkEquipe';
 import { enviarEmail } from '../../services/email';
+import { useDialogo } from '../ui/Dialogo';
 
 /**
  * Link coletivo da equipe — visível apenas para quem a administra.
@@ -16,6 +17,7 @@ import { enviarEmail } from '../../services/email';
  */
 export function LinkDaEquipe({ equipe }: { equipe: Equipe }) {
   const { dominios, linkDaEquipe, renovarLinkDaEquipe, desativarLinkDaEquipe, getUsuario } = useDados();
+  const { confirmar } = useDialogo();
   const [copiado, setCopiado] = useState<'link' | 'mensagem' | null>(null);
 
   const link = linkDaEquipe(equipe.id);
@@ -49,12 +51,12 @@ export function LinkDaEquipe({ equipe }: { equipe: Equipe }) {
 
   return (
     <div className="mt-4 border-t border-slate-100 pt-4">
-      <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+      <p className="mb-2 flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
         <Link2 className="size-3" />
         Link de entrada da equipe
       </p>
 
-      <p className="mb-2.5 text-[11px] leading-relaxed text-slate-500">
+      <p className="mb-2.5 text-apoio leading-relaxed text-slate-500">
         Visível apenas para você e demais responsáveis. Compartilhe no chat da equipe: quem abrir
         informa nome e e-mail corporativo e entra como{' '}
         <strong className="font-semibold text-slate-600">membro</strong>. Endereço aleatório, válido
@@ -62,7 +64,7 @@ export function LinkDaEquipe({ equipe }: { equipe: Equipe }) {
       </p>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <code className="min-w-0 flex-1 truncate rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] text-slate-600">
+        <code className="min-w-0 flex-1 truncate rounded-lg bg-slate-50 px-2.5 py-2 text-apoio text-slate-600">
           {endereco}
         </code>
 
@@ -115,10 +117,14 @@ export function LinkDaEquipe({ equipe }: { equipe: Equipe }) {
 
         <motion.button
           type="button"
-          onClick={() => {
-            if (window.confirm('Desativar o link? Quem já tiver o endereço deixa de conseguir entrar.')) {
-              desativarLinkDaEquipe(equipe.id);
-            }
+          onClick={async () => {
+            const ok = await confirmar({
+              titulo: 'Desativar o link da equipe?',
+              descricao: 'Quem já tiver o endereço deixa de conseguir entrar. Um link novo pode ser gerado depois.',
+              rotuloConfirmar: 'Desativar',
+              destrutivo: true,
+            });
+            if (ok) desativarLinkDaEquipe(equipe.id);
           }}
           whileTap={{ scale: 0.97 }}
           className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-rose-50 hover:text-rose-600"
@@ -128,7 +134,7 @@ export function LinkDaEquipe({ equipe }: { equipe: Equipe }) {
         </motion.button>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-apoio text-slate-500">
         <span className="flex items-center gap-1">
           <Clock className="size-3" />
           gerado {new Date(link.criadoEm).toLocaleString('pt-BR', {

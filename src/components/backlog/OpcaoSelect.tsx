@@ -54,7 +54,7 @@ export function OpcaoSelect<T extends string>({
 
   if (!onChange) {
     return (
-      <span className="flex items-center justify-center rounded-md bg-slate-50 px-2 py-1.5 text-[11px] text-slate-600 ring-1 ring-slate-200">
+      <span className="flex items-center justify-center rounded-md bg-slate-50 px-2 py-1 text-apoio text-slate-600 ring-1 ring-slate-200">
         <span className="truncate">{atual?.label ?? '—'}</span>
       </span>
     );
@@ -73,7 +73,7 @@ export function OpcaoSelect<T extends string>({
         data-dica-sub={dicaSub ?? `Trocar ${titulo.toLowerCase()}`}
         /* A origem do valor não repete nada da tela — por isso vale mesmo cabendo. */
         {...(dicaSub ? { 'data-dica-sempre': '' } : {})}
-        className="flex w-full items-center justify-center gap-1 rounded-md bg-white px-2 py-1.5 text-[11px] text-slate-600 ring-1 ring-slate-200 transition hover:ring-indigo-300"
+        className="flex w-full items-center justify-center gap-1 rounded-md bg-white px-2 py-1 text-apoio text-slate-600 ring-1 ring-slate-200 transition hover:ring-indigo-300"
       >
         <span className="truncate">{atual?.label ?? '—'}</span>
         <ChevronDown className="size-3 shrink-0 text-slate-400" />
@@ -89,7 +89,7 @@ export function OpcaoSelect<T extends string>({
               transition={{ duration: 0.14, ease: 'easeOut' }}
               className="overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
             >
-              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="px-3 py-1 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                 {titulo}
               </p>
               {opcoes.map((opcao: Opcao) => (

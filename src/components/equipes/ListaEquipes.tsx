@@ -94,7 +94,7 @@ export function ListaEquipes({
               />
 
               <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="mb-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                   Quadros que a equipe enxerga
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -105,7 +105,7 @@ export function ListaEquipes({
                         key={pagina.id}
                         type="button"
                         onClick={() => alternarPagina(pagina.id)}
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                        className={`rounded-full px-2.5 py-1 text-apoio font-medium transition ${
                           ativa
                             ? 'bg-indigo-600 text-white'
                             : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:ring-indigo-300'
@@ -133,7 +133,7 @@ export function ListaEquipes({
       </AnimatePresence>
 
       <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
-        <p className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        <p className="px-2 py-1.5 text-rotulo font-bold uppercase tracking-[0.14em] text-slate-500">
           Todas as equipes ({equipes.length})
         </p>
 
@@ -157,18 +157,18 @@ export function ListaEquipes({
                   />
                 )}
                 <span
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold text-white ${getCorAvatar(equipe.nome)}`}
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-rotulo font-bold text-white ${getCorAvatar(equipe.nome)}`}
                 >
                   {getIniciais(equipe.nome)}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span
-                    className={`block truncate text-[13px] ${ativa ? 'font-semibold text-indigo-700' : 'text-slate-600'}`}
+                    className={`block truncate text-dado ${ativa ? 'font-semibold text-indigo-700' : 'text-slate-600'}`}
                   >
                     {equipe.nome}
                   </span>
                 </span>
-                <span className="shrink-0 text-[11px] tabular-nums text-slate-400">
+                <span className="shrink-0 text-apoio tabular-nums text-slate-500">
                   {equipe.membros.length}
                 </span>
               </button>

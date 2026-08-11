@@ -118,10 +118,10 @@ export function EntrarPorLink({ token, onConcluir }: { token: string; onConcluir
                   className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 />
 
-                {erroEmail && <p className="mt-1.5 text-[11px] text-rose-600">{erroEmail}</p>}
+                {erroEmail && <p className="mt-1.5 text-apoio text-rose-600">{erroEmail}</p>}
 
                 {jaTemConta ? (
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-apoio text-slate-500">
                     Você já tem conta — vamos apenas adicionar você a esta equipe.
                   </p>
                 ) : (
@@ -134,7 +134,7 @@ export function EntrarPorLink({ token, onConcluir }: { token: string; onConcluir
                   />
                 )}
 
-                {erro && <p className="mt-2 text-[11px] text-rose-600">{erro}</p>}
+                {erro && <p className="mt-2 text-apoio text-rose-600">{erro}</p>}
 
                 <motion.button
                   type="button"
@@ -148,7 +148,7 @@ export function EntrarPorLink({ token, onConcluir }: { token: string; onConcluir
                   <ArrowRight className="size-4" />
                 </motion.button>
 
-                <p className="mt-2 text-center text-[10px] text-slate-400">
+                <p className="mt-2 text-center text-rotulo text-slate-500">
                   Simulação do retorno do SSO — no ambiente real, este passo é o login corporativo.
                 </p>
               </>

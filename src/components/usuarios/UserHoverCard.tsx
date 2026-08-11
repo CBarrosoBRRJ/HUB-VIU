@@ -59,7 +59,7 @@ export function UserHoverCard({
             <Avatar usuario={usuario} size="lg" />
           </span>
           <span
-            className={`mb-1 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+            className={`mb-1 flex items-center gap-1 rounded-full px-2.5 py-1 text-rotulo font-bold uppercase tracking-wider ${
               isResponsavel ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-700'
             }`}
           >

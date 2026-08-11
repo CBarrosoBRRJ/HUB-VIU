@@ -20,6 +20,7 @@ import { EditableCell } from '../ui/EditableCell';
 import { BuscaQuadro } from '../ui/BuscaQuadro';
 import { VinculoTalento } from './VinculoTalento';
 import { CelulaReferencia } from '../ui/CelulaReferencia';
+import { useDialogo } from '../ui/Dialogo';
 
 type SortField = 'talento' | 'contrato' | 'numero' | 'inicio' | 'fim' | 'status' | 'criadoEm';
 type SortDirection = 'asc' | 'desc';
@@ -115,6 +116,7 @@ export function ContratosTable({
   onChangeStatus, onUpdateCampo, onDefinirPapel, onDeleteMany,
 }: ContratosTableProps) {
   const { getUsuario, sessao, talentos } = useDados();
+  const { confirmar, avisar } = useDialogo();
   const podeCriar = podeCriarRegistro(sessao, 'contratos');
 
   /**
@@ -272,12 +274,24 @@ export function ContratosTable({
         'Contratos',
       );
     } catch {
-      window.alert('Não foi possível gerar o Excel. Recarregue a página e tente de novo.');
+      void avisar({
+        titulo: 'Não foi possível gerar o Excel',
+        descricao: 'Recarregue a página e tente de novo.',
+        icone: 'alerta',
+      });
     }
   }
 
-  function handleDeleteMany(ids: string[], rotulo: string) {
-    if (!window.confirm(`Excluir ${rotulo}? Esta ação não pode ser desfeita.`)) return;
+  async function handleDeleteMany(ids: string[], rotulo: string) {
+    const ok = await confirmar({
+      titulo: `Excluir ${rotulo}?`,
+      // Sem instrução de teclado: o atalho se apresenta no aviso pós-ação — ver `BacklogTable`.
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+      icone: 'excluir',
+    });
+    if (!ok) return;
+
     onDeleteMany(ids);
     setSelectedIds(new Set());
   }
@@ -604,7 +618,7 @@ export function ContratosTable({
           `table-fixed` + <colgroup>: sem isto o navegador redistribui a sobra pelas colunas
           conforme o conteúdo de cada linha, e o cabeçalho deixa de bater com os dados.
         */}
-        <table className="w-full min-w-[1340px] table-fixed border-collapse">
+        <table className="w-full min-w-[83.75rem] table-fixed border-collapse">
           <colgroup>
             <col className="w-10" />
             {COLUMNS.map((column) => (
@@ -635,7 +649,7 @@ export function ContratosTable({
                       <button
                         type="button"
                         onClick={() => toggleSort(column.field!)}
-                        className={`flex w-full items-center gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
+                        className={`flex w-full items-center gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
                           isActive ? 'text-slate-700' : 'text-slate-500'
                         }`}
                       >
@@ -644,7 +658,7 @@ export function ContratosTable({
                       </button>
                     ) : (
                       <span
-                        className={`flex w-full truncate text-[10px] font-bold uppercase tracking-wide text-slate-500 ${alignClass}`}
+                        className={`flex w-full truncate text-rotulo font-bold uppercase tracking-wide text-slate-500 ${alignClass}`}
                       >
                         {column.label}
                       </span>

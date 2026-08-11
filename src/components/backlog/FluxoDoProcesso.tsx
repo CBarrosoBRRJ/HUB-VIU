@@ -67,10 +67,10 @@ export function FluxoDoProcesso({
     const etapa = etapaAtiva ? getStatus(etapaAtiva) : null;
     return (
       <div className="mb-3 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
-        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <p className="flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
           <Zap className="size-3 text-indigo-500" />
           Fluxo do processo
-          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] text-indigo-700">
+          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-selo text-indigo-700">
             {ativas} em andamento
           </span>
         </p>
@@ -82,7 +82,7 @@ export function FluxoDoProcesso({
             data-dica={`Filtrando por ${etapa.label}`}
             data-dica-sub="Clique para ver todas as etapas"
             data-dica-sempre
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-indigo-700"
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1 text-apoio font-medium text-white transition hover:bg-indigo-700"
           >
             {etapa.label}
             <span className="text-indigo-200">×</span>
@@ -92,7 +92,7 @@ export function FluxoDoProcesso({
         <button
           type="button"
           onClick={() => onRecolhidoChange(false)}
-          className="ml-auto flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50"
+          className="ml-auto flex items-center gap-1 rounded-lg px-2.5 py-1 text-apoio font-medium text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50"
         >
           <ChevronDown className="size-3.5" />
           Mostrar fluxo
@@ -106,10 +106,10 @@ export function FluxoDoProcesso({
       {/* Fluxo */}
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <p className="flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
             <Zap className="size-3 text-indigo-500" />
             Fluxo do processo
-            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] text-indigo-700">
+            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-selo text-indigo-700">
               {ativas} em andamento
             </span>
           </p>
@@ -120,7 +120,7 @@ export function FluxoDoProcesso({
             data-dica="Recolher o fluxo"
             data-dica-sub="Ganha espaço para a lista — o recorte por etapa continua visível na faixa"
             data-dica-sempre
-            className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
+            className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-apoio font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-600"
           >
             <ChevronUp className="size-3.5" />
             Recolher
@@ -129,7 +129,7 @@ export function FluxoDoProcesso({
           <button
             type="button"
             onClick={() => onEtapaChange(null)}
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
+            className={`rounded-lg px-2.5 py-1 text-apoio font-medium transition ${
               etapaAtiva === null
                 ? 'bg-indigo-600 text-white'
                 : 'text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50'
@@ -154,7 +154,16 @@ export function FluxoDoProcesso({
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.14 }}
                 title={`${resumo.quantidade} em ${status.label}`}
-                className={`min-w-[7.5rem] flex-1 rounded-xl border px-3 py-2.5 text-left transition ${
+                /*
+                  `min-w-fit`: o cartão nunca fica menor que o próprio rótulo.
+
+                  Antes o mínimo era um número (7.5rem) e o rótulo era cortado por reticências —
+                  "Aguardando F…" na tela da operação (11/08/2026). Etiqueta de navegação não se
+                  corta: ela é o nome do destino, e um nome pela metade obriga a decorar o mapa.
+                  Com o mínimo vindo do conteúdo, o `flex-wrap` do contêiner resolve o resto:
+                  em janela estreita os cartões quebram de linha inteiros, legíveis.
+                */
+                className={`min-w-fit flex-1 rounded-xl border px-3 py-2.5 text-left transition ${
                   ativa
                     ? 'border-indigo-300 bg-indigo-50'
                     : etapa.loop
@@ -163,8 +172,8 @@ export function FluxoDoProcesso({
                 }`}
               >
                 <span
-                  className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider ${
-                    etapa.loop ? 'text-amber-600' : 'text-slate-400'
+                  className={`flex items-center gap-1 text-selo font-bold uppercase tracking-wider ${
+                    etapa.loop ? 'text-amber-600' : 'text-slate-500'
                   }`}
                 >
                   {etapa.loop ? (
@@ -178,14 +187,15 @@ export function FluxoDoProcesso({
                 </span>
 
                 <span className="mt-0.5 flex items-center justify-between gap-2">
-                  <span className="truncate text-xs font-semibold text-slate-700">
+                  {/* Sem `truncate`: o `min-w-fit` do cartão garante que o rótulo inteiro cabe. */}
+                  <span className="whitespace-nowrap text-xs font-semibold text-slate-700">
                     {status.label}
                   </span>
                   <span
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-rotulo font-bold ${
                       resumo.quantidade > 0
                         ? 'bg-slate-100 text-slate-600'
-                        : 'text-slate-300'
+                        : 'text-slate-500'
                     }`}
                   >
                     {resumo.quantidade}
@@ -196,7 +206,7 @@ export function FluxoDoProcesso({
           })}
         </div>
 
-        <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-rotulo text-slate-500">
           <span className="flex items-center gap-1">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             Fluxo sequencial do projeto
@@ -211,14 +221,14 @@ export function FluxoDoProcesso({
       {/* Finalização */}
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <p className="flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
             <CheckCircle2 className="size-3 text-emerald-500" />
             Finalização
             <span className="font-normal normal-case tracking-normal text-slate-400">
               · últimos {DIAS_FINALIZADOS_VISIVEIS} dias
             </span>
           </p>
-          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
+          <span className="text-selo font-bold uppercase tracking-wider text-slate-500">
             Totais &amp; qtd.
           </span>
         </div>
@@ -253,13 +263,13 @@ export function FluxoDoProcesso({
                     {!status.encerra && (
                       <span
                         title="Pausa reversível — volta para Aguardando Feedback"
-                        className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500"
+                        className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-500"
                       >
                         Pausa
                       </span>
                     )}
                   </span>
-                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-rotulo font-bold text-slate-600">
                     {resumo.quantidade}
                   </span>
                 </span>
@@ -273,7 +283,7 @@ export function FluxoDoProcesso({
                   {resumo.ilegiveis > 0 && (
                     <span
                       title={`${resumo.ilegiveis} registro(s) com valor não numérico ficaram fora da soma`}
-                      className="ml-1 text-[10px] font-normal text-amber-600"
+                      className="ml-1 text-rotulo font-normal text-amber-600"
                     >
                       +{resumo.ilegiveis}?
                     </span>
@@ -293,7 +303,7 @@ export function FluxoDoProcesso({
                       <span
                         key={item.id}
                         title={`${item.label}: ${item.quantidade} — ${formatarMoeda(item.valor)}`}
-                        className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-rose-100"
+                        className="rounded bg-rose-50 px-1.5 py-0.5 text-rotulo font-medium text-rose-700 ring-1 ring-rose-100"
                       >
                         {item.label} <strong className="font-bold">{item.quantidade}</strong>
                       </span>
@@ -310,7 +320,7 @@ export function FluxoDoProcesso({
           números pareçam o total histórico quando são só o recorte recente.
         */}
         {antigas > 0 && (
-          <p className="mt-2.5 text-[10px] leading-snug text-slate-400">
+          <p className="mt-2.5 text-rotulo leading-snug text-slate-500">
             <strong className="font-semibold text-slate-500">{antigas}</strong>{' '}
             {antigas === 1 ? 'finalizada há mais' : 'finalizadas há mais'} de{' '}
             {DIAS_FINALIZADOS_VISIVEIS} dias {antigas === 1 ? 'não aparece' : 'não aparecem'} aqui —

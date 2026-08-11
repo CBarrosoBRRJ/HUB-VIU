@@ -4,6 +4,38 @@
  * Sem isto, o teste falha por um motivo que não tem nada a ver com o que ele verifica — e a
  * mensagem aponta para o lugar errado.
  */
+import { afterEach, beforeEach, vi } from 'vitest';
+
+/**
+ * O relógio da suíte é fixo — 04/08/2026, o dia em que o seed foi escrito.
+ *
+ * ## Por que precisou existir
+ *
+ * O seed do Backlog tem datas absolutas de julho, e o produto encerra sozinho o que ficar 20 dias
+ * corridos parado ([08 §3.3](../prd/08_backlog_e_integracoes.md)). A conta é feita contra o relógio
+ * do sistema: **a cada dia que passa, mais linhas do seed cruzam o limite e saem da lista.**
+ *
+ * O efeito era uma suíte que apodrecia sozinha. Em 04/08 ela passava inteira; em 10/08, oito
+ * testes falhavam; em 11/08, dez — sem que uma linha de código tivesse mudado. Pior: as mensagens
+ * acusavam contagens de linha, apontando para a grade, quando a causa era o calendário.
+ *
+ * Fixar o relógio devolve à suíte a propriedade que a torna útil — **falhar só quando o código
+ * muda**. O envelhecimento do seed continua existindo no produto, e está registrado como tal em
+ * [00 §6](../prd/00_status_implementacao.md): a demonstração vai ficando vazia com o tempo.
+ * Corrigi-lo é decisão de produto (datas relativas a hoje), não de teste.
+ *
+ * `shouldAdvanceTime` mantém o tempo correndo a partir daí: sem isso, todo `waitFor` esperaria
+ * para sempre, porque o relógio congelado nunca alcança o próximo intervalo.
+ */
+export const AGORA_NOS_TESTES = new Date(2026, 7, 4, 12, 0, 0);
+
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true, now: AGORA_NOS_TESTES });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 // O `motion` consulta a preferência de movimento reduzido.
 window.matchMedia = window.matchMedia || (((consulta: string) => ({

@@ -21,6 +21,7 @@ import { EditableCell } from '../ui/EditableCell';
 import { CelulaOculta } from '../ui/CelulaOculta';
 import { CelulaReferencia } from '../ui/CelulaReferencia';
 import { BuscaQuadro } from '../ui/BuscaQuadro';
+import { useDialogo } from '../ui/Dialogo';
 import { getCorAvatar, getIniciais } from '../usuarios/Avatar';
 import { AreaResponsavelCell } from './AreaResponsavelCell';
 import { TipoSelect } from './TipoSelect';
@@ -56,14 +57,20 @@ const ICONES: Record<string, typeof IdCard> = {
   'talentos:contratos': FileText,
 };
 
-/** Largura mínima por aba — evita esmagar as abas com mais colunas. */
+/**
+ * Largura mínima por aba — evita esmagar as abas com mais colunas.
+ *
+ * Em `rem` desde 11/08/2026: as colunas daqui são percentuais, então basta o contêiner acompanhar
+ * a raiz fluida para a tabela inteira escalar com o texto — em px, o texto crescia nas telas
+ * grandes e as colunas não, e a palavra era comida.
+ */
 const LARGURA_MINIMA: Record<string, string> = {
-  'talentos:identificacao': 'min-w-[900px]',
-  'talentos:contato': 'min-w-[900px]',
-  'talentos:redes': 'min-w-[1100px]',
-  'talentos:financeiro': 'min-w-[1050px]',
-  'talentos:responsaveis': 'min-w-[1100px]',
-  'talentos:contratos': 'min-w-[900px]',
+  'talentos:identificacao': 'min-w-[56.25rem]',
+  'talentos:contato': 'min-w-[56.25rem]',
+  'talentos:redes': 'min-w-[68.75rem]',
+  'talentos:financeiro': 'min-w-[65.625rem]',
+  'talentos:responsaveis': 'min-w-[68.75rem]',
+  'talentos:contratos': 'min-w-[56.25rem]',
 };
 
 interface TalentosTableProps {
@@ -94,6 +101,7 @@ export function TalentosTable({
   const {
     sessao, alternarResponsavelDoTalento, definirTipoDoTalento, definirRedeDoTalento,
   } = useDados();
+  const { confirmar, avisar } = useDialogo();
   const podeCriar = podeCriarRegistro(sessao, 'talentos');
 
   const abas = useMemo(
@@ -191,14 +199,25 @@ export function TalentosTable({
         'Talentos',
       );
     } catch {
-      window.alert('Não foi possível gerar o Excel. Recarregue a página e tente de novo.');
+      void avisar({
+        titulo: 'Não foi possível gerar o Excel',
+        descricao: 'Recarregue a página e tente de novo.',
+        icone: 'alerta',
+      });
     }
   }
 
-  function excluir(ids: string[], rotulo: string) {
-    if (!window.confirm(`Excluir ${rotulo}? Os contratos permanecem no quadro, apenas sem o vínculo.`)) {
-      return;
-    }
+  async function excluir(ids: string[], rotulo: string) {
+    const ok = await confirmar({
+      titulo: `Excluir ${rotulo}?`,
+      // A frase que fica é **consequência** da exclusão. A do atalho saiu: ver `BacklogTable`.
+      descricao: 'Os contratos permanecem no quadro, apenas sem o vínculo.',
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+      icone: 'excluir',
+    });
+    if (!ok) return;
+
     onDeleteMany(ids);
     setSelecionados(new Set());
   }
@@ -473,7 +492,7 @@ export function TalentosTable({
         <td className="px-2 py-2.5">
           <div className="flex items-center gap-2">
             <span
-              className={`relative flex size-8 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold text-white ${getCorAvatar(talento.nome)}`}
+              className={`relative flex size-8 shrink-0 items-center justify-center rounded-lg text-rotulo font-bold text-white ${getCorAvatar(talento.nome)}`}
             >
               {getIniciais(talento.nome)}
               <span
@@ -501,13 +520,13 @@ export function TalentosTable({
               {talento.cadastroPendente ? (
                 <span
                   title="Ficha aberta a partir de um contrato — falta completar os dados"
-                  className="ml-2 inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200"
+                  className="ml-2 inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200"
                 >
                   <CircleAlert className="size-2.5" />
                   Cadastro pendente
                 </span>
               ) : (
-                <span className="block truncate px-2 text-[10px] text-slate-400">
+                <span className="block truncate px-2 text-rotulo text-slate-500">
                   {talento.nomeArtistico || tipo.label}
                 </span>
               )}
@@ -722,7 +741,7 @@ export function TalentosTable({
                 <button
                   type="button"
                   onClick={() => toggleSort('nome')}
-                  className={`flex w-full items-center justify-start gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${
+                  className={`flex w-full items-center justify-start gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${
                     sort?.field === 'nome' ? 'text-slate-700' : 'text-slate-500'
                   }`}
                 >
@@ -748,7 +767,7 @@ export function TalentosTable({
                       <button
                         type="button"
                         onClick={() => toggleSort(coluna.field! as SortField)}
-                        className={`flex w-full items-center gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
+                        className={`flex w-full items-center gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
                           ativa ? 'text-slate-700' : 'text-slate-500'
                         }`}
                       >
@@ -757,8 +776,8 @@ export function TalentosTable({
                       </button>
                     ) : (
                       <span
-                        className={`flex w-full items-center gap-1 truncate text-[10px] font-bold uppercase tracking-wide ${alignClass} ${
-                          oculta(coluna.id) ? 'text-slate-300' : 'text-slate-500'
+                        className={`flex w-full items-center gap-1 truncate text-rotulo font-bold uppercase tracking-wide ${alignClass} ${
+                          oculta(coluna.id) ? 'text-slate-500' : 'text-slate-500'
                         }`}
                       >
                         {oculta(coluna.id) && <EyeOff className="size-3 shrink-0" />}
@@ -770,7 +789,7 @@ export function TalentosTable({
               })}
 
               <th className="px-3 py-2.5">
-                <span className="flex w-full justify-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                <span className="flex w-full justify-center text-rotulo font-bold uppercase tracking-wide text-slate-500">
                   Ações
                 </span>
               </th>

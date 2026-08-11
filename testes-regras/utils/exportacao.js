@@ -1,12 +1,16 @@
 /**
  * Exportação da grade para Excel — `.xlsx` de verdade.
  *
- * ## Por que a biblioteca entrou (04/08/2026)
+ * ## Por que a biblioteca entrou (04/08/2026) — e por que o import é estático
  *
  * A primeira versão gerava CSV com BOM e `;` — o Excel brasileiro abria com duplo clique, mas o
  * arquivo não **era** Excel, e a operação pediu o formato real ("não está exportando em Excel, e
- * deveria"). O SheetJS entra por `import()` dinâmico: os ~400 kB só carregam no clique do botão,
- * e a página não paga por eles.
+ * deveria"). O SheetJS começou por `import()` dinâmico para os ~430 kB só carregarem no clique —
+ * e o clique **morria em silêncio** no servidor de desenvolvimento: dependência instalada com o
+ * `dev` no ar chega desatualizada ao otimizador do Vite, o `import()` falha, e nada baixa. Duas
+ * rodadas de "ainda não exporta" depois, a troca: import estático. A página paga 143 kB gzip para
+ * o botão funcionar **sempre** — confiabilidade ganha de peso, e este arquivo registra o porquê
+ * para ninguém "otimizar" de volta.
  *
  * ## O que sai é o que se vê
  *
@@ -14,6 +18,7 @@
  * permissão já aplicada. Exportar mais que isso seria um vazamento: a planilha viraria o caminho
  * para ler coluna oculta e aba não liberada. Ver [07 §5](../../prd/07_visoes_e_relacoes.md).
  */
+import * as XLSX from 'xlsx';
 /**
  * A matriz da planilha: cabeçalho na primeira linha, uma linha por registro.
  *
@@ -45,22 +50,24 @@ export function largurasDaMatriz(matriz) {
 }
 /**
  * Monta o `.xlsx` e dispara o download — que o navegador salva na pasta **Downloads** da pessoa,
- * como qualquer download de página (o site não escolhe pasta; o navegador, sim). A biblioteca só
- * carrega aqui, no clique.
+ * como qualquer download de página (o site não escolhe pasta; o navegador, sim).
  */
-export async function baixarXlsx(nomeDoArquivo, colunas, totalDeLinhas, nomeDaAba = 'Backlog') {
-    /*
-      O `?? modulo` não é paranoia: o pacote é CommonJS, e conforme o empacotador o `import()`
-      entrega os exports na raiz OU embrulhados em `default`. Sem a guarda, `XLSX.utils` vem
-      `undefined` num dos dois mundos e o clique falha **em silêncio** — foi o "não está
-      exportando" reportado pela operação em 04/08/2026.
-    */
-    const modulo = await import('xlsx');
-    const XLSX = modulo.default ?? modulo;
+export function baixarXlsx(nomeDoArquivo, colunas, totalDeLinhas, nomeDaAba = 'Backlog') {
     const matriz = montarMatriz(colunas, totalDeLinhas);
     const aba = XLSX.utils.aoa_to_sheet(matriz);
     aba['!cols'] = largurasDaMatriz(matriz);
     const arquivo = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(arquivo, aba, nomeDaAba);
-    XLSX.writeFile(arquivo, nomeDoArquivo);
+    const arrayBuffer = XLSX.write(arquivo, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([arrayBuffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nomeDoArquivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

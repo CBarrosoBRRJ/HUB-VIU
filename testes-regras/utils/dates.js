@@ -7,6 +7,21 @@ export function formatDate(iso) {
         return iso;
     return `${dia}/${mes}/${ano}`;
 }
+/**
+ * Converte `yyyy-mm-dd` em `dd/mm` — para linhas apertadas em que o ano é ruído.
+ *
+ * Nasceu com as datas das pendências (11/08/2026): "05/08 → 08/08" diz o percurso da espera; com
+ * ano, a mesma linha vira "05/08/2026 → 08/08/2026" e ninguém lê os números que importam. O ano
+ * completo continua disponível na dica, via `formatDate`.
+ */
+export function formatDiaMes(iso) {
+    if (!iso)
+        return '—';
+    const [ano, mes, dia] = iso.split('-');
+    if (!ano || !mes || !dia)
+        return iso;
+    return `${dia}/${mes}`;
+}
 /** Data de hoje em `yyyy-mm-dd`, no fuso local. */
 export function todayISO() {
     const hoje = new Date();

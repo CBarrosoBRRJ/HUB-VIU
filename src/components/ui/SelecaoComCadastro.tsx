@@ -203,7 +203,7 @@ export function SelecaoComCadastro({
                         data-dica="Cadastro pendente"
                         data-dica-sub="Alguém ainda precisa completar o cadastro"
                         data-dica-sempre
-                        className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700"
+                        className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide text-amber-700"
                       >
                         Pendente
                       </span>
@@ -213,7 +213,7 @@ export function SelecaoComCadastro({
                 ))}
 
                 {filtradas.length === 0 && !podeCriar && (
-                  <p className="px-3 py-4 text-center text-[11px] text-slate-400">
+                  <p className="px-3 py-4 text-center text-apoio text-slate-500">
                     Nenhuma {entidade} cadastrada ainda.
                   </p>
                 )}
@@ -233,7 +233,7 @@ export function SelecaoComCadastro({
                     <span className="block truncate text-xs font-medium text-emerald-800">
                       Criar “{busca.trim()}”
                     </span>
-                    <span className="block text-[10px] text-emerald-700">
+                    <span className="block text-rotulo text-emerald-700">
                       Entra como solicitação de cadastro
                     </span>
                   </span>
@@ -248,7 +248,7 @@ export function SelecaoComCadastro({
                     evento.preventDefault();
                     escolher('');
                   }}
-                  className="w-full border-t border-slate-100 px-3 py-1.5 text-left text-[11px] text-slate-500 transition hover:bg-slate-50 hover:text-rose-600"
+                  className="w-full border-t border-slate-100 px-3 py-1.5 text-left text-apoio text-slate-500 transition hover:bg-slate-50 hover:text-rose-600"
                 >
                   Limpar
                 </button>

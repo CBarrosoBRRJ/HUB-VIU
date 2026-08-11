@@ -1,5 +1,5 @@
 # PRD 04 — Página "Equipes"
-**Versão:** 4.3 | **Status:** Implementado (front-end, persistência local) | **Data:** 04/08/2026
+**Versão:** 4.4 | **Status:** Implementado (front-end, persistência local) | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Equipes, membros e papéis*
 
@@ -375,11 +375,28 @@ Se a pessoa **ficar sem nenhuma equipe**, a interface pergunta na hora o que faz
 
 | Escolha | Efeito | Quando usar |
 |---------|--------|-------------|
-| **Desligado** | Sai de todas as equipes e perde o acesso | Deixou a empresa |
-| **Inativo** | Perde o acesso, reversível | Saiu da frente de trabalho, segue na casa |
+| **Desligar** | Sai de todas as equipes e perde o acesso | Deixou a empresa |
+| **Inativar** | Perde o acesso, reversível | Saiu da frente de trabalho, segue na casa |
+| **Deixar como está** | Nada muda na conta | A pessoa entra em outra equipe em seguida |
 
 Sem essa pergunta, sobraria uma conta **ativa sem equipe nenhuma** — acesso órfão, que
 `acessoOrfao()` identifica.
+
+> #### A terceira saída existe desde 11/08/2026, e antes dela havia um defeito
+>
+> A pergunta era um `window.confirm` cujo texto pedia para ler **"OK" como Desligado** e
+> **"Cancelar" como Inativo**. Uma escolha de três vias espremida em dois botões — e, pior, o gesto
+> universal de desistir (Cancelar, ou o Esc, ou o clique fora) produzia **uma alteração de
+> cadastro**: quem fechasse a caixa sem ler inativava alguém sem saber.
+>
+> Com o diálogo próprio ([03 §8.1](03_padroes_ui.md)), cada saída tem seu botão e seu rótulo,
+> inclusive a de não fazer nada. `MOTIVOS_SAIDA`, em [`utils/saida.ts`](../src/utils/saida.ts), já
+> descrevia as duas situações desde que o módulo nasceu **sem nunca ter sido usado** — era a lista
+> à espera de uma tela que a mostrasse.
+>
+> "Deixar como está" devolve o acesso órfão, que é o estado que esta pergunta existe para evitar.
+> Ainda assim é a opção correta a oferecer: fingir que Cancelar significa Inativar não impedia o
+> órfão — só escondia a decisão de quem a estava tomando.
 
 ### 7.3. Efeito em cadeia
 

@@ -162,9 +162,9 @@ export function Dica() {
           */
           className="pointer-events-none fixed z-[100] max-w-xs rounded-lg bg-slate-900 px-2.5 py-1.5 shadow-lg ring-1 ring-slate-700"
         >
-          <p className="text-[11px] font-medium leading-snug text-white">{conteudo.texto}</p>
+          <p className="text-apoio font-medium leading-snug text-white">{conteudo.texto}</p>
           {conteudo.sub && (
-            <p className="mt-0.5 text-[10px] leading-snug text-slate-400">{conteudo.sub}</p>
+            <p className="mt-0.5 text-rotulo leading-snug text-slate-500">{conteudo.sub}</p>
           )}
         </motion.div>
       )}

@@ -67,11 +67,11 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
     <div className="space-y-4">
       {/* 1. Quadros */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <p className="mb-1 flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
           <LayoutGrid className="size-3" />
           Quadros que a equipe enxerga
         </p>
-        <p className="mb-3 text-[11px] text-slate-400">
+        <p className="mb-3 text-apoio text-slate-500">
           O nível mais grosso: sem o quadro, nada abaixo tem efeito.
         </p>
 
@@ -100,7 +100,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                   >
                     {pagina.label}
                   </span>
-                  <span className="block text-[10px] text-slate-400">
+                  <span className="block text-rotulo text-slate-500">
                     {totalColunas > 0 ? `${totalColunas} colunas` : 'sem colunas ainda'}
                   </span>
                 </span>
@@ -110,7 +110,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
         </div>
 
         {equipe.paginasPermitidas.length === 0 && (
-          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-600">
+          <p className="mt-3 flex items-center gap-1.5 text-apoio text-amber-600">
             <TriangleAlert className="size-3.5" />
             Esta equipe não enxerga nenhum quadro do Workspace.
           </p>
@@ -141,8 +141,8 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                   {restricoes > 0 && (
                     <span
                       title={`${restritasFechadas} aba(s) fechada(s) · ${escondidas} coluna(s) oculta(s)`}
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                        ativa ? 'bg-indigo-500 text-indigo-50' : 'bg-white/10 text-slate-300'
+                      className={`rounded px-1.5 py-0.5 text-rotulo font-bold ${
+                        ativa ? 'bg-indigo-500 text-indigo-50' : 'bg-white/10 text-slate-500'
                       }`}
                     >
                       {restricoes}
@@ -154,7 +154,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
           </div>
 
           <div className="px-5 py-4">
-            <p className="mb-4 text-[11px] leading-snug text-slate-400">
+            <p className="mb-4 text-apoio leading-snug text-slate-500">
               Abas de <strong className="font-semibold text-slate-500">dado sensível</strong> vêm
               desligadas e precisam ser liberadas. As demais seguem o acesso do quadro. Dentro de
               cada uma, desligue as colunas que a equipe não deve ver — a célula vira um borrão e a
@@ -162,7 +162,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
             </p>
 
             {abas.length === 0 && (
-              <p className="text-[11px] text-slate-400">
+              <p className="text-apoio text-slate-500">
                 Este quadro ainda não tem colunas configuráveis.
               </p>
             )}
@@ -202,14 +202,14 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                       <span className="text-xs font-semibold text-slate-700">{aba.label}</span>
 
                       {aba.restrita && (
-                        <span className="flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
+                        <span className="flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
                           <Lock className="size-2.5" />
                           Sensível
                         </span>
                       )}
 
                       {aba.motivo && (
-                        <span className="min-w-0 flex-1 truncate text-[11px] text-slate-400">
+                        <span className="min-w-0 flex-1 truncate text-apoio text-slate-500">
                           {aba.motivo}
                         </span>
                       )}
@@ -236,8 +236,8 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                               size="sm"
                             />
                             <span
-                              className={`text-[11px] ${
-                                visivel ? 'text-slate-600' : 'text-slate-400 line-through'
+                              className={`text-apoio ${
+                                visivel ? 'text-slate-600' : 'text-slate-500 line-through'
                               }`}
                             >
                               {coluna.label}
@@ -247,21 +247,21 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                       })}
 
                       {colunas.length === 0 && (
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-apoio text-slate-500">
                           Todas as colunas desta aba são obrigatórias.
                         </span>
                       )}
                     </div>
 
                     {fixas > 0 && (
-                      <p className="mt-2 text-[10px] text-slate-300">
+                      <p className="mt-2 text-rotulo text-slate-500">
                         + {fixas} coluna{fixas > 1 ? 's' : ''} obrigatória{fixas > 1 ? 's' : ''} (nome,
                         totais, ações)
                       </p>
                     )}
 
                     {restritaFechada && (
-                      <p className="mt-2 flex items-center gap-1 text-[10px] text-slate-400">
+                      <p className="mt-2 flex items-center gap-1 text-rotulo text-slate-500">
                         <EyeOff className="size-3" />
                         A equipe não vê esta aba — as colunas acima não têm efeito.
                       </p>
@@ -276,11 +276,11 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
 
       {/* 3. Área de talentos */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <p className="mb-1 flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
           <Star className="size-3" />
           Área de Talentos que a equipe atende
         </p>
-        <p className="mb-3 text-[11px] leading-snug text-slate-400">
+        <p className="mb-3 text-apoio leading-snug text-slate-500">
           Define de quem sai a lista de responsáveis daquela coluna em Talentos. Uma área é
           atendida por uma equipe só — ligar aqui transfere.
         </p>
@@ -311,7 +311,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                   >
                     {area.label}
                   </span>
-                  <span className="block truncate text-[10px] text-slate-400">
+                  <span className="block truncate text-rotulo text-slate-500">
                     {outra ? `hoje: ${outra.nome}` : area.descricao}
                   </span>
                 </span>

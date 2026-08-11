@@ -56,8 +56,12 @@ check('responsável permanente não tem prazo', getMembro(definirMembro(eq(), 'u
 
 // O substituto passa a administrar a equipe durante a janela — e deixa de administrar depois.
 const equipesComTemp = [comTemp];
+// `AGORA` explícito: a janela é de sete dias a partir dele, e sem passar a referência a resposta
+// dependia do dia em que a suíte rodasse — foi assim que este teste começou a falhar sozinho.
 check('substituto administra durante o prazo',
-  podeGerenciarEquipe({ usuario: user('u4', 'responsavel'), equipes: equipesComTemp }, comTemp), true);
+  podeGerenciarEquipe({ usuario: user('u4', 'responsavel'), equipes: equipesComTemp }, comTemp, AGORA), true);
+check('e deixa de administrar depois do prazo',
+  podeGerenciarEquipe({ usuario: user('u4', 'responsavel'), equipes: equipesComTemp }, comTemp, depoisDoPrazo), false);
 
 console.log('\n--- Poderes do responsável ---');
 check('responsável convida', podeConvidar(ctx(resp), equipes[0]), true);

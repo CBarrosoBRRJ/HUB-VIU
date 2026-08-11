@@ -4,7 +4,9 @@ import { Check, Plus, Search, Trash2, UserPlus } from 'lucide-react';
 import { Equipe, PapelEquipe, SituacaoUsuario, Usuario } from '../../types';
 import { useDados } from '../../context/DadosProvider';
 import { getMembro, getPapelNaEquipe } from '../../utils/equipes';
-import { analisarSaidaDaEquipe, mensagemSaida } from '../../utils/saida';
+import {
+  analisarSaidaDaEquipe, detalhesSaida, MOTIVOS_SAIDA, tituloSaida,
+} from '../../utils/saida';
 import { podeDefinirSituacao } from '../../utils/permissoes';
 import { formatDate, todayISO } from '../../utils/dates';
 import { mensagemErroIdentidade, validarEmail } from '../../utils/identidade';
@@ -14,6 +16,7 @@ import { Avatar } from '../usuarios/Avatar';
 import { PapelSelect, PAPEL_STYLE } from './PapelSelect';
 import { SituacaoSelect } from '../usuarios/SituacaoSelect';
 import { ConvidarPessoa } from './ConvidarPessoa';
+import { useDialogo } from '../ui/Dialogo';
 
 /**
  * Campos editáveis na grade — perfil e situação só mudam na página de Usuários.
@@ -67,6 +70,7 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
     usuarios, dominios, equipes, contratos, getUsuario, criarUsuario, atualizarUsuario,
     definirMembroDaEquipe, removerMembroDaEquipe, definirSituacao, sessao,
   } = useDados();
+  const { confirmar, perguntar, pedirTexto } = useDialogo();
 
   const [rascunho, setRascunho] = useState(RASCUNHO_VAZIO);
   const [busca, setBusca] = useState('');
@@ -136,31 +140,67 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
    * Quando a pessoa fica sem nenhuma equipe, oferecemos encerrar também a situação dela —
    * senão sobra uma conta ativa sem lugar nenhum, que é acesso órfão.
    */
-  function removerDaEquipe(usuario: Usuario) {
+  async function removerDaEquipe(usuario: Usuario) {
     const analise = analisarSaidaDaEquipe(usuario.id, equipe.id, equipes, contratos);
-    if (!window.confirm(mensagemSaida(usuario.nome, equipe.nome, analise))) return;
+    const ok = await confirmar({
+      titulo: tituloSaida(usuario.nome, equipe.nome),
+      descricao: detalhesSaida(analise),
+      rotuloConfirmar: 'Remover da equipe',
+      destrutivo: true,
+    });
+    if (!ok) return;
 
     removerMembroDaEquipe(equipe.id, usuario.id);
 
     if (!analise.ficaSemEquipe) return;
 
-    const desligar = window.confirm(
-      `${usuario.nome} ficou sem equipe.\n\nOK — marcar como Desligado (saiu da empresa).\nCancelar — marcar como Inativo (sem acesso por ora, reversível).\n\nO histórico é preservado nos dois casos.`,
-    );
-    definirSituacao(usuario.id, desligar ? 'desligado' : 'inativo');
+    /*
+      Três saídas, e antes cabiam duas.
+
+      Isto era um `window.confirm` cujo texto pedia para ler "OK" como *Desligado* e "Cancelar"
+      como *Inativo* — uma escolha de três vias espremida em dois botões, onde o gesto universal
+      de desistir ("Cancelar", ou o Esc) produzia uma **alteração de cadastro**. Quem fechasse a
+      caixa sem ler inativava alguém sem saber.
+
+      Com o diálogo próprio, cada saída tem seu botão e seu rótulo — inclusive a de não fazer
+      nada. `MOTIVOS_SAIDA` já descrevia as duas situações desde que o módulo nasceu, sem nunca
+      ter sido usado: era a lista à espera de uma tela que a mostrasse.
+    */
+    const escolha = await perguntar({
+      titulo: `${usuario.nome} ficou sem equipe`,
+      descricao: [
+        'Uma conta ativa sem nenhuma equipe continua entrando na plataforma.',
+        ...MOTIVOS_SAIDA.map((motivo) => `${motivo.label}: ${motivo.descricao}`),
+        'O histórico é preservado em todos os casos.',
+      ].join('\n'),
+      acoes: [
+        { id: 'nada', label: 'Deixar como está', tom: 'neutro' },
+        ...MOTIVOS_SAIDA.map((motivo) => ({
+          id: motivo.situacao,
+          label: motivo.label,
+          tom: motivo.situacao === 'desligado' ? ('destrutivo' as const) : ('primario' as const),
+        })),
+      ],
+    });
+
+    if (!escolha || escolha.acao === 'nada') return;
+    definirSituacao(usuario.id, escolha.acao as SituacaoUsuario);
   }
 
   /** Promove a responsável, com ou sem prazo. */
-  function promover(usuario: Usuario, temporario: boolean) {
+  async function promover(usuario: Usuario, temporario: boolean) {
     if (!temporario) {
       definirMembroDaEquipe(equipe.id, usuario.id, 'responsavel');
       return;
     }
 
-    const resposta = window.prompt(
-      `Por quantos dias ${usuario.nome} responderá pela equipe?\n\nAo fim do prazo, volta a membro automaticamente.`,
-      '15',
-    );
+    const resposta = await pedirTexto({
+      titulo: `Por quantos dias ${usuario.nome} responderá pela equipe?`,
+      descricao: 'Ao fim do prazo, volta a membro automaticamente.',
+      valorInicial: '15',
+      tipo: 'number',
+      rotuloConfirmar: 'Promover',
+    });
     const dias = Number(resposta);
     if (!resposta || !Number.isFinite(dias) || dias <= 0) return;
 
@@ -279,7 +319,7 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
                     <Avatar usuario={usuario} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-xs font-medium text-slate-700">{usuario.nome}</span>
-                      <span className="block truncate text-[10px] text-slate-400">{usuario.email}</span>
+                      <span className="block truncate text-rotulo text-slate-500">{usuario.email}</span>
                     </span>
                     <Plus className="size-3.5 shrink-0 text-slate-300" />
                   </button>
@@ -297,13 +337,13 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
       </AnimatePresence>
 
       <div className="overflow-x-auto custom-scrollbar">
-        <table className="w-full min-w-[1080px] border-collapse">
+        <table className="w-full min-w-[67.5rem] border-collapse">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/70">
               {COLUNAS.map((coluna) => (
                 <th
                   key={coluna.label}
-                  className={`px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${coluna.className} ${
+                  className={`px-3 py-2.5 text-apoio font-bold uppercase tracking-wider text-slate-500 ${coluna.className} ${
                     coluna.align === 'left' ? 'text-left' : 'text-center'
                   }`}
                 >
@@ -337,7 +377,7 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
                     erroEmail ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : ''
                   }`}
                 />
-                {erroEmail && <p className="mt-1 text-[10px] leading-snug text-rose-600">{erroEmail}</p>}
+                {erroEmail && <p className="mt-1 text-rotulo leading-snug text-rose-600">{erroEmail}</p>}
               </td>
               <td className="px-3 py-2.5">
                 <input
@@ -382,7 +422,7 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
                 />
               </td>
               <td className="px-3 py-2.5 text-center">
-                <span className="text-[11px] text-slate-400">ativo</span>
+                <span className="text-apoio text-slate-500">ativo</span>
               </td>
               <td className="px-3 py-2.5">
                 <motion.button
@@ -509,7 +549,7 @@ export function MembrosTable({ equipe, podeGerenciar }: MembrosTableProps) {
         </table>
       </div>
 
-      <div className="flex items-center gap-1.5 border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400">
+      <div className="flex items-center gap-1.5 border-t border-slate-100 px-4 py-2 text-apoio text-slate-500">
         <Check className="size-3 text-emerald-500" />
         {podeGerenciar
           ? 'Alterações nos dados são salvas ao sair do campo — clique numa célula para editar.'

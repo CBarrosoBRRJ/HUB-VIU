@@ -17,7 +17,7 @@ export function BannerVisualizacao() {
     <motion.div
       initial={{ y: -40 }}
       animate={{ y: 0 }}
-      className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-400 px-4 py-2 text-[13px] text-amber-950"
+      className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-400 px-4 py-2 text-dado text-amber-950"
     >
       <span className="flex items-center gap-1.5 font-semibold">
         <Eye className="size-4" />

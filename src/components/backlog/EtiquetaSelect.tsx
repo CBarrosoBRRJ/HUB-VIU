@@ -69,7 +69,7 @@ export function EtiquetaSelect<T extends string>({
   if (!onChange) {
     return (
       <span
-        className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold ring-1 ${estilo}`}
+        className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-apoio font-semibold ring-1 ${estilo}`}
         data-dica={atual?.label ?? vazio}
       >
         {conteudo}
@@ -87,7 +87,7 @@ export function EtiquetaSelect<T extends string>({
         aria-label={`Trocar ${titulo.toLowerCase()}`}
         data-dica={atual?.label ?? vazio}
         data-dica-sub={`Trocar ${titulo.toLowerCase()}`}
-        className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold ring-1 transition hover:brightness-95 ${estilo}`}
+        className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1 text-apoio font-semibold ring-1 transition hover:brightness-95 ${estilo}`}
       >
         {conteudo}
       </motion.button>

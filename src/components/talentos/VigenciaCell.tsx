@@ -16,7 +16,7 @@ export function VigenciaCell({ info }: { info: VigenciaInfo }) {
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
             <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${info.percentual}%` }} />
           </div>
-          <span className="text-[10px] tabular-nums text-slate-400">{info.percentual}%</span>
+          <span className="text-rotulo tabular-nums text-slate-500">{info.percentual}%</span>
         </div>
       )}
     </div>

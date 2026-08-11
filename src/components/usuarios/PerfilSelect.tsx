@@ -97,13 +97,13 @@ export function PerfilSelect({ value, onChange, disponiveis = PERFIS }: PerfilSe
                     className="rounded-lg p-2 text-left transition hover:bg-slate-50"
                   >
                     <span
-                      className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ${opcao.chip}`}
+                      className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-apoio font-semibold ring-1 ${opcao.chip}`}
                     >
                       <OpcaoIcon className="size-3 shrink-0" />
                       <span className="flex-1">{PERFIL_LABEL[perfil]}</span>
                       {perfil === value && <Check className="size-3 shrink-0" />}
                     </span>
-                    <span className="mt-1 block text-[10px] leading-snug text-slate-500">
+                    <span className="mt-1 block text-rotulo leading-snug text-slate-500">
                       {PERFIL_DESCRICAO[perfil]}
                     </span>
                   </motion.button>

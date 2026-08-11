@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.3 | **Status:** Front-end totalmente implementado e auditado | **Data:** 04/08/2026
+**Versão:** 8.5 | **Status:** Front-end totalmente implementado e auditado | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -1057,6 +1057,25 @@ regra dessas é uma pergunta a mais ("este campo é do grupo ou da linha?").
 > **O custo aceito, explicitamente:** se o briefing mudar, edita-se cada linha. Se o projeto for
 > declinado, movem-se todas. Nada avisa se uma ficar para trás.
 
+#### O gesto pergunta antes — 11/08/2026
+
+Pedido da gestão, e a primeira leitura é que não faria falta: duplicar não destrói nada. O que
+mudou essa leitura foi **onde o botão mora** — encostado na lixeira, na coluna congelada que
+acompanha a rolagem. Errar o alvo por um ícone é fácil, e o resultado aparece **no topo da lista**,
+fora da vista de quem estava rolando lá embaixo. A linha extra só é descoberta depois, por outra
+pessoa, sem ninguém saber se é engano ou projeto de verdade.
+
+A pergunta é também o único lugar onde cabe dizer **o que a cópia leva** — informação que antes
+vivia só na dica do botão e nesta seção. E quando o projeto está num desfecho terminal, ela avisa
+que a cópia começa em Entrada, porque é a única parte do comportamento que surpreende.
+
+Padrão do diálogo em [03 §8.1](03_padroes_ui.md). Cancelar não cria nada; o teste que garante isso
+é `duplicar pergunta antes` em [`testes-ui/confirmacao-e-desfazer.test.tsx`](../testes-ui/confirmacao-e-desfazer.test.tsx).
+
+> **Duplicar entrou no desfazer junto.** `Ctrl+Z` remove a cópia ([03 §8.2](03_padroes_ui.md)) —
+> com uma ressalva: a linha nova abre com o painel de talento no ar, e enquanto o cursor está na
+> busca o atalho pertence ao campo. Fecha-se o painel, e aí sim.
+
 #### O que a duplicação herda, e o que não
 
 O gesto é um botão na coluna Ações. Ele copia **o trabalho de digitar** — não o vínculo, não a
@@ -1680,6 +1699,24 @@ gestos** por espera, além do "+ Abrir pendência", todos reversíveis:
 
 > **"Resolvida" caiu no diálogo com a operação**: julga e soa definitivo. "Chegou" diz o fato — e
 > um registro de espera não pode dar medo de errar; daí cada gesto ter desfazer.
+
+#### O percurso da espera — 11/08/2026, pedido da gestão
+
+Cada espera exibe, numa segunda linha em `font-mono`, **quando abriu e quando chegou**:
+
+| Estado | Linha do percurso |
+|--------|-------------------|
+| Aberta | `30/07 → hoje · 5d esperando` |
+| Chegada | `28/07 → 29/07 · 1d de espera` |
+
+As datas sempre existiram no modelo (`abertaEm`, `chegouEm` — a matéria-prima do SLA); o painel só
+mostrava a contagem, e "5d esperando" não responde a pergunta que a operação faz de verdade:
+*desde quando?* O formato é `dd/mm` (`formatDiaMes`) — o ano é ruído na linha e mora na dica, por
+extenso. Na aberta, o fim é **"hoje"**, e não uma data: espera aberta ainda não tem fim.
+
+Junto entrou a largura: o painel passou de 260 para **320px**, porque "Cotação Gestão de Elenco"
+abria cortado ("Cotação …", no print da gestão). O nome inteiro é o mínimo; reticências são último
+recurso, não estado normal.
 
 Três regras da régua que valem registro:
 

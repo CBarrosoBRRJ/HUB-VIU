@@ -1,6 +1,6 @@
 # Documentação — VIU Agenciamento
 
-**Atualizado:** 04/08/2026 · **Base:** código em [`src/`](../src/)
+**Atualizado:** 11/08/2026 · **Base:** código em [`src/`](../src/)
 
 Esta pasta é a documentação de projeto do sistema: **por que** cada coisa é como é, não só o que
 ela faz. Serve para três usos — auditar uma decisão, recriar o sistema do zero, e dar manutenção
@@ -67,6 +67,8 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 | `utils/talentos.ts` · `utils/busca.ts` | [06](06_pagina_talentos.md) |
 | `utils/exportacao.ts` | [08 §6](08_backlog_e_integracoes.md) — o contrato do `.xlsx`, [09 §6](09_fundacoes_tecnicas.md) |
 | `utils/pessoas.ts` | [02 §11](02_quadro_talentos.md) — responsáveis e parceiros |
+| `utils/historico.ts` · `components/ui/AvisoHistorico.tsx` | [03 §8.2](03_padroes_ui.md) — o desfazer |
+| `components/ui/Dialogo.tsx` | [03 §8.1](03_padroes_ui.md) — a confirmação |
 | `data/marcas.ts` · `components/ui/SelecaoComCadastro.tsx` | [08 §6.0.1](08_backlog_e_integracoes.md), [07 §11.2](07_visoes_e_relacoes.md) |
 | `utils/marcas.ts` | [08 §6 — aba Cliente](08_backlog_e_integracoes.md) |
 | `components/ui/Dica.tsx` | [03 §7.9](03_padroes_ui.md) |
@@ -134,6 +136,11 @@ por reler o registro correspondente.
 | Seleção é a interseção com o que está visível | [03 §7.6](03_padroes_ui.md) |
 | Ordenação segue a ordem da operação, não o alfabeto | [03 §7.7](03_padroes_ui.md) |
 | Criar é um gesto só: o botão insere a linha, com a chave em edição | [03 §7.8](03_padroes_ui.md) |
+| Confirmação é diálogo próprio, centrado — a caixa do navegador saiu do produto | [03 §8.1](03_padroes_ui.md) |
+| O botão da confirmação **nomeia a ação**; em destrutivo, o foco começa em Cancelar | [03 §8.1](03_padroes_ui.md) |
+| Desfazer observa o resultado, não a intenção — nenhuma mutação é instrumentada | [03 §8.2](03_padroes_ui.md) |
+| Dentro de campo em edição, `Ctrl+Z` continua sendo o do texto | [03 §8.2](03_padroes_ui.md) |
+| Desfazer alcança o dado dos quadros, **nunca** permissão nem cadastro de pessoas | [03 §8.2](03_padroes_ui.md) |
 | A página aberta sobrevive ao F5, e a URL a reflete — roteamento por caminho, sem biblioteca | [09 §8](09_fundacoes_tecnicas.md) |
 | Popovers em portal — `overflow` recorta filho posicionado | [03 §4](03_padroes_ui.md) |
 | `layoutId` do motion precisa ser único por instância | [03 §7.3](03_padroes_ui.md) |

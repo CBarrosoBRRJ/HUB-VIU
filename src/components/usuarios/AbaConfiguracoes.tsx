@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { AtSign, KeyRound, RotateCcw, X } from 'lucide-react';
 import { useDados } from '../../context/DadosProvider';
 import { ehDono, podeGerenciarDominios, podeGerenciarEmailsDeAcesso } from '../../utils/permissoes';
+import { useDialogo } from '../ui/Dialogo';
 
 /** Configurações de identidade da plataforma: domínios e e-mails de acesso do dono. */
 export function AbaConfiguracoes() {
@@ -10,6 +11,7 @@ export function AbaConfiguracoes() {
     dominios, sessao, adicionarDominio, removerDominio, adicionarEmailAlternativo,
     removerEmailAlternativo, recomecarDoZero,
   } = useDados();
+  const { confirmar } = useDialogo();
 
   const [novoDominio, setNovoDominio] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
@@ -109,7 +111,7 @@ export function AbaConfiguracoes() {
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 ring-1 ring-violet-200">
                 {dono.email}
-                <span className="text-[10px] uppercase tracking-wider text-violet-400">principal</span>
+                <span className="text-rotulo uppercase tracking-wider text-violet-400">principal</span>
               </span>
 
               {(dono.emailsAlternativos ?? []).map((email) => (
@@ -184,11 +186,18 @@ export function AbaConfiguracoes() {
 
             <motion.button
               type="button"
-              onClick={() => {
-                const aviso =
-                  'Apagar tudo o que foi cadastrado e voltar ao exemplo inicial?\n\n' +
-                  'Serve para reapresentar a demonstração do começo. Não tem desfazer.';
-                if (window.confirm(aviso)) recomecarDoZero();
+              onClick={async () => {
+                const ok = await confirmar({
+                  titulo: 'Apagar tudo e voltar ao exemplo inicial?',
+                  descricao:
+                    'Serve para reapresentar a demonstração do começo.\n'
+                    // Nem o Ctrl+Z alcança: ele guarda passos da sessão, e esta ação recarrega a página.
+                    + 'Isto apaga o que está salvo no navegador, e não tem desfazer.',
+                  rotuloConfirmar: 'Apagar tudo',
+                  destrutivo: true,
+                  icone: 'alerta',
+                });
+                if (ok) recomecarDoZero();
               }}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}

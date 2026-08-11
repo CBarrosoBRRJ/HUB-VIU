@@ -1,4 +1,5 @@
 import { ComponentType, useEffect, useState } from 'react';
+import { MotionConfig } from 'motion/react';
 import { AceitarConvite } from './pages/AceitarConvite';
 import { BannerVisualizacao } from './components/usuarios/BannerVisualizacao';
 import { DadosProvider } from './context/DadosProvider';
@@ -15,6 +16,8 @@ import { EntrarPorLink } from './pages/EntrarPorLink';
 import { useDados } from './context/DadosProvider';
 import { AppPage } from './types';
 import { Dica } from './components/ui/Dica';
+import { DialogoProvider } from './components/ui/Dialogo';
+import { AvisoHistorico } from './components/ui/AvisoHistorico';
 import { carregar, salvar } from './utils/persistencia';
 import {
   caminhoDaPagina, paginaPorCaminho, PAGINA_PADRAO, PAGINAS_APP, validarPagina,
@@ -152,6 +155,8 @@ function Workspace() {
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Um balão para a aplicação inteira — ver `Dica`. */}
       <Dica />
+      {/* E um aviso só, para o desfazer — ver `AvisoHistorico`. */}
+      <AvisoHistorico />
       <BannerVisualizacao />
 
       <div className="flex flex-1 overflow-hidden">
@@ -170,10 +175,29 @@ function Workspace() {
   );
 }
 
+/**
+ * `DialogoProvider` por fora de tudo — inclusive das rotas públicas.
+ *
+ * Ele não depende de dado nenhum, e quem entra por convite ou por link também merece uma pergunta
+ * decente em vez da caixa do navegador. Por fora, é um provider só para o app inteiro.
+ *
+ * ## `MotionConfig reducedMotion="user"`
+ *
+ * A outra metade da preferência de movimento do sistema operacional. O `index.css` desliga
+ * transições e animações **de CSS**; as do `motion` são calculadas em JavaScript e escapariam
+ * dessa regra — quem as desliga é este `MotionConfig`.
+ *
+ * `"user"` e não `"always"`: quem não pediu para reduzir continua vendo o produto como ele foi
+ * desenhado. A preferência é de quem usa, não nossa.
+ */
 export default function App() {
   return (
-    <DadosProvider>
-      <Workspace />
-    </DadosProvider>
+    <MotionConfig reducedMotion="user">
+      <DialogoProvider>
+        <DadosProvider>
+          <Workspace />
+        </DadosProvider>
+      </DialogoProvider>
+    </MotionConfig>
   );
 }

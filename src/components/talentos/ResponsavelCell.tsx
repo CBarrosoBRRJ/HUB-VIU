@@ -186,7 +186,7 @@ export function ResponsavelCell({
       ))}
 
       {somenteLeitura && responsaveisIds.length === 0 && parceirosIds.length === 0 && (
-        <span className="text-[11px] text-slate-300">—</span>
+        <span className="text-apoio text-slate-500">—</span>
       )}
 
       {/* Botão único: define responsáveis e parceiros. */}
@@ -241,10 +241,10 @@ export function ResponsavelCell({
                         <span className="block truncate text-xs font-medium text-slate-700">
                           {usuario.nome}
                           {usuario.id === usuarioAtualId && (
-                            <span className="ml-1 text-[10px] font-normal text-slate-400">(você)</span>
+                            <span className="ml-1 text-rotulo font-normal text-slate-500">(você)</span>
                           )}
                         </span>
-                        <span className="block truncate text-[10px] text-slate-400">{usuario.email}</span>
+                        <span className="block truncate text-rotulo text-slate-500">{usuario.email}</span>
                       </span>
 
                       {/* Clicar no papel que a pessoa já tem a remove da linha. */}

@@ -11,7 +11,7 @@ const CORES = [
 ];
 
 const TAMANHOS = {
-  sm: 'size-7 text-[10px]',
+  sm: 'size-7 text-rotulo',
   md: 'size-9 text-xs',
   lg: 'size-14 text-base',
   xl: 'size-20 text-2xl',

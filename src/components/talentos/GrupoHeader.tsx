@@ -52,14 +52,14 @@ export function GrupoHeader({ titulo, cor, itens, aberto, onToggle, colSpan }: G
 
             <span className="truncate font-display text-sm font-bold text-slate-800">{titulo}</span>
 
-            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-slate-200">
+            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-rotulo font-semibold text-slate-500 ring-1 ring-slate-200">
               {itens.length} {itens.length === 1 ? 'contrato' : 'contratos'}
             </span>
           </button>
 
           <div className="ml-auto flex items-center gap-3 pr-1">
             {presentes.map((item) => (
-              <span key={item.tone} className="flex items-center gap-1.5 text-[11px] text-slate-500">
+              <span key={item.tone} className="flex items-center gap-1.5 text-apoio text-slate-500">
                 <span className={`size-1.5 rounded-full ${VIGENCIA_TONE_STYLE[item.tone].dot}`} />
                 <span className="tabular-nums">{porTone[item.tone]}</span>
                 <span className="hidden lg:inline">{item.rotulo}</span>

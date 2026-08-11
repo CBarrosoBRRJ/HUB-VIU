@@ -84,13 +84,13 @@ export function SituacaoSelect({ value, disponiveis = SITUACOES, onChange }: Sit
                     className="rounded-lg p-1.5 text-left transition hover:bg-slate-50"
                   >
                     <span
-                      className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ${opcao.chip}`}
+                      className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-apoio font-semibold ring-1 ${opcao.chip}`}
                     >
                       <OpcaoIcon className="size-3 shrink-0" />
                       <span className="flex-1">{SITUACAO_LABEL[situacao]}</span>
                       {situacao === value && <Check className="size-3 shrink-0" />}
                     </span>
-                    <span className="mt-0.5 block text-[10px] leading-snug text-slate-500">
+                    <span className="mt-0.5 block text-rotulo leading-snug text-slate-500">
                       {SITUACAO_DESCRICAO[situacao]}
                     </span>
                   </motion.button>

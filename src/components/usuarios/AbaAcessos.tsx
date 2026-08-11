@@ -166,9 +166,9 @@ export function AbaAcessos() {
                       <Avatar usuario={usuario} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-medium text-slate-700">{usuario.nome}</span>
-                        <span className="block truncate text-[10px] text-slate-400">{usuario.email}</span>
+                        <span className="block truncate text-rotulo text-slate-500">{usuario.email}</span>
                       </span>
-                      <span className="shrink-0 text-[10px] text-slate-400">{rotuloDeNivel(usuario)}</span>
+                      <span className="shrink-0 text-rotulo text-slate-500">{rotuloDeNivel(usuario)}</span>
                     </button>
                   ))}
                 </motion.div>
@@ -191,7 +191,7 @@ export function AbaAcessos() {
             <Avatar usuario={alvo} size="md" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold text-slate-800">{alvo.nome}</span>
-              <span className="block truncate text-[11px] text-slate-500">{alvo.email}</span>
+              <span className="block truncate text-apoio text-slate-500">{alvo.email}</span>
             </span>
 
             <span className="text-xs text-slate-500">
@@ -226,7 +226,7 @@ export function AbaAcessos() {
           </div>
 
           {!contaAtiva(alvo) && (
-            <p className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-4 py-2.5 text-[11px] text-rose-700">
+            <p className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-4 py-2.5 text-apoio text-rose-700">
               <Lock className="size-3.5 shrink-0" />
               Conta {SITUACAO_LABEL[alvo.situacao].toLowerCase()} — nada abaixo tem efeito enquanto ela
               não voltar a ficar ativa.
@@ -243,7 +243,7 @@ export function AbaAcessos() {
                 </p>
 
                 {podeConceder && !ehDono(alvo) && (
-                  <label className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-[10px] text-slate-500">
+                  <label className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-rotulo text-slate-500">
                     <Clock className="size-3 text-slate-400" />
                     por
                     <input
@@ -252,7 +252,7 @@ export function AbaAcessos() {
                       value={dias}
                       onChange={(e) => setDias(e.target.value)}
                       placeholder="∞"
-                      className="w-9 bg-transparent text-center text-[11px] text-slate-700 outline-none placeholder:text-slate-300"
+                      className="w-9 bg-transparent text-center text-apoio text-slate-700 outline-none placeholder:text-slate-500"
                     />
                     dias
                   </label>
@@ -298,12 +298,12 @@ export function AbaAcessos() {
                         {ACAO_LABEL[acao]}
                       </span>
 
-                      {donoTemTudo && <span className="text-[10px] text-slate-400">dono</span>}
+                      {donoTemTudo && <span className="text-rotulo text-slate-500">dono</span>}
                       {!donoTemTudo && naBase && (
-                        <span className="text-[10px] text-slate-400">do perfil</span>
+                        <span className="text-rotulo text-slate-500">do perfil</span>
                       )}
                       {concessao?.expiraEm && (
-                        <span className="flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                        <span className="flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-rotulo font-medium text-amber-700">
                           <Clock className="size-2.5" />
                           {new Date(concessao.expiraEm).toLocaleDateString('pt-BR')}
                         </span>
@@ -362,7 +362,7 @@ export function AbaAcessos() {
                               )
                             }
                             title="Alternar entre responsável e membro"
-                            className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ring-1 transition ${
+                            className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-rotulo font-semibold ring-1 transition ${
                               papel === 'responsavel'
                                 ? 'bg-amber-50 text-amber-700 ring-amber-200'
                                 : 'bg-slate-100 text-slate-600 ring-slate-200'
@@ -409,7 +409,7 @@ export function AbaAcessos() {
                       {quadro.nivel === 'nomeado' && (
                         <span
                           title="Vê apenas os registros em que foi nomeada"
-                          className="rounded bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-600"
+                          className="rounded bg-amber-50 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-amber-600"
                         >
                           Só os dela
                         </span>
@@ -417,7 +417,7 @@ export function AbaAcessos() {
                     </p>
                   ))}
 
-                  <p className="pt-1 text-[10px] leading-snug text-slate-400">
+                  <p className="pt-1 text-rotulo leading-snug text-slate-500">
                     O quadro abre pela equipe ou por nomeação. Membro e quem entra só por nomeação
                     enxergam apenas os próprios registros.
                   </p>

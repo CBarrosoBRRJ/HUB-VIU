@@ -16,7 +16,7 @@ export function RodapeTotais({ oportunidades }: { oportunidades: Oportunidade[] 
   const emFarol = totais.slaAtrasados + totais.slaAtencao + totais.slaNoPrazo;
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px]">
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-slate-200 bg-slate-50 px-4 py-2.5 text-apoio">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
         <span className="text-slate-600">
           Total no grupo: <strong className="font-semibold text-slate-700">{totais.total}</strong>

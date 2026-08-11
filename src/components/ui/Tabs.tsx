@@ -43,7 +43,7 @@ export function Tabs<T extends string>({ abas, ativa, onChange }: TabsProps<T>) 
             key={aba.id}
             type="button"
             onClick={() => onChange(aba.id)}
-            className={`relative flex items-center gap-2 px-3 py-3 text-[13px] font-medium transition-colors ${
+            className={`relative flex items-center gap-2 px-3 py-3 text-dado font-medium transition-colors ${
               isAtiva ? 'text-indigo-700' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -52,7 +52,7 @@ export function Tabs<T extends string>({ abas, ativa, onChange }: TabsProps<T>) 
 
             {aba.contador !== undefined && aba.contador > 0 && (
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                className={`rounded-full px-1.5 py-0.5 text-rotulo font-bold ${
                   aba.alerta ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
                 }`}
               >

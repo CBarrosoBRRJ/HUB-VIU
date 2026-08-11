@@ -29,7 +29,7 @@ export function TipoSelect({ valor, onChange }: TipoSelectProps) {
   if (!onChange) {
     return (
       <span
-        className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold ring-1 ${tipo.chip}`}
+        className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-apoio font-semibold ring-1 ${tipo.chip}`}
       >
         <span className={`size-1.5 rounded-full ${tipo.dot}`} />
         {tipo.label}
@@ -45,7 +45,7 @@ export function TipoSelect({ valor, onChange }: TipoSelectProps) {
         onClick={() => setAberto((atual) => !atual)}
         whileTap={{ scale: 0.97 }}
         title="Trocar o vínculo comercial"
-        className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold ring-1 transition hover:brightness-95 ${tipo.chip}`}
+        className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-apoio font-semibold ring-1 transition hover:brightness-95 ${tipo.chip}`}
       >
         <span className={`size-1.5 rounded-full ${tipo.dot}`} />
         <span className="truncate">{tipo.label}</span>
@@ -74,7 +74,7 @@ export function TipoSelect({ valor, onChange }: TipoSelectProps) {
                   <span className={`mt-1 size-2 shrink-0 rounded-full ${opcao.dot}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold text-slate-700">{opcao.label}</span>
-                    <span className="block text-[10px] leading-snug text-slate-400">
+                    <span className="block text-rotulo leading-snug text-slate-500">
                       {opcao.descricao}
                     </span>
                   </span>

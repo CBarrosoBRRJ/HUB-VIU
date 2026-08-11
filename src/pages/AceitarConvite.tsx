@@ -97,10 +97,10 @@ export function AceitarConvite({ token, onConcluir }: { token: string; onConclui
                   </p>
                 </div>
 
-                <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="mt-4 text-rotulo font-bold uppercase tracking-wider text-slate-500">
                   Entrar com a conta corporativa
                 </p>
-                <p className="mt-1 text-[11px] leading-snug text-slate-400">
+                <p className="mt-1 text-apoio leading-snug text-slate-500">
                   O convite foi emitido para <strong className="text-slate-600">{convite.email}</strong>.
                   A autenticação precisa ser feita com essa mesma conta.
                 </p>
@@ -124,7 +124,7 @@ export function AceitarConvite({ token, onConcluir }: { token: string; onConclui
                   className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 />
 
-                {erro && <p className="mt-2 text-[11px] text-rose-600">{erro}</p>}
+                {erro && <p className="mt-2 text-apoio text-rose-600">{erro}</p>}
 
                 <motion.button
                   type="button"
@@ -138,7 +138,7 @@ export function AceitarConvite({ token, onConcluir }: { token: string; onConclui
                   Aceitar convite e entrar
                 </motion.button>
 
-                <p className="mt-2 text-center text-[10px] text-slate-400">
+                <p className="mt-2 text-center text-rotulo text-slate-500">
                   Simulação do retorno do SSO — no ambiente real, este passo é o login corporativo.
                 </p>
               </>

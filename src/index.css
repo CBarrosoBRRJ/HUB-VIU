@@ -1,14 +1,157 @@
 @import "tailwindcss";
 
+/*
+  ================================================================================================
+  A ESCALA DE TEXTO — 11/08/2026
+  ================================================================================================
+
+  ## O problema que ela resolve
+
+  O projeto tinha **202 tamanhos de fonte cravados em pixel** (`text-[9px]` a `text-[13px]`), e
+  pixel tem duas consequências que só aparecem fora da máquina de quem desenvolve:
+
+  1. **Ignora a preferência da pessoa.** Quem aumentou o tamanho de fonte no sistema ou no
+     navegador — muitas vezes porque precisa para enxergar — não recebe nada: `9px` é 9px sempre.
+     `rem` acompanha essa preferência. É a diferença entre um sistema legível e um sistema que
+     *parece* legível para quem tem 25 anos e um monitor bom.
+  2. **Não é o mesmo tamanho em todo lugar.** Com a escala do Windows em 125% — padrão de fábrica
+     em boa parte dos notebooks corporativos — e as métricas diferentes de fonte entre Windows,
+     macOS e Linux, o mesmo `9px` chega ao olho com corpos e pesos distintos.
+
+  ## A escala
+
+  Quatro degraus, nomeados pelo **papel** e não pelo tamanho: quem escolhe entre "selo" e "rótulo"
+  está decidindo hierarquia, e quem escolhe entre "9px" e "10px" está chutando um pixel. Nomear
+  pelo papel é também o que impede a escala de crescer para dezoito degraus.
+
+  | Degrau | rem | ≈ px | Papel |
+  |--------|-----|-----:|-------|
+  | `text-selo`   | 0.625   | 10 | Selos, contadores, badges — metadado sobre a linha |
+  | `text-rotulo` | 0.6875  | 11 | Cabeçalho de coluna, rótulo de seção — placa de localização |
+  | `text-apoio`  | 0.75    | 12 | Texto auxiliar, legendas, ajuda |
+  | `text-dado`   | 0.8125  | 13 | Valores de consulta fora da grade |
+
+  ## O piso subiu um degrau
+
+  O que era 9px virou 10, e o que era 10 virou 11. **9px não é texto, é ruído com forma de texto**
+  — abaixo do limite em que a maioria consegue ler sem aproximar do monitor, e a operação passa o
+  dia nessa tela. O degrau extra custa alguns pixels de largura em telas de administração, que têm
+  folga; na grade não custa nada, porque lá o corpo vem de `--texto-grade` (abaixo) e não daqui.
+
+  > **Dentro da grade, esta escala não manda.** As regras de `.grade-fluida` sobrepõem tudo o que
+  > está numa `<td>`, de propósito — ver o bloco seguinte. A escala vale para o resto do produto:
+  > sidebar, cabeçalhos, painéis, administração e diálogos.
+*/
+@theme {
+  --text-selo: 0.625rem;
+  --text-selo--line-height: 1.4;
+  --text-rotulo: 0.6875rem;
+  --text-rotulo--line-height: 1.4;
+  --text-apoio: 0.75rem;
+  --text-apoio--line-height: 1.5;
+  --text-dado: 0.8125rem;
+  --text-dado--line-height: 1.5;
+}
+
 @layer base {
+  /*
+    ================================================================================================
+    ## A raiz acompanha a tela — 11/08/2026
+    ================================================================================================
+
+    A validação nos **quatro monitores reais da operação** (1051 a 2535px de largura) mostrou o
+    mesmo defeito em graus diferentes: quanto maior a tela, menor o sistema parecia. A causa era o
+    teto fixo das réguas — o texto batia em ~13px e parava, e 13px num monitor de 2500px é
+    proporcionalmente minúsculo. O desenho estava calibrado para ~1366px e ignorava o resto.
+
+    Esta regra é o pagamento da conversão para `rem` feita nesta mesma data: como **nenhum tamanho
+    do produto está mais em pixel**, escalar a raiz escala tudo — sidebar, cabeçalhos, grade,
+    diálogos e espaçamentos — na mesma proporção, sem tocar em nenhum componente.
+
+    ## A curva foi calibrada por bissecção — com o olho da operação, não com o meu
+
+    A primeira curva (teto 19px, +19% na tela de 2535px) veio de um chute, e a operação a recusou:
+    "imensas". Só que a mesma operação tinha recusado o estado anterior, fixo em 16px, como
+    "pequeno, não dá para ver". **Os dois vereditos juntos são a informação**: o ponto bom da tela
+    grande está entre 16 e 19 — e a curva atual mira o meio desse intervalo, com folga para o lado
+    do discreto, porque "grande demais" incomodou mais que "pequeno demais".
+
+    | Largura da janela | Raiz | Efeito |
+    |-------------------|-----:|--------|
+    | até ~1366px       | 16px | **o desenho aprovado, intacto** — "nas menores estão ótimo" |
+    | 1881px            | ~16,3px | +2% — a tela onde o +8% anterior já pareceu imenso |
+    | 1920px            | ~16,4px | +2,3% |
+    | 2535px            | ~16,8px | +5% — entre o "pequeno" do 16 e o "imenso" do 19 |
+    | teto              | 17,25px | só alcançado acima de ~3300px (ultrawide) |
+
+    A lição que esta curva registra: **presença de interface não escala linear com a tela.** Quem
+    troca de monitor não muda de distância do olho — precisa de um ganho *sutil*, não proporcional.
+    O ganho grande de legibilidade nas telas grandes já veio de outro lugar: da compressão dos
+    degraus da grade (cabeçalho de 7px para 9–11px). A raiz só faz o acabamento.
+
+    Ajuste fino por tela é **uma variável**: mexer nos três números deste clamp move o produto
+    inteiro junto, coerente. É o oposto de caçar 202 tamanhos espalhados, que era o estado anterior.
+  */
+  /*
+    `--texto-pessoal` é a preferência de quem usa — Compacto (0.94) · Padrão (1) · Confortável
+    (1.07), escolhida em Meu Perfil e aplicada por `utils/aparencia.ts`. A curva resolve a tela;
+    o fator resolve a pessoa. Sem escolha gravada, vale 1 e a curva manda sozinha.
+  */
+  html {
+    font-size: calc(clamp(16px, 15.1px + 0.065vw, 17.25px) * var(--texto-pessoal, 1));
+  }
+
+  /*
+    ## A pilha de fontes, e por que ela é longa
+
+    As quatro fontes do produto vêm do Google Fonts. Numa rede corporativa que bloqueie
+    `fonts.googleapis.com` — e a hipótese não é remota aqui —, **nada disso carrega** e o navegador
+    cai no primeiro nome da pilha que ele conheça.
+
+    Era aí que o sistema deixava de ser o mesmo em cada máquina: com `system-ui` sozinho, o Windows
+    resolve para Segoe UI, o macOS para SF Pro e o Linux para o que estiver instalado — três
+    métricas diferentes, três larguras de texto diferentes, e um layout calculado para nenhuma
+    delas. Declarar cada uma pelo nome não impede a troca (nem deveria), mas torna o resultado
+    **previsível por sistema** em vez de sorteado.
+
+    `-apple-system` antes de `system-ui` porque Safaris antigos só entendem o primeiro; `Segoe UI
+    Variable` antes de `Segoe UI` porque é o que o Windows 11 traz e tem métrica mais próxima da
+    Plus Jakarta.
+  */
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui,
+      'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+      'Noto Sans', sans-serif;
   }
   h1, h2, h3, h4, h5, h6, .font-display {
-    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui,
+      'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   code, kbd, samp, pre, .font-mono, .font-code {
-    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, 'Cascadia Mono',
+      Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
+  }
+}
+
+/*
+  Movimento reduzido — a preferência do sistema operacional, respeitada.
+
+  Quem liga "reduzir movimento" no Windows, macOS ou Linux costuma ter um motivo físico: enjoo,
+  vertigem, sensibilidade vestibular. O produto anima linha, popover, botão e diálogo o tempo todo,
+  e ignorar a preferência transforma uma tela de trabalho em algo que a pessoa precisa evitar.
+
+  Este bloco cobre transições e animações **de CSS**. As do `motion`, que são feitas em JavaScript,
+  não passam por aqui — quem as desliga é o `<MotionConfig reducedMotion="user">` no `App.tsx`.
+  São duas metades da mesma decisão, e é preciso lembrar das duas.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -20,9 +163,48 @@
   monitor largo cabem mais colunas por vez, o que pede um corpo de texto um grau maior para a
   leitura não ficar apertada.
 
-  `0.35vh + 0.25vw` dá peso maior à altura, que continua sendo o recurso escasso, sem ignorar a
-  largura. Os limites são medidos: 11px é o piso confortável, 13px o teto acima do qual a grade só
-  perde colunas por tela sem ganhar clareza.
+  `0.3vh + 0.22vw` dá peso maior à altura, que continua sendo o recurso escasso, sem ignorar a
+  largura.
+
+  ================================================================================================
+  ## O ajuste de 11/08/2026 — e a correção do próprio ajuste, no mesmo dia
+  ================================================================================================
+
+  ### O problema, que era real
+
+  Os limites eram 11px de piso e 13px de teto, e pareciam razoáveis lidos assim. O que ninguém
+  tinha feito era **somar os degraus**: o cabeçalho de coluna é a régua menos `0.25rem`, o que dava
+  **7px numa tela de notebook**. Sete pixels não é texto pequeno — e era com ele que estavam
+  escritos os nomes de todas as colunas do quadro em que a operação passa o dia.
+
+  ### A primeira correção passou do ponto
+
+  A primeira tentativa mexeu nas duas coisas ao mesmo tempo: subiu a régua para 12–14px **e**
+  comprimiu os degraus para −1/−2px. O cabeçalho recebeu as duas mudanças somadas e saltou de 7px
+  para 10,5px — **43% de uma vez**. A operação olhou a tela e disse, corretamente, que estava
+  grande: a grade tinha deixado de ser densa, e densidade ali não é capricho, é quantas linhas se
+  vê sem rolar.
+
+  A lição, que vale para a próxima régua: **um ajuste de tipografia mexe numa variável por vez.**
+  Duas ao mesmo tempo tornam impossível saber qual delas foi longe demais — e a correção vira outro
+  chute.
+
+  ### Onde parou
+
+  A régua voltou ao original. O que ficou foi a **compressão dos degraus**, que é o que resolvia o
+  7px sem inchar a grade:
+
+  | | Original | Excesso | **Agora** |
+  |---|------:|------:|------:|
+  | Régua (`--texto-grade`) | 11–13px | 12–14px | **11–13px** |
+  | Nome do projeto | 11–13px | 12–14px | **11–13px** |
+  | Dado da célula | 9–11px | 11–13px | **10–12px** |
+  | Cabeçalho e selos | **7–9px** | 10–12px | **9–11px** |
+
+  O cabeçalho ganhou os 2px que faltavam para ser lido; o resto da grade voltou a ser o que era, ou
+  a um pixel disso. **9px sustenta o cabeçalho porque ele é caixa alta e negrito** — a altura de
+  maiúscula em 9px equivale à de um texto comum bem maior, e o rótulo de coluna se lê uma vez, para
+  localizar, não em leitura corrida.
 */
 .grade-fluida {
   --texto-grade: clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem);
@@ -53,8 +235,9 @@
   inteiro junto, e a proporção entre as camadas não se perde no redimensionamento.
 */
 .grade-fluida td {
-  font-size: calc(var(--texto-grade) - 0.125rem);
-  line-height: 1.35;
+  font-size: calc(var(--texto-grade) - 0.0625rem);
+  /* 1.3 em vez de 1.35: devolve parte da altura que o corpo maior tomou. */
+  line-height: 1.3;
 }
 
 .grade-fluida td * {
@@ -85,12 +268,41 @@
   o cinza claro (#94a3b8) recuava demais e a operação pediu contraste — em 03/08/2026 subiu para
   o slate-600, escuro sem ser preto. Caixa alta + espaçamento seguem marcando que é rótulo.
 */
+/*
+  ================================================================================================
+  ## O peso do cabeçalho — 11/08/2026, e a lição que faltava
+
+  A operação apontou "sensação de grande nos títulos da coluna" **depois** de a régua já ter
+  voltado ao original. A conta explicou o que o olho tinha visto e o número escondia:
+
+  | | Valor |
+  |---|------:|
+  | Corpo real (monitor de 32") | 11,5px |
+  | Altura de maiúscula (caixa alta ≈ 0,72 em) | 8,3px |
+  | **Presença equivalente** em caixa baixa | **~16px** |
+
+  Caixa alta + peso 600 + `letter-spacing` de 0,06em **somam presença** — a mesma soma que a régua
+  anterior escondia atrás de um número pequeno. Um rótulo de 11,5px assim ocupa o campo visual como
+  um texto de 16px, e disputa com o dado que ele deveria apenas nomear.
+
+  ## Por que peso, e não tamanho
+
+  Baixar o corpo devolveria o problema de origem (o cabeçalho ilegível de 7px), e o piso de 9px
+  está protegido por teste. O peso não tem esse custo: **500 em caixa alta continua perfeitamente
+  legível** e devolve a hierarquia — a placa volta a ser placa.
+
+  É a mesma lição da densidade do topo (§1.2.4), num terceiro eixo. A ordem, quando pedirem
+  "menor": **espaçamento → peso → só então tamanho.** Tamanho é a última coisa a ceder, porque é a
+  única que custa legibilidade.
+  ================================================================================================
+*/
 .grade-fluida th,
-.grade-fluida th .text-\[10px\] {
-  font-size: calc(var(--texto-grade) - 0.25rem);
+.grade-fluida th .text-rotulo {
+  font-size: calc(var(--texto-grade) - 0.125rem);
   line-height: 1.3;
-  letter-spacing: 0.06em;
-  font-weight: 600;
+  /* 0.02em: o suficiente para a caixa alta respirar, sem esticar a placa. */
+  letter-spacing: 0.02em;
+  font-weight: 500;
   color: #475569;
 }
 
@@ -102,7 +314,7 @@
 */
 .grade-fluida td.col-entrada,
 .grade-fluida td.col-entrada * {
-  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+  font-size: calc(var(--texto-grade) - 0.125rem) !important;
   padding-left: 0.25rem;
   padding-right: 0.25rem;
   letter-spacing: -0.01em;
@@ -117,7 +329,7 @@
 */
 .grade-fluida td.col-status [class*="rounded"],
 .grade-fluida td.col-status [class*="rounded"] * {
-  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+  font-size: calc(var(--texto-grade) - 0.125rem) !important;
   padding-left: 0.375rem;
   padding-right: 0.375rem;
 }
@@ -128,9 +340,9 @@
   Um degrau abaixo de propósito: são **metadado sobre a linha**, não dado dela. Se tivessem o corpo
   do dado, competiriam com o nome do projeto ao lado, que é o que identifica a linha.
 */
-.grade-fluida td .text-\[9px\],
-.grade-fluida td .text-\[10px\] {
-  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+.grade-fluida td .text-selo,
+.grade-fluida td .text-rotulo {
+  font-size: calc(var(--texto-grade) - 0.125rem) !important;
 }
 
 /*
@@ -140,7 +352,7 @@
   com dois textos de igual peso e nenhum deles lia como principal.
 */
 .grade-fluida td .legenda-linha {
-  font-size: calc(var(--texto-grade) - 0.1875rem) !important;
+  font-size: calc(var(--texto-grade) - 0.125rem) !important;
 }
 
 /*

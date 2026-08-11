@@ -54,7 +54,7 @@ export function PapelSelect({ value, prazo, onChange }: PapelSelectProps) {
         <Icon className="size-3 shrink-0" />
         <span className="truncate">{style.label}</span>
         {prazo && value === 'responsavel' && (
-          <span className="flex items-center gap-0.5 text-[10px] font-normal opacity-80">
+          <span className="flex items-center gap-0.5 text-rotulo font-normal opacity-80">
             <Clock className="size-2.5" />
             {new Date(prazo).toLocaleDateString('pt-BR')}
           </span>
@@ -84,7 +84,7 @@ export function PapelSelect({ value, prazo, onChange }: PapelSelectProps) {
                       onChange(papel);
                       setIsOpen(false);
                     }}
-                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-2 text-[11px] font-semibold ring-1 ${opcao.chip}`}
+                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-2 text-apoio font-semibold ring-1 ${opcao.chip}`}
                   >
                     <OpcaoIcon className="size-3 shrink-0" />
                     <span className="flex-1 text-left">{opcao.label}</span>
@@ -102,7 +102,7 @@ export function PapelSelect({ value, prazo, onChange }: PapelSelectProps) {
                   onChange('responsavel', true);
                   setIsOpen(false);
                 }}
-                className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-2 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200"
+                className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-2 text-apoio font-semibold text-amber-700 ring-1 ring-amber-200"
               >
                 <Clock className="size-3 shrink-0" />
                 <span className="flex-1 text-left">Responsável temporário</span>

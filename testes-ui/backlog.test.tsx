@@ -18,18 +18,36 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { cleanup, render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { DadosProvider } from '../src/context/DadosProvider';
+import { DialogoProvider } from '../src/components/ui/Dialogo';
 import { BacklogAgenciados } from '../src/pages/BacklogAgenciados';
 
 /** Cada teste começa com o `localStorage` limpo: o seed é o ponto de partida conhecido. */
 beforeEach(() => window.localStorage.clear());
 afterEach(cleanup);
 
+/**
+ * `DialogoProvider` por fora, como no `App`.
+ *
+ * Ele entrou aqui em 11/08/2026, quando as confirmações deixaram de ser `window.confirm`. Não é
+ * detalhe de montagem: **o `jsdom` não implementa `window.confirm`** e o devolvia como `undefined`,
+ * de modo que toda exclusão passava direto — a suíte media um caminho que ninguém confirmava. Com
+ * o diálogo em React, a pergunta existe no DOM e o teste tem de respondê-la, como uma pessoa.
+ */
 function montar() {
   return render(
-    <DadosProvider>
-      <BacklogAgenciados />
-    </DadosProvider>,
+    <DialogoProvider>
+      <DadosProvider>
+        <BacklogAgenciados />
+      </DadosProvider>
+    </DialogoProvider>,
   );
+}
+
+/** Responde à pergunta aberta e espera o diálogo sair — é o que uma pessoa faria. */
+async function responderDialogo(rotulo: RegExp) {
+  const dialogo = await screen.findByRole('alertdialog');
+  fireEvent.click(within(dialogo).getByRole('button', { name: rotulo }));
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
 }
 
 /**
@@ -1335,10 +1353,18 @@ describe('cabeçalho legível', () => {
         .flatMap((th) => [...th.querySelectorAll('button, span')])
         .map((no) => no.className)
         .filter((c) => c.includes('uppercase'))
-        .map((c) => `${/text-\[\d+px\]/.exec(c)?.[0]} ${/tracking-\w+/.exec(c)?.[0]}`),
+        /*
+          A métrica passou a ser lida pelo **nome do degrau**, não pelo pixel.
+
+          Em 11/08/2026 os 202 tamanhos cravados em px viraram a escala nomeada do `index.css` —
+          `text-selo`, `text-rotulo`, `text-apoio`, `text-dado` —, para que o corpo do texto
+          acompanhe a preferência de quem usa em vez de ignorá-la. O regex antigo procurava
+          `text-[10px]` e passou a encontrar `undefined`.
+        */
+        .map((c) => `${/text-(selo|rotulo|apoio|dado)\b/.exec(c)?.[0]} ${/tracking-\w+/.exec(c)?.[0]}`),
     );
     // Uma métrica só: divergir aqui faria a mesma tabela parecer duas.
-    expect([...estilos]).toEqual(['text-[10px] tracking-wide']);
+    expect([...estilos]).toEqual(['text-rotulo tracking-wide']);
   });
 
   it('a tabela pede a largura das colunas, e não uma proporção', () => {
@@ -1375,10 +1401,12 @@ describe('cabeçalho legível', () => {
 });
 
 describe('duplicar projeto', () => {
-  function duplicarPrimeira() {
+  // Desde 11/08/2026 duplicar pergunta antes — ver `duplicar` em `BacklogTable`.
+  async function duplicarPrimeira() {
     montar();
     const alvo = linhas().find((l) => l.textContent?.includes('Coca-Cola'))!;
     fireEvent.click(within(alvo).getByLabelText(/^Duplicar/));
+    await responderDialogo(/^Duplicar$/);
   }
 
   /*
@@ -1389,11 +1417,12 @@ describe('duplicar projeto', () => {
     return linhas().find((l) => l.querySelector('[data-dica^="Criada a partir"]'))!;
   }
 
-  it('cria uma linha nova, sem tocar na original', () => {
+  it('cria uma linha nova, sem tocar na original', async () => {
     montar();
     const antes = linhas().length;
     const alvo = linhas().find((l) => l.textContent?.includes('Coca-Cola'))!;
     fireEvent.click(within(alvo).getByLabelText(/^Duplicar/));
+    await responderDialogo(/^Duplicar$/);
 
     expect(linhas().length).toBe(antes + 1);
     // Duas linhas com o mesmo projeto — e a original continua com seu talento.
@@ -1402,8 +1431,8 @@ describe('duplicar projeto', () => {
     expect(daCoca.some((l) => l.textContent?.includes('Marina Duarte'))).toBe(true);
   });
 
-  it('herda o trabalho de digitar, não o talento', () => {
-    duplicarPrimeira();
+  it('herda o trabalho de digitar, não o talento', async () => {
+    await duplicarPrimeira();
     const nova = linhaDuplicada();
     // Marca e classificações vêm junto.
     expect(nova.textContent).toContain('Coca-Cola');
@@ -1411,8 +1440,8 @@ describe('duplicar projeto', () => {
     expect(celula(nova, /Escolher talento/).textContent?.trim()).toBe('Talento');
   });
 
-  it('escolher o talento corrige o nome do projeto', () => {
-    duplicarPrimeira();
+  it('escolher o talento corrige o nome do projeto', async () => {
+    await duplicarPrimeira();
     /*
       A operação nomeia o projeto com o talento dentro. Sem esta correção o título continuaria
       dizendo "Marina Duarte" — e reescrevê-lo à mão é o trabalho que duplicar existe para poupar.
@@ -1428,14 +1457,14 @@ describe('duplicar projeto', () => {
     expect(original.textContent).toContain('Marina Duarte');
   });
 
-  it('abre esperando o novo talento', () => {
-    duplicarPrimeira();
+  it('abre esperando o novo talento', async () => {
+    await duplicarPrimeira();
     // O painel de talento já está aberto — sem um segundo clique.
     expect(screen.getByPlaceholderText(/^Buscar talento/)).toBeTruthy();
   });
 
-  it('valores e contrato não vêm junto', () => {
-    duplicarPrimeira();
+  it('valores e contrato não vêm junto', async () => {
+    await duplicarPrimeira();
     const faixa = screen.getByText('Demanda').closest('div')!;
     fireEvent.click(within(faixa).getByText('Financeiro'));
 
@@ -1447,8 +1476,8 @@ describe('duplicar projeto', () => {
     expect(nova.textContent).not.toContain('250.000');
   });
 
-  it('o rastro é ícone, sem palavra na linha', () => {
-    duplicarPrimeira();
+  it('o rastro é ícone, sem palavra na linha', async () => {
+    await duplicarPrimeira();
     const rastro = linhaDuplicada().querySelector('[data-dica^="Criada a partir"]')!;
     expect(rastro.getAttribute('data-dica')).toContain('Coca-Cola Verão');
     // Rastro, não vínculo: as duas são projetos independentes.
@@ -1509,7 +1538,7 @@ describe('editar uma linha não vaza para as outras', () => {
     expect(linhas().filter((l) => l.textContent?.includes('R$ 999.999,00'))).toHaveLength(1);
   });
 
-  it('a cópia é independente: editar a duplicada não toca a origem', () => {
+  it('a cópia é independente: editar a duplicada não toca a origem', async () => {
     montar();
     /*
       A duplicação copia o objeto raso (`{...origem}`) — se alguma atualização mutasse uma
@@ -1518,6 +1547,7 @@ describe('editar uma linha não vaza para as outras', () => {
     */
     const origem = linhas().find((l) => l.textContent?.includes('Coca-Cola Verão'))!;
     fireEvent.click(within(origem).getByLabelText(/^Duplicar/));
+    await responderDialogo(/^Duplicar$/);
     fireEvent.mouseDown(within(painelAberto()).getByText('Rafael Nogueira'));
 
     const copia = linhas().find((l) => l.querySelector('[data-dica^="Criada a partir"]'))!;
@@ -1575,6 +1605,21 @@ describe('pendências — com quem está a bola', () => {
     // Abrir a segunda espera → o badge ganha o número.
     fireEvent.click(screen.getByText('Validação Gestão Esporte'));
     expect(linhaItau().textContent).toContain('⏳2');
+  });
+
+  it('cada espera mostra o percurso: quando abriu, quando chegou, quantos dias', () => {
+    /*
+      As datas sempre existiram no modelo (`abertaEm`, `chegouEm` — são a matéria-prima do SLA);
+      até 11/08/2026 o painel só mostrava a contagem, e "5d esperando" não responde a pergunta
+      que a operação faz: *desde quando?* O relógio da suíte é fixo em 04/08 (`setup.ts`).
+    */
+    montar();
+    abrirPainelDeStatus(linhaItau());
+
+    // A aberta: desde quando, até hoje.
+    expect(screen.getByText(/30\/07 → hoje · 5d esperando/)).toBeTruthy();
+    // A chegada: o percurso completo, com as duas datas.
+    expect(screen.getByText(/28\/07 → 29\/07 · 1d de espera/)).toBeTruthy();
   });
 
   it('"✓ Chegou" para o relógio e tem volta pelo "↩ Reabrir"', () => {

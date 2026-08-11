@@ -42,7 +42,7 @@ export function AbaConvites() {
               <Mail className="size-3.5 text-indigo-500" />
               Convite — de dentro para fora
             </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+            <p className="mt-1 text-apoio leading-relaxed text-slate-500">
               Você (ou o responsável) emite um link para o e-mail de alguém, na página{' '}
               <strong className="font-semibold text-slate-600">Equipes</strong>. O link vale 24h,
               serve uma vez só e funciona apenas para o e-mail convidado. Aqui você acompanha os que
@@ -55,7 +55,7 @@ export function AbaConvites() {
               <Inbox className="size-3.5 text-amber-600" />
               Pedido — de fora para dentro
             </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+            <p className="mt-1 text-apoio leading-relaxed text-slate-500">
               Quem já tem conta, mas não participa de uma equipe, pede acesso a ela pela própria
               página de Equipes. O pedido aparece aqui; aprovar já coloca a pessoa na equipe como
               membro.
@@ -90,11 +90,11 @@ export function AbaConvites() {
                     {' pede acesso à equipe '}
                     <strong className="font-semibold text-slate-800">{equipe?.nome ?? '—'}</strong>
                     {solicitacao.justificativa && (
-                      <span className="block text-[11px] text-slate-500">“{solicitacao.justificativa}”</span>
+                      <span className="block text-apoio text-slate-500">“{solicitacao.justificativa}”</span>
                     )}
                   </span>
 
-                  <span className="text-[11px] text-slate-400">{formatDataCurta(solicitacao.criadaEm)}</span>
+                  <span className="text-apoio text-slate-500">{formatDataCurta(solicitacao.criadaEm)}</span>
 
                   {podeDecidir && (
                     <div className="flex items-center gap-1.5">
@@ -158,7 +158,7 @@ export function AbaConvites() {
                     {equipe?.nome ?? '—'}
                     {' · '}
                     {convite.papel === 'responsavel' ? 'Responsável' : 'Membro'}
-                    <span className="block text-[11px] text-slate-400">
+                    <span className="block text-apoio text-slate-500">
                       expira em {horasRestantes(convite)}h · uso único
                     </span>
                   </span>

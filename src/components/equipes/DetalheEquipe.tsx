@@ -11,6 +11,7 @@ import {
 import { getCorAvatar, getIniciais } from '../usuarios/Avatar';
 import { EditableCell } from '../ui/EditableCell';
 import { AbaConfig, Tabs } from '../ui/Tabs';
+import { useDialogo } from '../ui/Dialogo';
 import { MembrosTable } from './MembrosTable';
 import { LinkDaEquipe } from './LinkDaEquipe';
 import { ConfiguracaoEquipe } from './ConfiguracaoEquipe';
@@ -19,6 +20,7 @@ type AbaId = 'pessoas' | 'configuracao';
 
 export function DetalheEquipe({ equipe }: { equipe: Equipe }) {
   const { renomearEquipe, excluirEquipe, sessao, criarSolicitacao } = useDados();
+  const { confirmar, pedirTexto } = useDialogo();
   const { responsaveis, membros } = contarPorPapel(equipe);
   const [aba, setAba] = useState<AbaId>('pessoas');
 
@@ -36,18 +38,30 @@ export function DetalheEquipe({ equipe }: { equipe: Equipe }) {
       : []),
   ];
 
-  function pedirAcesso() {
-    const justificativa = window.prompt(`Por que você precisa de acesso à equipe ${equipe.nome}?`);
+  async function pedirAcesso() {
+    const justificativa = await pedirTexto({
+      titulo: `Pedir acesso à equipe ${equipe.nome}`,
+      descricao: 'Quem responde pela equipe vai ler isto antes de decidir.',
+      placeholder: 'Por que você precisa deste acesso?',
+      rotuloConfirmar: 'Enviar pedido',
+    });
+    // `null` é desistência; texto vazio continua sendo um pedido — a justificativa é opcional.
     if (justificativa === null) return;
     criarSolicitacao(equipe.id, justificativa.trim());
   }
 
-  function excluir() {
-    const aviso =
-      equipe.membros.length > 0
-        ? `Excluir a equipe ${equipe.nome}? As ${equipe.membros.length} pessoas continuam na base de usuários.`
-        : `Excluir a equipe ${equipe.nome}?`;
-    if (window.confirm(aviso)) excluirEquipe(equipe.id);
+  async function excluir() {
+    const ok = await confirmar({
+      titulo: `Excluir a equipe ${equipe.nome}?`,
+      descricao:
+        equipe.membros.length > 0
+          ? `As ${equipe.membros.length} pessoas continuam na base de usuários.`
+          : undefined,
+      rotuloConfirmar: 'Excluir equipe',
+      destrutivo: true,
+      icone: 'excluir',
+    });
+    if (ok) excluirEquipe(equipe.id);
   }
 
   const areaAtendida = AREAS.find((area) => area.id === equipe.areaTalento);
@@ -124,7 +138,7 @@ export function DetalheEquipe({ equipe }: { equipe: Equipe }) {
           </div>
 
           {/* Resumo do acesso, em leitura. Quem configura faz isso na aba própria. */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-slate-100 px-2 pt-3 text-[11px] text-slate-500">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-slate-100 px-2 pt-3 text-apoio text-slate-500">
             <span className="flex items-center gap-1.5">
               <LayoutGrid className="size-3 text-slate-400" />
               {equipe.paginasPermitidas.length > 0 ? (

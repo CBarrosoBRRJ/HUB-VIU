@@ -173,7 +173,21 @@ export function podeGerenciarAcessos(contexto) {
     return podeAcao(contexto, 'gerenciar_acessos');
 }
 /** Responsável de fato: perfil permite **e** é responsável naquela equipe. */
-export function podeGerenciarEquipe(contexto, equipe) {
+/*
+  `agora` entrou em 11/08/2026, e o motivo é a responsabilidade temporária.
+
+  Esta função responde "esta pessoa administra a equipe?", e a resposta **muda com o relógio**: um
+  responsável com prazo volta a membro quando o prazo vence, na leitura ([04 §4](../../prd/04_pagina_equipes.md)).
+  Sem o parâmetro, ela consultava `new Date()` lá no fundo, via `getPapelNaEquipe` — e não havia
+  como testar a janela sem mexer no relógio da máquina.
+
+  O teste que verificava "o substituto administra durante o prazo" montava uma janela de sete dias
+  a partir de uma data fixa e passou a falhar sozinho quando o calendário andou. Não era defeito da
+  regra: era a regra sendo consultada com um "hoje" que o teste não controlava. A convenção do
+  projeto já dizia isto — *função que depende de hoje recebe `referencia = new Date()`*
+  ([03 §9](../../prd/03_padroes_ui.md)) —, e esta era a exceção que faltava alinhar.
+*/
+export function podeGerenciarEquipe(contexto, equipe, agora = new Date()) {
     if (escritaBloqueada(contexto))
         return false;
     if (ehDono(contexto.usuario))
@@ -182,7 +196,7 @@ export function podeGerenciarEquipe(contexto, equipe) {
         return true;
     if (contexto.usuario.perfil !== 'responsavel')
         return false;
-    return getPapelNaEquipe(equipe, contexto.usuario.id) === 'responsavel';
+    return getPapelNaEquipe(equipe, contexto.usuario.id, agora) === 'responsavel';
 }
 /* ------------------------------------------------------------------ *
  * Administração
@@ -190,10 +204,10 @@ export function podeGerenciarEquipe(contexto, equipe) {
 export function podeCriarEquipe(contexto) {
     return podeAcao(contexto, 'criar_equipe');
 }
-export function podeExcluirEquipe(contexto, equipe) {
+export function podeExcluirEquipe(contexto, equipe, agora = new Date()) {
     if (escritaBloqueada(contexto))
         return false;
-    return contexto.usuario.perfil === 'admin' || podeGerenciarEquipe(contexto, equipe);
+    return contexto.usuario.perfil === 'admin' || podeGerenciarEquipe(contexto, equipe, agora);
 }
 /**
  * Conceder quadros a uma equipe é privilégio exclusivo do admin.

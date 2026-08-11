@@ -14,7 +14,7 @@ import { contratosDoTalento, getTipo } from '../../utils/talentos';
 import {
   getInput,
   compararPorCampo, getStatus, INPUTS, ORIGENS_COMERCIAIS,
-  apoiosDaAreaNaOportunidade, IMPACTOS, exclusividadeDe, precisaRevisao,
+  apoiosDaAreaNaOportunidade, DESFECHOS_TERMINAIS, IMPACTOS, exclusividadeDe, precisaRevisao,
   responsaveisDaAreaNaOportunidade, slaDaOportunidade, CAPTACOES_PRODUCAO, TIPOS_EDICAO,
   TIPOS_OUTPUT, TIPOS_PROJETO, FORMATOS_CONTEUDO, ALCANCES_AUDIENCIA,
   destravaDaColuna, destravaDoTique,
@@ -41,6 +41,8 @@ import { EtiquetaSelect } from './EtiquetaSelect';
 import { CelulaNumero } from '../ui/CelulaNumero';
 import { CelulaData } from '../ui/CelulaData';
 import { CelulaLink } from '../ui/CelulaLink';
+import { useDialogo } from '../ui/Dialogo';
+import { useEscalaRaiz } from '../ui/useEscalaRaiz';
 
 import { fichaDoTalento, ORIGENS_TALENTO } from '../../utils/talentos';
 import { AreaResponsavelCell } from '../talentos-exclusivos/AreaResponsavelCell';
@@ -139,6 +141,7 @@ export function BacklogTable({
     // A lista completa, para o rastro da duplicação — o prop homônimo chega filtrado.
     oportunidades: todasOportunidades,
   } = useDados();
+  const { confirmar, avisar } = useDialogo();
 
   const podeCriar = podeCriarRegistro(sessao, 'backlog');
 
@@ -214,11 +217,21 @@ export function BacklogTable({
     irmãos. Cada célula congelada soma a largura de todas as anteriores, e um valor errado aqui
     faz duas colunas se sobreporem ao rolar, escondendo dado sem avisar.
   */
-  const L_CHECKBOX = 44;
-  // Nomes de projeto são longos: "[Carta Orçamento] Marina Duarte | Coca-Cola Verão" em 2 linhas.
-  const L_NOME = 340;
+  /*
+    **Toda largura da grade passa pelo fator da raiz** — constantes e catálogo.
 
-  const L_ACOES = 72;
+    A raiz fluida amplia o texto nas telas grandes; sem ampliar as caixas junto, o texto crescia
+    dentro de larguras paradas e era comido ("há colunas que está comendo a palavra" — operação,
+    11/08/2026). Multiplicar aqui, na fonte, mantém a aritmética do congelamento e do scroll exata
+    por construção — o porquê de não usar `rem` está em `useEscalaRaiz`.
+  */
+  const fatorRaiz = useEscalaRaiz();
+  const largura = (coluna: ColunaCatalogo) => Math.round(larguraDaColuna(coluna) * fatorRaiz);
+  const L_CHECKBOX = Math.round(44 * fatorRaiz);
+  // Nomes de projeto são longos: "[Carta Orçamento] Marina Duarte | Coca-Cola Verão" em 2 linhas.
+  const L_NOME = Math.round(340 * fatorRaiz);
+
+  const L_ACOES = Math.round(72 * fatorRaiz);
 
   /**
    * Ordem congelada: seleção · **Ações** · Status · Projeto · Entrada · Talento.
@@ -235,9 +248,9 @@ export function BacklogTable({
     }[] = [
       { key: 'sel', largura: L_CHECKBOX },
       { key: 'acoes', largura: L_ACOES, acoes: true },
-      ...antesDoNome.map((c) => ({ key: c.id, largura: larguraDaColuna(c), coluna: c })),
+      ...antesDoNome.map((c) => ({ key: c.id, largura: largura(c), coluna: c })),
       { key: 'nome', largura: L_NOME, nome: true },
-      ...depoisDoNome.map((c) => ({ key: c.id, largura: larguraDaColuna(c), coluna: c })),
+      ...depoisDoNome.map((c) => ({ key: c.id, largura: largura(c), coluna: c })),
     ];
     let acumulado = 0;
     return lista.map((item, indice) => {
@@ -245,7 +258,9 @@ export function BacklogTable({
       acumulado += item.largura;
       return { ...item, left, ultima: indice === lista.length - 1 };
     });
-  }, [ancoras]);
+    // O fator entra nas dependências: redimensionar a janela muda a raiz, e as larguras vão junto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ancoras, fatorRaiz]);
 
   const larguraCongelada = congeladas.reduce((total, c) => total + c.largura, 0);
 
@@ -258,7 +273,7 @@ export function BacklogTable({
     ficava curto — a Talento deslizava por cima da Entrada ao rolar.
   */
   const larguraTotal =
-    larguraCongelada + colunasRolantes.reduce((total, c) => total + larguraDaColuna(c), 0);
+    larguraCongelada + colunasRolantes.reduce((total, c) => total + largura(c), 0);
 
   /**
    * Classe das células congeladas — o `left` vai no style, que é calculado.
@@ -304,10 +319,11 @@ export function BacklogTable({
     let acumulado = 0;
     for (const secao of secoes) {
       mapa.set(secao.visaoId, acumulado);
-      acumulado += secao.colunas.reduce((total, c) => total + larguraDaColuna(c), 0);
+      acumulado += secao.colunas.reduce((total, c) => total + largura(c), 0);
     }
     return mapa;
-  }, [secoes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secoes, fatorRaiz]);
 
   function irParaSecao(visaoId: string) {
     setAba(visaoId);
@@ -474,7 +490,11 @@ export function BacklogTable({
       );
     } catch {
       // Falha silenciosa foi o defeito original: se algo impedir o download, a pessoa fica sabendo.
-      window.alert('Não foi possível gerar o Excel. Recarregue a página e tente de novo.');
+      void avisar({
+        titulo: 'Não foi possível gerar o Excel',
+        descricao: 'Recarregue a página e tente de novo.',
+        icone: 'alerta',
+      });
     }
   }
 
@@ -507,8 +527,61 @@ export function BacklogTable({
     );
   }
 
-  function excluir(ids: string[], rotulo: string) {
-    if (!window.confirm(`Excluir ${rotulo}? Esta ação não pode ser desfeita.`)) return;
+  /**
+   * Duplicar, agora com pergunta antes — pedido da gestão em 11/08/2026.
+   *
+   * ## Por que um gesto de rotina passou a confirmar
+   *
+   * Duplicar não destrói nada, e a primeira leitura é que não precisaria de confirmação. O que
+   * mudou essa leitura foi **onde o botão mora**: encostado na lixeira, na coluna congelada que
+   * acompanha a rolagem. Errar o alvo por um ícone é fácil, e o resultado aparece no topo da
+   * lista — fora da vista de quem estava rolando lá embaixo. A linha extra só é descoberta
+   * depois, por outra pessoa, sem ninguém saber se é engano ou projeto de verdade.
+   *
+   * A pergunta também é o único lugar onde cabe dizer **o que a cópia leva** — informação que
+   * antes vivia só na dica do botão e no PRD.
+   */
+  async function duplicar(op: Oportunidade) {
+    const terminal = DESFECHOS_TERMINAIS.includes(op.status);
+    const ok = await confirmar({
+      titulo: `Duplicar "${op.titulo}"?`,
+      descricao: [
+        'A cópia abre esperando o novo talento. Marca, classificações, escopo e responsáveis vêm junto; valores, PEP e contrato não.',
+        // Só se diz quando é surpresa: o status **não** acompanhar é a exceção, não a regra.
+        terminal
+          ? `Como este projeto está em ${getStatus(op.status).label}, a cópia começa em Entrada.`
+          : '',
+      ].join('\n'),
+      rotuloConfirmar: 'Duplicar',
+      icone: 'duplicar',
+    });
+    if (!ok) return;
+
+    const nova = duplicarOportunidade(op.id);
+    if (nova) setRecemDuplicada(nova.id);
+  }
+
+  /*
+    Sem descrição, de propósito.
+
+    Ela dizia "esta ação não pode ser desfeita" — o que deixou de ser verdade com o `Ctrl+Z`. A
+    substituta, "dá para desfazer com Ctrl+Z", durou um dia: **ensinar atalho não é papel da
+    confirmação**. Quem está prestes a excluir precisa decidir se quer excluir, e a instrução de
+    teclado disputa a atenção com a única pergunta que a tela está fazendo — ainda por cima
+    desaparecendo junto com o diálogo, antes da hora em que seria útil.
+
+    O atalho se apresenta onde tem serventia: no aviso que aparece **depois** da ação
+    (`AvisoHistorico`), quando a pessoa tem motivo para procurá-lo.
+  */
+  async function excluir(ids: string[], rotulo: string) {
+    const ok = await confirmar({
+      titulo: `Excluir ${rotulo}?`,
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+      icone: 'excluir',
+    });
+    if (!ok) return;
+
     onDeleteMany(ids);
     setSelecionados(new Set());
   }
@@ -869,7 +942,7 @@ export function BacklogTable({
           return (
             <td key={coluna.id} className="px-2 py-2">
               <span
-                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] text-slate-300"
+                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio text-slate-500"
                 data-dica={`${coluna.label} indefinido`}
                 data-dica-sub={
                   nome
@@ -999,14 +1072,17 @@ export function BacklogTable({
         const marcado = op[tique.tique] === true;
         const temValor = op[tique.campo] !== undefined;
 
-        function alternar() {
+        async function alternar() {
           if (!marcado) return definirTiqueDeEscopo(op.id, tique!.tique, true);
           if (temValor) {
             const rotulo = LISTAS[tique!.campo as keyof typeof LISTAS]?.opcoes
               .find((o) => o.id === op[tique!.campo])?.label ?? 'o valor';
-            const ok = window.confirm(
-              `Desmarcar ${tique!.label} apaga "${rotulo}" da coluna ${tique!.label}, na aba Produção.`,
-            );
+            const ok = await confirmar({
+              titulo: `Desmarcar ${tique!.label}?`,
+              descricao: `Isto apaga "${rotulo}" da coluna ${tique!.label}, na aba Produção.`,
+              rotuloConfirmar: 'Desmarcar e apagar',
+              destrutivo: true,
+            });
             if (!ok) return undefined;
           }
           return definirTiqueDeEscopo(op.id, tique!.tique, false);
@@ -1072,7 +1148,7 @@ export function BacklogTable({
                 data-dica={`Sem ${par.label.toLowerCase()} neste projeto`}
                 data-dica-sub={`Marque ${par.label} na aba Escopo para preencher aqui`}
                 data-dica-sempre
-                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] text-slate-300"
+                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio text-slate-500"
               >
                 <Ban className="size-3 shrink-0" />
                 —
@@ -1286,7 +1362,7 @@ export function BacklogTable({
                     : 'Defina o talento: a exclusividade vem do vínculo dele com a casa'
                 }
                 data-dica-sempre
-                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] text-slate-300"
+                className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio text-slate-500"
               >
                 <span className="size-1.5 shrink-0 rounded-full bg-slate-200" />
                 —
@@ -1300,7 +1376,7 @@ export function BacklogTable({
                     : `${nomeDoTalento} não é exclusivo — o contrato tem interveniência`
                 }
                 data-dica-sempre
-                className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium ring-1 ${
+                className={`flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1 text-apoio font-medium ring-1 ${
                   derivada
                     ? 'bg-indigo-50 text-indigo-700 ring-indigo-200'
                     : 'bg-white text-slate-500 ring-slate-200'
@@ -1343,13 +1419,13 @@ export function BacklogTable({
         return (
           <td key={coluna.id} className="px-2 py-2">
             {tipo ? (
-              <span className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold ring-1 ${tipo.chip}`}>
+              <span className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-apoio font-semibold ring-1 ${tipo.chip}`}>
                 <span className={`size-1.5 rounded-full ${tipo.dot}`} />
                 {tipo.label}
               </span>
             ) : (
               <span
-                className="block text-center text-[11px] text-slate-300"
+                className="block text-center text-apoio text-slate-500"
                 data-dica="Sem ficha em Talentos"
                 data-dica-sub="A interveniência vem do vínculo do talento — sem ficha, não há como derivar"
                 data-dica-sempre
@@ -1583,7 +1659,7 @@ export function BacklogTable({
                   data-dica={`Parada há ${parado} dias em ${status.label}`}
                   data-dica-sub={`Aos ${DIAS_ATE_ENCERRAR} dias o sistema encerra automaticamente`}
                   data-dica-sempre
-                  className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 ${
+                  className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide ring-1 ${
                     restam <= 3
                       ? 'bg-red-50 text-red-700 ring-red-200'
                       : 'bg-amber-50 text-amber-700 ring-amber-200'
@@ -1605,7 +1681,7 @@ export function BacklogTable({
                   data-dica="Dados congelados"
                   data-dica-sub="Em Revisão e Aguardando Feedback há uma versão circulando fora do quadro. Para corrigir, mova para Ajustes."
                   data-dica-sempre
-                  className="ml-2 inline-flex items-center gap-1 rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-indigo-600 ring-1 ring-indigo-200"
+                  className="ml-2 inline-flex items-center gap-1 rounded bg-indigo-50 px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide text-indigo-600 ring-1 ring-indigo-200"
                 >
                   <Lock className="size-2.5" />
                   Congelado
@@ -1649,7 +1725,7 @@ export function BacklogTable({
                   data-dica="Encerrada pelo sistema"
                   data-dica-sub={`Ficou ${DIAS_ATE_ENCERRAR} dias sem movimento`}
                   data-dica-sempre
-                  className="ml-2 inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500"
+                  className="ml-2 inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-500"
                 >
                   <Hourglass className="size-2.5" />
                   Encerrada por inatividade
@@ -1704,10 +1780,7 @@ export function BacklogTable({
               */
               <motion.button
                 type="button"
-                onClick={() => {
-                  const nova = duplicarOportunidade(op.id);
-                  if (nova) setRecemDuplicada(nova.id);
-                }}
+                onClick={() => duplicar(op)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label={`Duplicar ${op.titulo}`}
@@ -1756,8 +1829,21 @@ export function BacklogTable({
       densas (96px) e o cabeçalho compacto (50px).
     */
     <div className="grade-fluida flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Abas temáticas */}
-      <div className="flex shrink-0 flex-wrap items-center gap-1 bg-[#111a3a] px-3 py-2.5">
+      {/*
+        Abas temáticas.
+
+        ## A faixa encolheu em 11/08/2026
+
+        Pedido da operação: *"poderia ser menor, mais elegante"*. Entre a borda do card e a primeira
+        linha havia **três faixas empilhadas** — abas, barra de ações e cabeçalho —, somando ~135px
+        de altura antes de qualquer dado aparecer. Numa janela de notebook isso é o equivalente a
+        quatro linhas do quadro gastas em cromo.
+
+        O corte veio do **espaçamento**, não do corpo do texto: `py-2.5` → `py-1.5` na faixa,
+        `py-1.5` → `py-1` nas abas, ícones de 14px para 12px. A régua de legibilidade que o gestor
+        pediu continua de pé — o que saiu foi ar, não letra.
+      */}
+      <div className="flex shrink-0 flex-wrap items-center gap-0.5 bg-[#111a3a] px-2.5 py-1.5">
         {abas.map((item) => {
           const Icon = ICONES[item.id] ?? Layers;
           const ativa = aba === item.id;
@@ -1770,7 +1856,7 @@ export function BacklogTable({
               data-dica={item.restrita ? 'Acesso restrito' : undefined}
               data-dica-sub={item.restrita ? item.motivo : undefined}
               data-dica-sempre={item.restrita ? '' : undefined}
-              className={`relative flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`relative flex items-center gap-1.5 rounded-md px-2.5 py-1 text-rotulo font-semibold transition-colors ${
                 ativa ? 'text-white' : 'text-slate-300 hover:bg-white/10'
               }`}
             >
@@ -1783,11 +1869,11 @@ export function BacklogTable({
                 <motion.span
                   layoutId="backlog-aba-ativa"
                   transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                  className="absolute inset-0 rounded-lg bg-indigo-600"
+                  className="absolute inset-0 rounded-md bg-indigo-600"
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
-                <Icon className="size-3.5" />
+                <Icon className="size-3" />
                 {item.label}
               </span>
               {/*
@@ -1804,8 +1890,8 @@ export function BacklogTable({
       </div>
 
       {/* Barra de ações */}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-2.5">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-1.5">
+        <div className="flex flex-wrap items-center gap-2">
           <BuscaQuadro
             valor={busca}
             onChange={onBuscaChange}
@@ -1826,9 +1912,9 @@ export function BacklogTable({
             }
             disabled={!temSelecao}
             whileHover={temSelecao ? { x: [0, -1.5, 1.5, 0] } : undefined}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-rotulo font-medium text-slate-600 transition-colors enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300"
           >
-            <Trash2 className="size-3.5" />
+            <Trash2 className="size-3" />
             Excluir em Lote{temSelecao ? ` (${selecao.length})` : ''}
           </motion.button>
         </div>
@@ -1850,7 +1936,7 @@ export function BacklogTable({
             data-dica-sempre
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 disabled:cursor-not-allowed disabled:text-slate-300"
           >
-            <FileSpreadsheet className="size-3.5" />
+            <FileSpreadsheet className="size-3" />
             Exportar
           </motion.button>
 
@@ -1862,7 +1948,7 @@ export function BacklogTable({
             whileTap={{ scale: 0.97 }}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
           >
-            <CheckSquare className="size-3.5" />
+            <CheckSquare className="size-3" />
             {selecao.length === oportunidades.length && oportunidades.length > 0
               ? `Desmarcar Todas (${oportunidades.length})`
               : `Marcar Visíveis (${oportunidades.length})`}
@@ -1885,9 +1971,9 @@ export function BacklogTable({
               data-dica="Novo projeto"
               data-dica-sub="Insere uma linha no topo, com o nome pronto para digitar"
               data-dica-sempre
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-600"
+              className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-2.5 py-1 text-rotulo font-semibold text-white transition-colors hover:bg-emerald-600"
             >
-              <Plus className="size-3.5" />
+              <Plus className="size-3" />
               Novo projeto
             </motion.button>
           )}
@@ -1930,7 +2016,7 @@ export function BacklogTable({
           <colgroup>
             {congeladas.map((fixa) => <col key={fixa.key} style={{ width: fixa.largura }} />)}
             {colunasRolantes.map((coluna) => (
-              <col key={coluna.id} style={{ width: larguraDaColuna(coluna) }} />
+              <col key={coluna.id} style={{ width: largura(coluna) }} />
             ))}
           </colgroup>
 
@@ -1958,7 +2044,7 @@ export function BacklogTable({
                     fixa.ultima ? 'col-fixa-ultima' : ''
                   }`}
                 >
-                  <span className="flex w-full justify-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  <span className="flex w-full justify-center text-rotulo font-bold uppercase tracking-wide text-slate-500">
                     Ações
                   </span>
                 </th>
@@ -1973,7 +2059,7 @@ export function BacklogTable({
                   <button
                     type="button"
                     onClick={() => toggleSort('titulo')}
-                    className={`flex w-full items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${
+                    className={`flex w-full items-center justify-center gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${
                       sort?.field === 'titulo' ? 'text-slate-700' : 'text-slate-500'
                     }`}
                   >
@@ -1999,7 +2085,7 @@ export function BacklogTable({
                   <button
                     type="button"
                     onClick={() => toggleSort(fixa.coluna!.field!)}
-                    className={`flex w-full items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${
+                    className={`flex w-full items-center justify-center gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${
                       sort?.field === fixa.coluna!.field ? 'text-slate-700' : 'text-slate-500'
                     }`}
                   >
@@ -2054,7 +2140,7 @@ export function BacklogTable({
                         <button
                           type="button"
                           onClick={() => toggleSort(coluna.field!)}
-                          className={`flex w-full items-center gap-1 text-[10px] font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
+                          className={`flex w-full items-center gap-1 text-rotulo font-bold uppercase tracking-wide transition hover:text-slate-700 ${alignClass} ${
                             ativa ? 'text-slate-700' : 'text-slate-500'
                           }`}
                         >
@@ -2063,8 +2149,8 @@ export function BacklogTable({
                         </button>
                       ) : (
                         <span
-                          className={`flex w-full items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${alignClass} ${
-                            oculta(coluna.id) ? 'text-slate-300' : 'text-slate-500'
+                          className={`flex w-full items-center gap-1 text-rotulo font-bold uppercase tracking-wide ${alignClass} ${
+                            oculta(coluna.id) ? 'text-slate-500' : 'text-slate-500'
                           }`}
                         >
                           {oculta(coluna.id) && <EyeOff className="size-3 shrink-0" />}

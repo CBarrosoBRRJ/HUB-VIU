@@ -1,5 +1,6 @@
 import {
-  createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState,
+  createContext, ReactNode, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef,
+  useState,
 } from 'react';
 import {
   AcaoConcedivel, AppPage, Concessao, Convite, Equipe, PapelEquipe, PerfilSistema, SituacaoUsuario,
@@ -48,6 +49,11 @@ import {
 import { todayISO } from '../utils/dates';
 import { carregar, limparTudo, salvar } from '../utils/persistencia';
 import { proximoNumero } from '../utils/ids';
+import {
+  descreverMudanca, desfazer as desfazerNoHistorico, ehAtalhoDesfazer, ehAtalhoRefazer,
+  ehCampoDeTexto, empilhar, EntradaHistorico, Instantaneo,
+  refazer as refazerNoHistorico, semMudanca,
+} from '../utils/historico';
 
 /**
  * Fonte única de usuários e equipes.
@@ -300,6 +306,26 @@ interface DadosContextValue {
     responsavelAte?: string,
   ) => void;
   removerMembroDaEquipe: (equipeId: string, usuarioId: string) => void;
+
+  /*
+    Desfazer e refazer — o `Ctrl+Z` do dado dos quadros.
+
+    Vivem aqui porque só o provider tem as coleções inteiras: desfazer é trocar o estado por uma
+    versão anterior dele, e nenhuma tela tem essa versão em mãos. As regras (o que empilhar, o que
+    a mudança fez, quando o atalho vale) são puras, em `utils/historico.ts`.
+  */
+  desfazerAlteracao: () => void;
+  refazerAlteracao: () => void;
+  /** Há passo para trás? A tela usa para não oferecer o que não existe. */
+  podeDesfazer: boolean;
+  podeRefazer: boolean;
+  /**
+   * O que acabou de ser desfeito ou refeito — a frase do aviso na tela.
+   *
+   * O `id` acompanha o texto porque **desfazer duas vezes a mesma coisa produz a mesma frase**, e
+   * um aviso que não muda de valor não reabre: o segundo `Ctrl+Z` pareceria não ter funcionado.
+   */
+  avisoHistorico: { texto: string; id: number } | null;
 }
 
 /** Origens que entram por integração — manual não passa por aqui. */
@@ -469,6 +495,140 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     concessoes,
     visualizacao: Boolean(visualizandoComo),
   };
+
+  /* ------------------------------------------------------------------ *
+   * Histórico — o Ctrl+Z do dado dos quadros
+   * ------------------------------------------------------------------ */
+
+  const [passado, setPassado] = useState<EntradaHistorico[]>([]);
+  const [futuro, setFuturo] = useState<EntradaHistorico[]>([]);
+  const [avisoHistorico, setAvisoHistorico] = useState<{ texto: string; id: number } | null>(null);
+
+  const instantaneo = useMemo<Instantaneo>(
+    () => ({ oportunidades, contratos, talentos, marcas }),
+    [oportunidades, contratos, talentos, marcas],
+  );
+
+  /** O estado de agora, legível de dentro dos callbacks sem os recriar a cada tecla. */
+  const instantaneoRef = useRef(instantaneo);
+  instantaneoRef.current = instantaneo;
+  const passadoRef = useRef(passado);
+  passadoRef.current = passado;
+  const futuroRef = useRef(futuro);
+  futuroRef.current = futuro;
+
+  /** O último estado que o histórico já viu — o ponto de partida da próxima comparação. */
+  const vistoRef = useRef(instantaneo);
+  /**
+   * Marca a próxima mudança como **do sistema**, e não de quem está usando.
+   *
+   * Duas mudanças chegam sem ninguém as ter pedido: o encerramento automático dos 20 dias, que
+   * roda na abertura, e a própria restauração do desfazer. Empilhar a primeira daria um `Ctrl+Z`
+   * que reabre projetos que a regra arquivou; empilhar a segunda faria desfazer e refazer se
+   * perseguirem num laço, sem nunca sair do lugar.
+   */
+  const mudancaDoSistemaRef = useRef(false);
+
+  /*
+    A captura: observa o resultado, não a intenção.
+
+    Roda depois de cada commit que tocou uma das quatro coleções. Como o React agrupa as
+    atualizações de um mesmo evento, uma ação da pessoa — mesmo quando escreve em duas coleções,
+    como nomear um talento novo num contrato — produz **um** commit, e portanto um passo só de
+    desfazer. O porquê desta escolha está em `utils/historico.ts`.
+
+    ## Por que `useLayoutEffect`, e não `useEffect`
+
+    O `useEffect` é passivo: o React o agenda para depois da pintura. Entre o commit da mudança e o
+    registro do passo abria-se uma janela em que o dado já mudou e **o histórico ainda não sabe** —
+    um `Ctrl+Z` ali não teria o que desfazer. No navegador a janela é de milissegundos e nenhuma
+    mão a alcança; num teste, que dispara a tecla logo após o clique, ela é alcançada sempre.
+
+    A fragilidade era real e o teste a encontrou. Registrar no layout resolve na origem: o passo
+    passa a ser gravado **no mesmo commit** da alteração, e não existe instante em que os dois
+    discordem. O custo é comparar quatro referências antes da pintura.
+  */
+  useLayoutEffect(() => {
+    const antes = vistoRef.current;
+    if (semMudanca(antes, instantaneo)) return;
+    vistoRef.current = instantaneo;
+
+    if (mudancaDoSistemaRef.current) {
+      mudancaDoSistemaRef.current = false;
+      return;
+    }
+
+    setPassado((atual) => empilhar(atual, {
+      instantaneo: antes,
+      descricao: descreverMudanca(antes, instantaneo),
+    }));
+    // Um caminho novo apaga o futuro: refazer o que foi abandonado montaria um estado que ninguém
+    // pediu, misturando duas linhas do tempo.
+    setFuturo([]);
+  }, [instantaneo]);
+
+  const aplicarInstantaneo = useCallback((alvo: Instantaneo) => {
+    mudancaDoSistemaRef.current = true;
+    setOportunidades(alvo.oportunidades);
+    setContratos(alvo.contratos);
+    setTalentos(alvo.talentos);
+    setMarcas(alvo.marcas);
+  }, []);
+
+  const navegarNoHistorico = useCallback(
+    (sentido: 'desfazer' | 'refazer') => {
+      /*
+        Em "Ver como", nada anda — nem para trás.
+
+        A sessão simulada é leitura: se a escrita está bloqueada, desfazer também está. Sem isto,
+        o `Ctrl+Z` viraria a porta dos fundos para alterar dado no lugar de outra pessoa, e sem
+        rastro de quem realmente o fez.
+      */
+      if (sessaoRef.current.visualizacao) return;
+
+      const passo = sentido === 'desfazer' ? desfazerNoHistorico : refazerNoHistorico;
+      const resultado = passo(passadoRef.current, futuroRef.current, instantaneoRef.current);
+      if (!resultado.instantaneo) return;
+
+      aplicarInstantaneo(resultado.instantaneo);
+      setPassado(resultado.passado);
+      setFuturo(resultado.futuro);
+      setAvisoHistorico((atual) => ({
+        texto: resultado.aviso ?? '',
+        id: (atual?.id ?? 0) + 1,
+      }));
+    },
+    [aplicarInstantaneo],
+  );
+
+  const desfazerAlteracao = useCallback(() => navegarNoHistorico('desfazer'), [navegarNoHistorico]);
+  const refazerAlteracao = useCallback(() => navegarNoHistorico('refazer'), [navegarNoHistorico]);
+
+  /*
+    O atalho, escutado no documento inteiro.
+
+    Fica no provider e não numa página porque o desfazer vale onde houver dado — e porque uma
+    escuta só evita que duas telas montadas ao mesmo tempo desfaçam dois passos com um toque.
+
+    `ehCampoDeTexto` é a guarda que importa: dentro de uma célula em edição, `Ctrl+Z` continua
+    sendo o desfazer do texto, feito pelo navegador.
+  */
+  useEffect(() => {
+    function aoTeclar(evento: KeyboardEvent) {
+      if (ehCampoDeTexto(document.activeElement as HTMLElement | null)) return;
+
+      if (ehAtalhoDesfazer(evento)) {
+        evento.preventDefault();
+        desfazerAlteracao();
+      } else if (ehAtalhoRefazer(evento)) {
+        evento.preventDefault();
+        refazerAlteracao();
+      }
+    }
+
+    document.addEventListener('keydown', aoTeclar);
+    return () => document.removeEventListener('keydown', aoTeclar);
+  }, [desfazerAlteracao, refazerAlteracao]);
 
   const getUsuario = useCallback(
     (id: string) => usuarios.find((usuario) => usuario.id === id),
@@ -1360,7 +1520,11 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     const { oportunidades: proximas, encerradas } = aplicarEncerramentoAutomatico(
       oportunidadesRef.current,
     );
-    if (encerradas.length > 0) setOportunidades(proximas);
+    if (encerradas.length > 0) {
+      // Arquivamento é regra do processo, não gesto de ninguém — fica fora do desfazer.
+      mudancaDoSistemaRef.current = true;
+      setOportunidades(proximas);
+    }
     // Sem dependências: é uma varredura de abertura, não uma reação a mudança de estado.
   }, []);
 
@@ -1806,6 +1970,11 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       recomecarDoZero,
       definirMembroDaEquipe,
       removerMembroDaEquipe,
+      desfazerAlteracao,
+      refazerAlteracao,
+      podeDesfazer: passado.length > 0,
+      podeRefazer: futuro.length > 0,
+      avisoHistorico,
     }),
     [
       usuarios, equipes, solicitacoes, usuarioAtual, usuarioReal, visualizandoComo,
@@ -1831,6 +2000,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       renomearEquipe, excluirEquipe, alternarPaginaDaEquipe, definirAreaDaEquipe,
       alternarVisaoDaEquipe, alternarColunaDaEquipe, recomecarDoZero, definirMembroDaEquipe,
       removerMembroDaEquipe,
+      desfazerAlteracao, refazerAlteracao, passado, futuro, avisoHistorico,
     ],
   );
 

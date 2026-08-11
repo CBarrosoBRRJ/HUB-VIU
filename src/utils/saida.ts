@@ -42,14 +42,22 @@ export function contarRegistros(usuarioId: string, contratos: TalentContract[]):
   ).length;
 }
 
+/** A pergunta, sozinha — vira o título do diálogo. */
+export function tituloSaida(nome: string, equipeNome: string): string {
+  return `Remover ${nome} da equipe ${equipeNome}?`;
+}
+
 /**
- * Texto da confirmação de saída.
+ * O corpo da confirmação de saída, sem a pergunta.
  *
  * Diz o que **permanece** e o que **se perde**: sem isso, quem opera supõe que remover da
  * equipe apaga a pessoa dos contratos — e evita fazer a limpeza que deveria fazer.
+ *
+ * Separado do título porque o diálogo os desenha diferente — pergunta em destaque, consequências
+ * abaixo. Enquanto a confirmação era do navegador, tudo era um bloco de texto só.
  */
-export function mensagemSaida(nome: string, equipeNome: string, analise: AnaliseSaida): string {
-  const linhas = [`Remover ${nome} da equipe ${equipeNome}?`, ''];
+export function detalhesSaida(analise: AnaliseSaida): string {
+  const linhas: string[] = [];
 
   if (analise.registrosNomeados > 0) {
     const plural = analise.registrosNomeados === 1 ? 'registro' : 'registros';
@@ -71,6 +79,16 @@ export function mensagemSaida(nome: string, equipeNome: string, analise: Analise
   }
 
   return linhas.join('\n');
+}
+
+/**
+ * Título e detalhes num bloco só.
+ *
+ * Continua existindo porque é o formato que as suítes verificam há três versões — e porque um
+ * texto corrido ainda serve a qualquer canal que não seja o diálogo (um e-mail de aviso, um log).
+ */
+export function mensagemSaida(nome: string, equipeNome: string, analise: AnaliseSaida): string {
+  return [tituloSaida(nome, equipeNome), '', detalhesSaida(analise)].join('\n');
 }
 
 /** Situações de saída oferecidas quando a pessoa fica sem equipe. */
