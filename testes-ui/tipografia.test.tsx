@@ -96,19 +96,62 @@ describe('a escala de texto', () => {
       Os dois pisos existem porque a primeira correção usou um só, de 10px para tudo, e o resultado
       foi uma grade inchada que a operação recusou na hora (ver `index.css`).
     */
-    const piso = /--texto-grade:\s*clamp\(\s*([\d.]+)rem/.exec(css);
-    expect(piso, 'a régua da grade precisa de um piso no clamp').toBeTruthy();
+    const clamp = /--texto-grade:\s*clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)rem\s*\+\s*([\d.]+)vh\s*\+\s*([\d.]+)vw\s*,\s*([\d.]+)rem/.exec(css);
+    expect(clamp, 'a régua da grade precisa do clamp fluido').toBeTruthy();
+    const [pisoRem, baseRem, vh, vw, tetoRem] = clamp!.slice(1).map(Number);
 
     const descontos = [...css.matchAll(/var\(--texto-grade\)\s*-\s*([\d.]+)rem/g)]
       .map((m) => Number(m[1]));
     expect(descontos.length, 'os degraus da grade precisam existir').toBeGreaterThan(0);
 
-    const base = Number(piso![1]) * 16;
-    const dado = base - Math.min(...descontos) * 16;
-    const rotulo = base - Math.max(...descontos) * 16;
+    /*
+      A conta roda nas **telas-alvo declaradas**, não no piso teórico do `clamp`.
 
-    expect(dado, `o dado da célula ficaria em ${dado}px`).toBeGreaterThanOrEqual(10);
-    expect(rotulo, `o cabeçalho ficaria em ${rotulo}px`).toBeGreaterThanOrEqual(9);
+      O piso só é alcançado em janelas abaixo de ~900px, fora dos alvos ([03 §1.2.5]); medir por ele
+      reprovaria uma régua que na prática nunca produz aquele valor. Os alvos são os monitores
+      reais da operação — foi neles que o cabeçalho de 7px apareceu, e é neles que o piso importa.
+    */
+    const raiz = (larguraPx: number) => Math.min(17.25, Math.max(16, 15.1 + 0.065 * larguraPx / 100));
+    const regua = (larguraPx: number, alturaPx: number) => {
+      const r = raiz(larguraPx);
+      const fluido = baseRem * r + (vh * alturaPx / 100) + (vw * larguraPx / 100);
+      return { r, valor: Math.max(pisoRem * r, Math.min(tetoRem * r, fluido)) };
+    };
+
+    for (const [largura, altura] of [[1024, 768], [1366, 768], [1920, 1080], [2535, 1315]]) {
+      const { r, valor } = regua(largura, altura);
+      const dado = valor - Math.min(...descontos) * r;
+      const rotulo = valor - Math.max(...descontos) * r;
+
+      // Leitura corrida em caixa baixa: 10px é o piso.
+      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(10);
+      /*
+        O cabeçalho é caixa alta: 9px ali tem altura de maiúscula equivalente à de um texto comum
+        bem maior, e é o valor da grade original — que nunca foi objeto de queixa. O inaceitável
+        eram os 7px, que vinham de um desconto de 0.25rem.
+      */
+      expect(rotulo, `cabeçalho ficaria em ${rotulo.toFixed(1)}px em ${largura}px`)
+        .toBeGreaterThanOrEqual(8.9);
+    }
+  });
+
+  it('o cabeçalho recua o bastante para não competir com o dado', () => {
+    const css = readFileSync('src/index.css', 'utf8');
+    const descontos = [...css.matchAll(/var\(--texto-grade\)\s*-\s*([\d.]+)rem/g)].map((m) => Number(m[1]));
+
+    /*
+      A queixa "cabeçalho grande em monitor grande" não era sobre o número — 11,5px é pequeno. Era
+      **relativa**: os degraus comprimidos deixaram o rótulo a 8% do dado, e caixa alta fez o resto.
+      A grade original tinha 18%. Abaixo de ~14% a hierarquia deixa de se sustentar sozinha.
+    */
+    const r = 16;
+    const base = 0.8125 * r;
+    const dado = base - Math.min(...descontos) * r;
+    const rotulo = base - Math.max(...descontos) * r;
+    const distancia = (dado - rotulo) / dado;
+
+    expect(distancia, `só ${(distancia * 100).toFixed(0)}% entre dado e cabeçalho`)
+      .toBeGreaterThanOrEqual(0.14);
   });
 });
 

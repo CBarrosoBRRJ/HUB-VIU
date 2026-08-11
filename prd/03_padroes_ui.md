@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.1 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 3.2 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -105,12 +105,24 @@ maior desconto, chegava a **7px numa tela de notebook**.
 
 A correção foi **só nos degraus**; a régua ficou onde estava:
 
-| | Original | **Agora** |
-|---|------:|------:|
-| Régua (`--texto-grade`) | 11–13px | **11–13px** |
-| Nome do projeto | 11–13px | **11–13px** |
-| Dado da célula | 9–11px | **10–12px** |
-| Cabeçalho e selos | **7–9px** | **9–11px** |
+| | Original | Comprimido demais | **Agora** |
+|---|------:|------:|------:|
+| Régua (`--texto-grade`) | 11–13px | 11–13px | **11–13px** |
+| Nome do projeto | 11–13px | 11–13px | **11–13px** |
+| Dado da célula | 9–11px | 11–13px | **11–12,6px** |
+| Cabeçalho | **7–9px** | 10,8–11,5px | **9–10,5px** |
+| **Distância dado → cabeçalho** | 18% | **8%** | **17%** |
+
+> #### A hierarquia é relativa — e foi ela que a operação leu como "grande"
+>
+> A compressão que resolveu os 7px encostou o cabeçalho no dado: 8% de diferença. A operação
+> apontou "headers grandes em monitores grandes" e o número parecia desmentir (11,5px é pequeno).
+> **As duas leituras estavam certas**: o problema não era o tamanho absoluto, era a distância —
+> com 8% e caixa alta, o rótulo competia com o dado que ele nomeia.
+>
+> O desconto voltou para −0,1875rem, devolvendo os ~17% da grade original. `tipografia.test.tsx`
+> passou a travar **os dois eixos**: o piso absoluto nas quatro telas-alvo (9px no menor, 1024px) e
+> a distância mínima de 14% entre as camadas.
 
 A hierarquia entre nome, dado e rótulo **não precisa de quatro pixels** — ela já vem do peso, da
 caixa alta e do espaçamento. Os quatro pixels só empurravam o último degrau para fora do legível.
