@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.3 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 3.4 | **Status:** Vigente | **Data:** 11/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -144,10 +144,35 @@ batia.
 > acerto para tentar outro — a regra que fica é **ajustar a camada que está errada, não a que está
 > ao lado dela**.
 
-**O custo, registrado sem meio-termo:** o dado passa a ser o menor texto de leitura da grade, e em
-janela estreita chega a ~8,5px. Não há como pô-lo abaixo do cabeçalho sem que desça. Se a queixa
-um dia for "o dado está pequeno", a saída **não** é mexer no degrau — isso desfaz a inversão em
-silêncio: é subir a régua inteira, que move as duas camadas juntas.
+**O custo apareceu na hora, e tinha outra causa.** Com a inversão, o dado chegou a 8,5px em
+1024px — "nas telas pequenas ficou bem pequeno e não dá para ver". A investigação encontrou algo
+que não era da inversão: **duas camadas de fluidez empilhadas.**
+
+#### Uma camada de fluidez, não duas
+
+A régua da grade era `clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem)` — ela mesma media a
+janela. Fazia sentido quando foi escrita, porque era a única coisa que respondia ao tamanho da
+tela. Quando a raiz fluida (§1.2.5) assumiu esse papel para o produto inteiro, **ninguém removeu a
+camada antiga**, e elas passaram a se somar: em 1024px a raiz já estava no piso e a régua encolhia
+de novo por conta própria.
+
+| | Duas camadas | **Uma camada** |
+|---|---:|---:|
+| 1024px — cabeçalho / dado | 9,0 / 8,5px | **10,0 / 9,5px** |
+| 1366px — cabeçalho / dado | 9,8 / 9,3px | **10,0 / 9,5px** |
+| 2535px — cabeçalho / dado | 10,5 / 10,0px | **10,5 / 10,0px** *(intacto)* |
+
+A régua virou **constante** (`--texto-grade: 0.8125rem`). Toda a variação por tela vem da raiz —
+calibrada com a operação, com piso, teto e a régua pessoal por cima. O monitor grande, que estava
+aprovado, não muda um pixel.
+
+> **A lição:** quando uma camada nova assume o trabalho de uma antiga, a antiga precisa **sair**.
+> Deixá-la ligada não é conservadorismo — é criar um efeito composto que ninguém calcula e que só
+> aparece nos extremos. Foi o mesmo tipo de erro do degrau inflado (§1.2.1) e da compressão que
+> achatou a hierarquia: **duas coisas fazendo o mesmo trabalho, em desacordo**.
+
+Custo aceito: a linha fica ~1px mais alta em 1024–1366px. O quadro tem o fluxo recolhível (216px)
+para quem precisa de densidade.
 
 Os degraus agora são **variáveis nomeadas** (`--degrau-cabecalho`, `--degrau-dado`, `--degrau-selo`)
 justamente para que a próxima divergência entre o que se documenta e o que se entrega apareça na

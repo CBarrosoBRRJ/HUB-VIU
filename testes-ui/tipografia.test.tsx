@@ -96,9 +96,17 @@ describe('a escala de texto', () => {
       Os dois pisos existem porque a primeira correção usou um só, de 10px para tudo, e o resultado
       foi uma grade inchada que a operação recusou na hora (ver `index.css`).
     */
-    const clamp = /--texto-grade:\s*clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)rem\s*\+\s*([\d.]+)vh\s*\+\s*([\d.]+)vw\s*,\s*([\d.]+)rem/.exec(css);
-    expect(clamp, 'a régua da grade precisa do clamp fluido').toBeTruthy();
-    const [pisoRem, baseRem, vh, vw, tetoRem] = clamp!.slice(1).map(Number);
+    /*
+      A régua é **constante** desde 11/08/2026, e o teste garante que ela continue assim.
+
+      Ela era um `clamp` com `vh + vw` — media a janela por conta própria. Quando a raiz fluida
+      assumiu a escala do produto inteiro, as duas camadas passaram a se somar: em 1024px a raiz já
+      estava no piso e a régua encolhia de novo, jogando o dado para 8,5px. Uma camada de fluidez,
+      não duas; toda variação por tela vem da raiz.
+    */
+    const reguaFixa = /--texto-grade:\s*([\d.]+)rem\s*;/.exec(css);
+    expect(reguaFixa, 'a régua da grade precisa ser constante — a fluidez é da raiz').toBeTruthy();
+    const reguaRem = Number(reguaFixa![1]);
 
     // Os degraus são lidos **pelo nome**: é o que permite ao teste falar da hierarquia, e não de
     // um `Math.max` sobre números anônimos que não diz qual camada é qual.
@@ -116,28 +124,22 @@ describe('a escala de texto', () => {
       reais da operação — foi neles que o cabeçalho de 7px apareceu, e é neles que o piso importa.
     */
     const raiz = (larguraPx: number) => Math.min(17.25, Math.max(16, 15.1 + 0.065 * larguraPx / 100));
-    const regua = (larguraPx: number, alturaPx: number) => {
-      const r = raiz(larguraPx);
-      const fluido = baseRem * r + (vh * alturaPx / 100) + (vw * larguraPx / 100);
-      return { r, valor: Math.max(pisoRem * r, Math.min(tetoRem * r, fluido)) };
-    };
 
-    for (const [largura, altura] of [[1024, 768], [1366, 768], [1920, 1080], [2535, 1315]]) {
-      const { r, valor } = regua(largura, altura);
+    for (const largura of [1024, 1366, 1920, 2535]) {
+      const r = raiz(largura);
+      const valor = reguaRem * r;
       const [degrauCabecalho, degrauDado] = descontos;
       const rotulo = valor - degrauCabecalho * r;
       const dado = valor - degrauDado * r;
 
       /*
-        O piso do dado caiu de 10px para 8,4px com a inversão de 11/08/2026 — e isso é
-        consequência aceita, não descuido: o produto decidiu que o dado fica **abaixo** do
-        cabeçalho, e o cabeçalho estava calibrado em 9px no menor alvo. Não há como pôr o dado
-        sob ele sem que desça junto.
+        O piso do dado voltou a 9,4px depois que a dupla fluidez saiu.
 
-        Se um dia o dado ficar pequeno demais na prática, a saída **não** é mexer neste degrau
-        (isso desfaz a inversão em silêncio): é subir a régua inteira, que move as duas camadas.
+        Com a régua constante, a menor tela-alvo produz dado de 9,5px — antes eram 8,5px, porque a
+        régua encolhia junto com a raiz. **Este é o número que a queixa "nas telas pequenas não dá
+        para ver" derrubou**, e o piso existe para ele não voltar por descuido.
       */
-      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(8.4);
+      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(9.4);
       /*
         O cabeçalho é caixa alta: 9px ali tem altura de maiúscula equivalente à de um texto comum
         bem maior, e é o valor da grade original — que nunca foi objeto de queixa. O inaceitável
@@ -183,7 +185,7 @@ describe('a escala de texto', () => {
       em caixa alta domina a grade; abaixo, a inversão não se percebe e o custo de encolher o dado
       não compra nada.
     */
-    const base = 0.8125 * 16;
+    const base = Number(/--texto-grade:\s*([\d.]+)rem/.exec(css)![1]) * 16;
     const cabecalho = base - degrau('cabecalho') * 16;
     const dado = base - degrau('dado') * 16;
     const distancia = (cabecalho - dado) / cabecalho;

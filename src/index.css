@@ -169,15 +169,15 @@
 }
 
 /*
-  A escala responde aos **dois eixos** da janela.
+  A régua da grade — hoje **constante**, e a história de por que já não é fluida.
 
-  Começou medindo só a altura (`vh`): o que faltava era linha visível, e uma janela estreita e alta
-  não ganha nada com letra menor. A grade contínua mudou isso — ela rola na horizontal, e num
-  monitor largo cabem mais colunas por vez, o que pede um corpo de texto um grau maior para a
-  leitura não ficar apertada.
+  Ela nasceu medindo a altura da janela (`vh`): o que faltava era linha visível, e uma janela
+  estreita e alta não ganha nada com letra menor. Depois ganhou `vw`, porque a grade contínua rola
+  na horizontal e um monitor largo mostra mais colunas por vez.
 
-  `0.3vh + 0.22vw` dá peso maior à altura, que continua sendo o recurso escasso, sem ignorar a
-  largura.
+  **Os dois eixos saíram em 11/08/2026**, quando a raiz fluida passou a escalar o produto inteiro:
+  duas camadas medindo a mesma janela se somavam, e o efeito composto encolhia a grade nas telas
+  pequenas até o dado sumir (8,5px em 1024px). O detalhe está no bloco de `--texto-grade`, abaixo.
 
   ================================================================================================
   ## O ajuste de 11/08/2026 — e a correção do próprio ajuste, no mesmo dia
@@ -220,7 +220,38 @@
   localizar, não em leitura corrida.
 */
 .grade-fluida {
-  --texto-grade: clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem);
+  /*
+    ============================================================================================
+    ## Uma camada de fluidez, não duas — 11/08/2026
+    ============================================================================================
+
+    Esta régua era `clamp(0.6875rem, 0.42rem + 0.35vh + 0.25vw, 0.8125rem)`: ela mesma media a
+    janela e encolhia em telas pequenas. Fazia sentido **quando foi escrita**, porque era a única
+    coisa que respondia ao tamanho da tela.
+
+    A raiz fluida (§ acima) assumiu esse papel para o produto inteiro, e ninguém removeu a camada
+    antiga. Elas passaram a **se somar**: numa tela de 1024px a raiz já estava no piso (16px) e a
+    régua encolhia de novo por conta própria, jogando o dado para 8,5px. O monitor grande não
+    sentia — lá a régua batia no teto e a raiz compensava.
+
+    | | Duas camadas | **Uma camada** |
+    |---|---:|---:|
+    | 1024px — cabeçalho / dado | 9,0 / 8,5px | **10,0 / 9,5px** |
+    | 1366px — cabeçalho / dado | 9,8 / 9,3px | **10,0 / 9,5px** |
+    | 2535px — cabeçalho / dado | 10,5 / 10,0px | **10,5 / 10,0px** *(intacto)* |
+
+    A régua agora é **constante em `rem`**. Toda a variação por tela vem da raiz — que foi
+    calibrada com a operação, tem piso, teto e a régua pessoal de Meu Perfil por cima. O monitor
+    grande, que estava aprovado, não muda um pixel; as telas menores sobem ~1px e param de sumir.
+
+    > **A lição, que já apareceu de outra forma hoje:** quando uma camada nova assume o trabalho de
+    > uma antiga, a antiga precisa **sair**. Deixá-la ligada não é conservadorismo — é criar um
+    > efeito composto que ninguém calcula, e que só aparece nos extremos.
+
+    O custo é densidade em tela pequena: a linha fica ~1px mais alta em 1024–1366px. Aceito
+    conscientemente — o quadro tem o fluxo recolhível (216px) para quem precisa de linhas.
+  */
+  --texto-grade: 0.8125rem;
 
   /*
     ============================================================================================
