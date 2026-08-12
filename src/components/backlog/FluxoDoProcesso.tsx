@@ -103,8 +103,15 @@ export function FluxoDoProcesso({
 
   return (
     <div className="mb-4 grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-      {/* Fluxo */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      {/*
+        Fluxo — `flex-col` para o miolo poder se centrar no que sobra.
+
+        As duas seções são irmãs num grid, e o grid as estica à mesma altura: a de Finalização tem
+        quatro cards em duas linhas, a do Fluxo tem uma fileira só. A diferença virava um vazio de
+        ~60px no pé do Fluxo, com tudo empurrado para cima — a assimetria que a operação apontou
+        em 12/08/2026.
+      */}
+      <section className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 text-rotulo font-bold uppercase tracking-wider text-slate-500">
             <Zap className="size-3 text-indigo-500" />
@@ -139,7 +146,32 @@ export function FluxoDoProcesso({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-stretch gap-2">
+        {/*
+          O miolo — etapas e legenda — **centrado no espaço que sobra**.
+
+          `flex-1` toma a folga deixada pelo cabeçalho; `justify-center` a divide igualmente acima
+          e abaixo. Sem isso o conteúdo ficava colado no topo e o vazio todo no pé, que é a leitura
+          de "bloco inacabado" e não de "bloco com folga".
+        */}
+        <div className="flex flex-1 flex-col justify-center">
+        {/*
+          Etapas em **colunas de largura igual** — grid, não flex.
+
+          Com `flex-1` + `min-w-fit` cada cartão media o próprio rótulo e crescia a partir dele:
+          "Entrada" saía estreito e "Aguardando Feedback" largo, cinco larguras diferentes numa
+          fileira que representa **um processo sequencial** — e a desigualdade sugeria peso onde só
+          há ordem.
+
+          `minmax(min-content, 1fr)` dá o melhor dos dois: as colunas se dividem por igual enquanto
+          couberem, e nenhuma encolhe abaixo do próprio rótulo — a garantia que o `min-w-fit`
+          existia para dar, depois do "Aguardando F…" cortado (11/08/2026).
+
+          O número de colunas sai do catálogo: uma etapa nova entra na conta sozinha.
+        */}
+        <div
+          className="grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${ETAPAS_FLUXO.length}, minmax(min-content, 1fr))` }}
+        >
           {ETAPAS_FLUXO.map((etapa) => {
             const status = getStatus(etapa.status);
             const resumo = resumirPorStatus(oportunidades, etapa.status);
@@ -155,15 +187,14 @@ export function FluxoDoProcesso({
                 transition={{ duration: 0.14 }}
                 title={`${resumo.quantidade} em ${status.label}`}
                 /*
-                  `min-w-fit`: o cartão nunca fica menor que o próprio rótulo.
+                  A largura vem da **coluna do grid**, não do cartão.
 
-                  Antes o mínimo era um número (7.5rem) e o rótulo era cortado por reticências —
-                  "Aguardando F…" na tela da operação (11/08/2026). Etiqueta de navegação não se
-                  corta: ela é o nome do destino, e um nome pela metade obriga a decorar o mapa.
-                  Com o mínimo vindo do conteúdo, o `flex-wrap` do contêiner resolve o resto:
-                  em janela estreita os cartões quebram de linha inteiros, legíveis.
+                  O `min-w-fit` que morava aqui garantia que o rótulo nunca fosse cortado
+                  ("Aguardando F…", 11/08/2026) — a mesma garantia agora está no
+                  `minmax(min-content, 1fr)` do contêiner, e de lá ela vale para todos ao mesmo
+                  tempo, o que é justamente o que produz colunas iguais.
                 */
-                className={`min-w-fit flex-1 rounded-xl border px-3 py-2.5 text-left transition ${
+                className={`rounded-xl border px-3 py-2.5 text-left transition ${
                   ativa
                     ? 'border-indigo-300 bg-indigo-50'
                     : etapa.loop
@@ -216,6 +247,7 @@ export function FluxoDoProcesso({
             Ajustes é um retorno entre Revisão e Feedback
           </span>
         </p>
+        </div>
       </section>
 
       {/* Finalização */}
@@ -233,7 +265,15 @@ export function FluxoDoProcesso({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        {/*
+          `auto-rows-fr`: as duas linhas ficam com a **mesma altura**.
+
+          O card de Declinado carrega os motivos (`Internamente 1 · Talento 2`) e ficava mais alto
+          que o Encerrado ao lado — duas linhas de alturas diferentes num bloco de resumo, que é
+          onde o olho compara. Com as linhas em fração, a maior define as demais e os quatro cards
+          viram um retângulo só.
+        */}
+        <div className="grid auto-rows-fr grid-cols-2 gap-2">
           {DESFECHOS.map((desfecho) => {
             const status = getStatus(desfecho);
             const resumo = resumirPorStatus(oportunidades, desfecho);

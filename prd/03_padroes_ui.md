@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.5 | **Status:** Vigente · **tipografia congelada** | **Data:** 11/08/2026
+**Versão:** 3.6 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -375,6 +375,28 @@ fundo branco, e **seis lado a lado** na aba Demanda.
 
 `py-1.5` → `py-1` nas 11 células de seleção do Backlog (`OpcaoSelect`, `EtiquetaSelect`,
 `StatusOportunidadeSelect` e as células da grade): ~4px por célula, sem tirar um pixel de letra.
+
+### 1.2.8. Simetria em bloco de resumo — 12/08/2026
+
+Pedido da operação: *"eu corto assimetria"*. Duas no cabeçalho do Backlog, com a mesma origem —
+cada elemento media a si mesmo em vez de dividir o espaço disponível.
+
+| Onde | O que acontecia | Correção |
+|------|-----------------|----------|
+| As 5 etapas do fluxo | `flex-1` + `min-w-fit` fazia cada cartão medir o próprio rótulo: "Entrada" estreita, "Aguardando Feedback" larga | `grid` com `repeat(N, minmax(min-content, 1fr))` |
+| Os 4 cards de Finalização | Declinado carrega os motivos e ficava mais alto que o Encerrado ao lado | `auto-rows-fr` — a linha mais alta define as duas |
+| A seção do Fluxo | Uma fileira só contra as duas linhas da vizinha: ~60px de vazio no pé | `flex-col` + miolo com `flex-1 justify-center` |
+
+**Larguras diferentes numa fileira sugerem peso onde só há ordem.** O fluxo representa um processo
+sequencial — as cinco etapas valem o mesmo, e o tamanho não deveria dizer o contrário.
+
+> **`minmax(min-content, 1fr)` é o par exato para este caso.** As colunas se dividem por igual
+> enquanto couberem, e nenhuma encolhe abaixo do próprio rótulo — que era a garantia do `min-w-fit`
+> depois do "Aguardando F…" cortado (§1.2.7). A regra antiga dava a garantia **por cartão**; esta
+> dá para todos ao mesmo tempo, e é dessa diferença que sai a simetria.
+>
+> O número de colunas vem do catálogo (`ETAPAS_FLUXO.length`), então uma etapa nova entra na conta
+> sozinha.
 
 ### 1.2.4. Densidade do topo do quadro — 11/08/2026
 

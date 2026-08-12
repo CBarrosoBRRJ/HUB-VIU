@@ -1548,6 +1548,39 @@ describe('correções da rodada de 11/08/2026', () => {
     }
   });
 
+  it('o bloco do cabeçalho é simétrico: colunas iguais e linhas iguais', () => {
+    /*
+      Duas assimetrias que a operação apontou de uma vez ("eu corto assimetria, e tal"):
+
+      1. as cinco etapas do fluxo mediam o próprio rótulo — "Entrada" estreita, "Aguardando
+         Feedback" larga —, e larguras diferentes sugerem peso onde só há **ordem**;
+      2. o card de Declinado carrega os motivos e ficava mais alto que o Encerrado ao lado.
+
+      O teste olha a **estrutura** que garante as duas: colunas em fração no fluxo, e `auto-rows-fr`
+      na Finalização. Medir pixel em jsdom não vale — ele não faz layout.
+    */
+    montar();
+
+    /*
+      Os cartões são localizados pelo `title` ("0 em Entrada"), e não pelo rótulo: "Entrada" também
+      é nome de coluna e de etiqueta de status, e o texto solto casaria com os três.
+    */
+    const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
+
+    const etapas = cartaoDaEtapa('Entrada').parentElement!;
+    expect(etapas.style.gridTemplateColumns, 'as etapas dividem a largura por igual')
+      .toMatch(/repeat\(5,\s*minmax\(min-content,\s*1fr\)\)/);
+
+    const desfechos = screen.getByText('Declinado').closest('button')!.parentElement!;
+    expect(desfechos.className, 'as linhas dos desfechos têm a mesma altura')
+      .toContain('auto-rows-fr');
+
+    // E nenhum cartão de etapa volta a medir a si mesmo.
+    for (const rotulo of ['Entrada', 'Em Elaboração', 'Aguardando Feedback']) {
+      expect(cartaoDaEtapa(rotulo).className).not.toContain('min-w-fit');
+    }
+  });
+
   it('desmarcar um tique com valor preenchido funciona — e pergunta antes', async () => {
     /*
       O defeito mais sério dos três, e o mais silencioso: `LISTAS` era declarada **depois** do

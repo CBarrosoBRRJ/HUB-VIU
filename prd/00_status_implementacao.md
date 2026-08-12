@@ -572,13 +572,20 @@ respondem.
 Agora há **uma célula e um caminho** — e `testeColunas` trava a ausência da exceção em vez da
 exceção. Saiu também a ação `alternarResponsavelDaOportunidade`, órfã no mesmo gesto.
 
+### A simetria do cabeçalho
+
+Na mesma leitura: *"eu corto assimetria"*. As cinco etapas do fluxo mediam o próprio rótulo
+(larguras diferentes numa fileira que representa **ordem**, não peso), o card de Declinado ficava
+mais alto que o Encerrado, e a seção do Fluxo tinha ~60px de vazio no pé contra a vizinha. Resolvido
+com colunas em fração, `auto-rows-fr` e o miolo centrado — [03 §1.2.8](03_padroes_ui.md).
+
 ### Os números
 
 | Medida | Antes | Depois |
 |--------|------:|-------:|
 | Caminhos para nomear pessoas numa área | 2 | **1** |
 | Colunas de pessoas sem papéis | 9 | **0** |
-| Testes de UI | 131 | **135** |
+| Testes de UI | 131 | **136** |
 
 ---
 
