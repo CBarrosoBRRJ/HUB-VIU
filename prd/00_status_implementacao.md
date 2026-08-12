@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 24.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 24.1 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 34 suítes · 1.503 verificações · **0 falhas** + 116 testes de UI com cliques reais (ver §5) |
+| Testes | ✅ 36 suítes · 1.544 verificações · **0 falhas** + 140 testes de UI com cliques reais (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/backlog.test.tsx` | 78 testes de UI com cliques reais | §5 |
+| `testes-ui/` | 140 testes de UI com cliques reais, em quatro arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -263,7 +263,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 
 ## 5. Testes
 
-34 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
+36 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
 `src/utils/` e `src/data/` para JS e rodando no Node, via `rodar.sh`:
 
 | Suíte | Cobre |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.414 verificações em 31 suítes de regra, mais 88 testes de UI. 0 falhas.**
+**Estado atual: 1.544 verificações em 36 suítes de regra, mais 140 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,9 +332,15 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**116 testes** com **cliques reais** sobre a aplicação montada: `DadosProvider` verdadeiro,
-`BacklogTable` verdadeiro, nenhum mock. Vitest + jsdom + Testing Library. Em dois arquivos —
-`backlog.test.tsx` (97) e `confirmacao-e-desfazer.test.tsx` (19, desde 11/08).
+**140 testes** com **cliques reais** sobre a aplicação montada: `DadosProvider` verdadeiro,
+`BacklogTable` verdadeiro, nenhum mock. Vitest + jsdom + Testing Library. Em quatro arquivos:
+
+| Arquivo | Testes | O que cobre |
+|---|---:|---|
+| `backlog.test.tsx` | 107 | a grade, o fluxo, as etiquetas, as colunas de pessoas |
+| `confirmacao-e-desfazer.test.tsx` | 19 | o diálogo do sistema e o Ctrl+Z (desde 11/08) |
+| `tipografia.test.tsx` | 9 | a escala, a raiz fluida e a régua da grade — **lê o código-fonte**, não a tela |
+| `aparencia.test.tsx` | 5 | a régua pessoal de Meu Perfil |
 
 **Por que existem, se há 1.503 verificações de regra.** As suítes puras provam que a regra está
 certa; não provam que ela chegou à tela. Os defeitos que estes testes acharam são todos disso:
@@ -1690,7 +1696,7 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Projeto não versionado em Git** | Sem histórico, sem revisão, sem volta — e sem CI para as 31 suítes | — |
+| 4 | **Sem CI** | As 36 suítes e os 140 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
@@ -1708,7 +1714,8 @@ Ordenado por impacto real, não por facilidade.
 
 | Débito | Como foi fechado |
 |--------|------------------|
-| ~~Testes fora do repositório~~ | As 31 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou parte do item 4 |
+| ~~Testes fora do repositório~~ | As 36 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
+| ~~Projeto não versionado em Git~~ | Resolvido em 12/08/2026: repositório publicado, histórico com mensagem por decisão. O que restou do débito — **nenhum gatilho automático** — é o item 4 |
 | ~~`strict` do TypeScript desligado~~ | Medido: 3 erros no projeto inteiro. Corrigidos, e `strict` + `noUnusedLocals` + `noUnusedParameters` entraram (§5.6) |
 
 ### Fechados em 11/08/2026
@@ -1837,7 +1844,7 @@ esquema. O dia 1 é `prisma migrate dev`.
 
 ### Fase 3 — Engenharia
 
-11. **Versionar em Git** e pôr as 31 suítes em CI — elas já estão no repositório, falta o gatilho
+11. **Pôr as 36 suítes em CI** — o Git saiu do débito em 12/08/2026; as suítes já estão no repositório, falta o gatilho
 12. ~~Avaliar `strict: true`~~ — **feito em 03/08** (§5.6)
 13. Paginação/virtualização e debounce nas listas grandes
 14. UUID do banco no lugar dos contadores de sessão ([09 §5](09_fundacoes_tecnicas.md)) — o schema
@@ -1923,8 +1930,8 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 78 testes de UI com cliques reais
-cd testes-regras && bash rodar.sh   # 31 suítes de regra — espere "TOTAL DE FALHAS: 0"
+npm run test:ui                # 140 testes de UI com cliques reais
+cd testes-regras && bash rodar.sh   # 36 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
 

@@ -17,7 +17,8 @@
 |-------|-------|-----|
 | Fundo da área de dados | `#f4f6fa` | Todo `<main>` de página |
 | Superfície | `bg-white` | Cards, tabelas, barras |
-| Faixa institucional | `#111a3a` | Faixa de abas do quadro, gradientes de cabeçalho |
+| Plano do aplicativo | `--color-plano` | Fundo escuro do shell, sidebar e **faixas de abas** dos quadros (§1.0.0) |
+| Navy institucional | `#111a3a` | **Só** os gradientes decorativos de cabeçalho — perfil, convites, cartão de usuário |
 | **Ação primária** | `indigo-600` · `indigo-50` | **Todo botão de ação**: criar, convidar, navegar, chips ligados |
 | Criação | `emerald-500` | **Só** o botão "Novo…" de cada quadro (§7.8) |
 | Destruição | `rose-500` · `rose-50` | Excluir e remover |
@@ -702,9 +703,10 @@ aprovado, não muda um pixel.
 Custo aceito: a linha fica ~1px mais alta em 1024–1366px. O quadro tem o fluxo recolhível (216px)
 para quem precisa de densidade.
 
-Os degraus agora são **variáveis nomeadas** (`--degrau-cabecalho`, `--degrau-dado`, `--degrau-selo`)
+As camadas agora são **frações nomeadas** (`--fator-cabecalho`, `--fator-dado`, `--fator-selo`)
 justamente para que a próxima divergência entre o que se documenta e o que se entrega apareça na
-declaração, e não só no monitor de quem usa.
+declaração, e não só no monitor de quem usa. Elas nasceram subtrativas e viraram proporção em
+12/08/2026, quando a régua subiu e a hierarquia se diluiu sozinha — §1.2.6.
 
 A hierarquia entre nome, dado e rótulo **não precisa de quatro pixels** — ela já vem do peso, da
 caixa alta e do espaçamento. Os quatro pixels só empurravam o último degrau para fora do legível.
@@ -922,7 +924,7 @@ escolhida foi a que **agrega informação**, não acabamento. Levou duas rodadas
 
 > #### O tom pastel, e a regra que o produto já tinha escrito
 >
-> A primeira versão usou `status.solid` — o tom **500**, o mesmo da etiqueta cheia. Numa etiqueta
+> A primeira versão usou o mesmo tom cheio da etiqueta de status. Numa etiqueta
 > por linha ele está certo; em **nove barras ao mesmo tempo** virou, nas palavras da operação,
 > *"muito carnaval"*.
 >
@@ -1025,7 +1027,7 @@ plataforma). Item ativo em `bg-indigo-50` com barra indigo à esquerda que desli
 
 O quadro é um card `rounded-2xl border border-slate-200 bg-white shadow-sm` com esta ordem interna:
 
-1. **Faixa navy** (`#111a3a`) — abas de filtro; a ativa fica em `indigo-600`. Em Contratos cada aba leva bolinha de cor, rótulo e contador; no Backlog e em Talentos, ícone (lucide) e rótulo — e no Backlog o fundo ativo **desliza** entre as abas (`layoutId`, §3.5)
+1. **Faixa no tom do plano** (`bg-plano`, §1.0.1) — abas de filtro; a ativa fica em `indigo-600`. Em Contratos cada aba leva bolinha de cor, rótulo e contador; no Backlog e em Talentos, ícone (lucide) e rótulo — e no Backlog o fundo ativo **desliza** entre as abas (`layoutId`, §3.5)
 2. **Barra de ações** — contagem à esquerda, ferramentas à direita, separada por `border-b`
 3. **Cabeçalho de colunas** — `bg-slate-50` **sólido** (translúcido deixaria as linhas vazarem sob o `sticky`, §7.4), rótulos em caixa alta
 4. **Linhas de dados** — `border-b border-slate-100`; hover `bg-slate-50/70` em Contratos e Talentos — no Backlog os fundos são os hexes da grade contínua (§3.5)

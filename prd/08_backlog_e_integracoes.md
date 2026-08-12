@@ -541,7 +541,7 @@ há a mesma tabela um scroll adiante, e o valor que casou está lá. O contrato 
 
 ## 6. As oito seções da grade contínua
 
-Faixa `#111a3a`, no padrão dos demais quadros. Desde a grade contínua ([03 §3.5](03_padroes_ui.md))
+Faixa `bg-plano`, no padrão dos demais quadros — o mesmo tom da sidebar desde 12/08/2026 ([03 §1.0.1](03_padroes_ui.md)). Desde a grade contínua ([03 §3.5](03_padroes_ui.md))
 as abas são **seções de uma tabela só**: as âncoras — seleção · Ações · Status · **Projeto** ·
 Entrada · Talento — congelam à esquerda e aparecem **uma vez**; clicar na aba rola até a seção, e
 rolar marca a aba. As colunas de cada seção são **a lista definitiva da operação** (imagem de

@@ -88,7 +88,7 @@ conjunto de linhas — é o mesmo quadro visto por outro ângulo.
 Header (padrão do produto)
 └── main #f4f6fa
     └── TalentosTable
-        ├── faixa #111a3a  → 6 abas (só as que a sessão enxerga)
+        ├── faixa bg-plano → 6 abas (só as que a sessão enxerga)
         ├── barra de ações → busca · contagem · excluir em lote · marcar visíveis
         └── tabela         → checkbox + Talento (fixa) + colunas da aba + Ações
 ```
@@ -101,7 +101,7 @@ Header (padrão do produto)
 
 ### 2.2. As seis abas
 
-Faixa `#111a3a`, aba ativa em `indigo-600`, exatamente como o farol dos Contratos. Abas restritas
+Faixa `bg-plano` — o mesmo tom da sidebar desde 12/08/2026 ([03 §1.0.1](03_padroes_ui.md)) —, aba ativa em `indigo-600`, exatamente como o farol dos Contratos. Abas restritas
 levam um cadeado.
 
 | Aba | Restrita | Colunas | Largura mín. |
@@ -468,7 +468,7 @@ sensível; ou **uma linha só** com todas as abas menos duas colunas.
 | Financeiro em texto livre | Campos tipados com máscara | Moeda, periodicidade e conta variam; máscara rígida produziria dado torto |
 | `table-fixed` + `<colgroup>` | Larguras no `className` do `<th>` | Sem isto o cabeçalho sai do lugar ao trocar de aba |
 | Tabela com abas de colunas | Grade de cards (v1.0) | O produto tem um padrão: quadro é tabela |
-| Abas na faixa `#111a3a` | Abas claras sobre a tabela | A faixa já é o lugar da navegação do quadro nos Contratos |
+| Abas na faixa escura (`bg-plano`) | Abas claras sobre a tabela | A faixa já é o lugar da navegação do quadro nos Contratos |
 | Área → pessoa, da equipe da área | Área → equipe (v1.0) | "Quem responde?" pede um nome; equipe sozinha é genérica |
 | `Equipe.areaTalento` | Casar equipe pelo nome | Nome se edita; id não |
 | **Vários** por área | Uma pessoa só (v2.0) | Dupla e substituto existem; forçar uma deixava a segunda sem acesso |
