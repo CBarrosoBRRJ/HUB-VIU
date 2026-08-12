@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.4 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
+**Versão:** 5.5 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -432,6 +432,9 @@ como o único vazado.
 > | Quando | O quê | Para |
 > |---|---|---|
 > | 12/08/2026 | *"diminuir as fontes dos botões de Status, está muito grande, pode diminuir um cadinho"* | etiqueta de status: `text-apoio` → `text-rotulo` |
+> | 12/08/2026 | *"os dados não estão legíveis… no monitor grande parece que fica pixelado"* | régua da grade: `0.8125rem` → `0.9375rem` (§1.2.6) |
+>
+> A escala do produto (`--text-*`) **não se moveu em nenhum dos dois**. A grade tem régua própria.
 >
 > O ajuste desceu **um degrau da escala**, não um valor novo: "um cadinho" em um sistema com régua
 > nomeada é o degrau de baixo, e inventar um `0.65rem` no meio do caminho seria acrescentar um
@@ -486,6 +489,81 @@ como o único vazado.
 | Cabeçalho de coluna (quadros) | `text-rotulo font-medium uppercase tracking-tight text-slate-500` (§7.10) — no Backlog o `index.css` sobrescreve pela régua da grade (§1.2.1) e pelo peso de §1.2.6 |
 | Cabeçalho de coluna (Administração) | `text-rotulo font-bold uppercase tracking-wider text-slate-500` — o `tracking-wider` só sobrevive aqui, onde as colunas são largas e a caixa alta não disputa pixel (§7.10) |
 | Rótulo de seção | `text-rotulo font-bold uppercase tracking-wider text-slate-500` — o `tracking-[0.16em]` existe numa instância só, os rótulos da Sidebar |
+
+### 1.2.6. A régua da grade subiu — e virou proporção — 12/08/2026
+
+Queixa da operação, sobre o quadro cheio: *"os dados não estão legíveis… no monitor pequeno fica
+visível, mas no grande parece que fica pixelado. Que fique legível em todos os monitores, mas que
+não fique grande — do tamanho bom, legível e elegante, nada grosseiro."*
+
+#### "Pixelado" é o diagnóstico certo, e não é figura de linguagem
+
+O reflexo seria ler "pixelado" como "pequeno" e mexer no tamanho por isso. O mecanismo é outro, e
+importa porque muda o alvo:
+
+**Monitor grande costuma ter densidade *menor* que um notebook.** Um 32" em 1440p dá ~93 PPI; uma
+tela de 15" em 1080p dá ~147. O dado estava em ~10px, e 10px com menos pixels por caractere não
+fica pequeno — fica **áspero**, com hastes de espessura irregular. Some a isso o corpo fracionário
+(a raiz é fluida, então nenhum tamanho da grade cai em pixel inteiro) e o resultado é exatamente o
+que ela viu.
+
+Por isso o alvo não é "um pouco maior": é **cruzar os 11px**, que é onde texto pequeno para de
+depender da densidade da tela para ser lido.
+
+#### A saída já estava escrita
+
+O bloco dos degraus, desde 11/08, registrava o custo da inversão de hierarquia com esta frase:
+
+> *"Se um dia a queixa for 'o dado está pequeno', a saída não é mexer no degrau: é subir a régua
+> inteira, que move as duas camadas juntas."*
+
+Foi o que se fez — `--texto-grade` de `0.8125rem` para `0.9375rem`, **uma variável só**, respeitando
+a lição do dia anterior (a tentativa recusada mexeu na régua *e* nos degraus, e o cabeçalho saltou
+43% de uma vez).
+
+| | Antes | **Agora** |
+|---|---:|---:|
+| Nome do projeto | 13,0 / 13,6px | **15,0 / 15,7px** |
+| Cabeçalho | 10,0 / 10,5px | **11,5 / 12,1px** |
+| Dado da célula | 9,5 / 10,0px | **11,0 / 11,5px** |
+| Selos e legendas | 9,0 / 9,4px | **10,4 / 10,9px** |
+
+*(raiz no piso / raiz no monitor de 2535px da operação)*
+
+O custo é densidade: a linha ganha ~2px, o que tira cerca de uma linha por tela cheia. Aceito com a
+mesma lógica de antes — o fluxo recolhível devolve 216px a quem precisa de linhas.
+
+#### O que a subida revelou: a hierarquia estava implementada na unidade errada
+
+Este é o achado da rodada, e ele não veio do olho — **veio de um teste**.
+
+A distância entre cabeçalho e dado foi negociada com a operação em **5%** ("menores por pouco"), e
+o teste guarda a faixa de 5% a 15%. Ao subir a régua, ele reprovou: a distância havia caído para
+**4,2%** sem que ninguém tocasse na hierarquia.
+
+A causa: os degraus eram **subtrativos** — `régua − 0,1875rem`. O vão absoluto de 0,5px continuou
+o mesmo, e a base cresceu embaixo dele. **A hierarquia foi negociada em porcentagem e estava escrita
+em pixel**, e o comentário do código prometia, desde sempre, o contrário:
+
+> *"mudar a base move o conjunto inteiro junto, e a proporção entre as camadas não se perde"*
+
+Era falso, e ninguém tinha como notar antes: a promessa só falha quando a base muda, e a base nunca
+tinha mudado.
+
+Cada camada é agora uma **fração da régua** — `calc(var(--texto-grade) * var(--fator-dado))`. Os
+números saem da relação já aprovada sobre a régua de 13px (10/13, 9,5/13, 9/13), então **nada muda
+de aparência**: o que muda é que a relação sobrevive a qualquer mexida futura na base.
+
+| Camada | Fração |
+|---|---|
+| Nome do projeto | 1 (a régua) |
+| Cabeçalho | 0,769 |
+| Dados | 0,731 |
+| Selos e legendas | 0,692 |
+
+> **A lição:** quando uma relação é acordada em porcentagem, ela precisa ser **escrita** em
+> porcentagem. Implementá-la como diferença absoluta funciona até o dia em que a base se move — e
+> nesse dia ela se desfaz em silêncio, porque nenhuma declaração mudou.
 
 ### 1.2.1. A escala de texto — 11/08/2026
 

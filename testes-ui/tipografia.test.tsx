@@ -88,10 +88,10 @@ describe('a escala de texto', () => {
       Este teste faz a soma que faltava, e usa **dois pisos** porque as camadas não têm a mesma
       exigência:
 
-      - o **dado** (menor desconto) é texto de leitura, em caixa baixa: piso de 10px;
-      - o **cabeçalho e os selos** (maior desconto) são caixa alta e negrito, lidos uma vez para
-        localizar. A altura de maiúscula em 9px equivale à de um texto comum bem maior, e é por
-        isso que 9px se sustenta ali — e só ali.
+      - o **dado** (menor fração) é texto de leitura, em caixa baixa, e tem o piso mais exigente;
+      - o **cabeçalho e os selos** (maior fração) são caixa alta e negrito, lidos uma vez para
+        localizar. A altura de maiúscula rende mais que a de um texto comum do mesmo corpo, e é
+        por isso que eles toleram um piso mais baixo — ali, e só ali.
 
       Os dois pisos existem porque a primeira correção usou um só, de 10px para tudo, e o resultado
       foi uma grade inchada que a operação recusou na hora (ver `index.css`).
@@ -108,11 +108,11 @@ describe('a escala de texto', () => {
     expect(reguaFixa, 'a régua da grade precisa ser constante — a fluidez é da raiz').toBeTruthy();
     const reguaRem = Number(reguaFixa![1]);
 
-    // Os degraus são lidos **pelo nome**: é o que permite ao teste falar da hierarquia, e não de
+    // As camadas são lidas **pelo nome**: é o que permite ao teste falar da hierarquia, e não de
     // um `Math.max` sobre números anônimos que não diz qual camada é qual.
-    const descontos = ['cabecalho', 'dado', 'selo'].map((papel) => {
-      const achado = new RegExp(`--degrau-${papel}:\\s*([\\d.]+)rem`).exec(css);
-      expect(achado, `--degrau-${papel} precisa estar declarado`).toBeTruthy();
+    const fatores = ['cabecalho', 'dado', 'selo'].map((papel) => {
+      const achado = new RegExp(`--fator-${papel}:\\s*([\\d.]+)`).exec(css);
+      expect(achado, `--fator-${papel} precisa estar declarado`).toBeTruthy();
       return Number(achado![1]);
     });
 
@@ -128,9 +128,9 @@ describe('a escala de texto', () => {
     for (const largura of [1024, 1366, 1920, 2535]) {
       const r = raiz(largura);
       const valor = reguaRem * r;
-      const [degrauCabecalho, degrauDado] = descontos;
-      const rotulo = valor - degrauCabecalho * r;
-      const dado = valor - degrauDado * r;
+      const [fatorCabecalho, fatorDado] = fatores;
+      const rotulo = valor * fatorCabecalho;
+      const dado = valor * fatorDado;
 
       /*
         O piso do dado voltou a 9,4px depois que a dupla fluidez saiu.
@@ -138,22 +138,32 @@ describe('a escala de texto', () => {
         Com a régua constante, a menor tela-alvo produz dado de 9,5px — antes eram 8,5px, porque a
         régua encolhia junto com a raiz. **Este é o número que a queixa "nas telas pequenas não dá
         para ver" derrubou**, e o piso existe para ele não voltar por descuido.
+
+        **Os pisos subiram em 12/08/2026**, com a régua: 9,4 → 11,4 no dado, 8,9 → 11,9 no
+        cabeçalho. A queixa que os moveu foi *"no monitor pequeno fica visível, mas no grande
+        parece que fica pixelado"* — e "pixelado" é literal: monitor grande costuma ter densidade
+        **menor** que um notebook (32" em 1440p dá ~93 PPI contra ~147 de uma tela de 15"), e 10px
+        com menos pixels por caractere não fica pequeno, fica áspero.
+
+        **11px é o número que importa aqui**, não 10: é onde texto pequeno para de depender da
+        densidade da tela para ser lido. Por isso o piso não é mais "o menor valor que já esteve na
+        tela sem queixa" — é o limiar abaixo do qual a queixa volta em algum monitor.
       */
-      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(9.4);
+      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(10.9);
       /*
-        O cabeçalho é caixa alta: 9px ali tem altura de maiúscula equivalente à de um texto comum
-        bem maior, e é o valor da grade original — que nunca foi objeto de queixa. O inaceitável
-        eram os 7px, que vinham de um desconto de 0.25rem sobre a régua.
+        O cabeçalho é caixa alta, então tolera mais — mas ele **sobe junto** com o dado, e não por
+        conta própria: a régua é uma só, e a hierarquia entre as camadas é o que a operação pediu
+        que não se perdesse ("mas que não fique maior que o header").
       */
       expect(rotulo, `cabeçalho ficaria em ${rotulo.toFixed(1)}px em ${largura}px`)
-        .toBeGreaterThanOrEqual(8.9);
+        .toBeGreaterThanOrEqual(11.5);
     }
   });
 
   it('o cabeçalho fica acima do dado — a hierarquia que a tabela sempre descreveu', () => {
     const css = readFileSync('src/index.css', 'utf8');
-    const degrau = (papel: string) =>
-      Number(new RegExp(`--degrau-${papel}:\\s*([\\d.]+)rem`).exec(css)![1]);
+    const fator = (papel: string) =>
+      Number(new RegExp(`--fator-${papel}:\\s*([\\d.]+)`).exec(css)![1]);
 
     /*
       A inversão de 11/08/2026, decidida pelo produto.
@@ -166,10 +176,10 @@ describe('a escala de texto', () => {
       A alternativa descartada foi a convenção de tabela (dado ≥ cabeçalho, como Monday e Excel):
       o produto preferiu a leitura estrutural, com o cabeçalho ancorando a coluna.
     */
-    expect(degrau('cabecalho'), 'o cabeçalho precisa ser MAIOR que o dado')
-      .toBeLessThan(degrau('dado'));
-    expect(degrau('dado'), 'o dado precisa ser maior que os selos')
-      .toBeLessThan(degrau('selo'));
+    expect(fator('cabecalho'), 'o cabeçalho precisa ser MAIOR que o dado')
+      .toBeGreaterThan(fator('dado'));
+    expect(fator('dado'), 'o dado precisa ser maior que os selos')
+      .toBeGreaterThan(fator('selo'));
 
     /*
       **O cabeçalho não se mexe para resolver isto.** Ele foi calibrado com a operação em
@@ -177,18 +187,21 @@ describe('a escala de texto', () => {
       cabeçalho até passar o dado — foi recusada na hora ("antes o tamanho do header estava
       perfeito, era só diminuir os dados"). Este número trava o acerto.
     */
-    expect(degrau('cabecalho'), 'o degrau do cabeçalho é calibrado — desça o dado, não suba ele')
-      .toBe(0.1875);
+    expect(fator('cabecalho'), 'a fração do cabeçalho é calibrada — desça o dado, não suba ele')
+      .toBe(0.769231);
 
     /*
       "Por pouco" é parte do pedido: a distância fica na faixa de 5% a 15%. Acima disso o rótulo
       em caixa alta domina a grade; abaixo, a inversão não se percebe e o custo de encolher o dado
       não compra nada.
     */
-    const base = Number(/--texto-grade:\s*([\d.]+)rem/.exec(css)![1]) * 16;
-    const cabecalho = base - degrau('cabecalho') * 16;
-    const dado = base - degrau('dado') * 16;
-    const distancia = (cabecalho - dado) / cabecalho;
+    /*
+      A distância é medida **entre as frações**, e não entre dois pixels: foi assim que ela se
+      perdeu. Com degraus subtrativos, subir a régua mantinha o vão absoluto e diluía a proporção —
+      a mesma queixa de legibilidade que subiu a régua derrubou a hierarquia junto, sem que nada na
+      declaração mudasse. Fração contra fração, o número aqui é o mesmo em qualquer régua.
+    */
+    const distancia = (fator('cabecalho') - fator('dado')) / fator('cabecalho');
 
     expect(distancia, `${(distancia * 100).toFixed(0)}% entre cabeçalho e dado`)
       .toBeGreaterThanOrEqual(0.05);
