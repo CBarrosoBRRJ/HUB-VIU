@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.7 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
+**Versão:** 5.8 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -93,6 +93,19 @@ Sem isso a grade do Backlog passa reta por baixo do canto arredondado.
 
 > A barra de rolagem também tem plano: `custom-scrollbar-escura` para a sidebar, porque o trilho
 > claro do `custom-scrollbar` aparecia lá como um risco branco no meio do fundo.
+
+> #### O `body` veste o plano — e por quê isso é blindagem, não estética
+>
+> Reporte da operação sobre a produção: *"a página está com um scroll para baixo, e colocando um
+> vazado de branco"*. Em navegador limpo (headless, sem extensão, zoom 100%) a página ocupa a
+> viewport exata — body com um filho, sem scroll. O scroll do reporte vinha do navegador da
+> pessoa (extensão injetando altura, zoom por site); o **vazado claro**, porém, era nosso: o
+> `body` vestia o `#f4f6fa` da folha, e qualquer rolagem forçada de fora revelava um vão claro
+> atrás do shell escuro.
+>
+> O `body` agora veste `bg-plano` com `overscroll-none`: o que o app não controla (extensão,
+> elástico de trackpad, arredondamento de zoom) passa a revelar **plano**, não branco. As rotas
+> públicas não mudam — elas pintam o próprio fundo claro por cima.
 
 #### E o plano é de vidro
 

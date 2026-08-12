@@ -1,6 +1,6 @@
 # PRD 09 — Fundações Técnicas
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 1.8 | **Status:** Vigente | **Data:** 12/08/2026
+**Versão:** 1.9 | **Status:** Vigente | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Datas, moeda, persistência e IDs*
 
@@ -499,6 +499,22 @@ zoom abaixo de 100%. Não há valor de código que produza 218; só o navegador 
 > **A regra que fica:** antes de tratar "produção está diferente" como defeito de deploy, comparar
 > os bundles por hash. Se os bytes batem, a diferença está no navegador — zoom, régua pessoal ou
 > dados locais — e cada um desses tem dono e reset próprios.
+
+### O segundo reporte, e o método que o resolveu
+
+*"A página está com um scroll para baixo, e colocando um vazado de branco."* Antes de caçar no
+código, a página foi aberta num **navegador limpo** — Chrome headless, sem extensão, sem
+`localStorage`, zoom 100% — e medida: body com um único filho (`#root`), documento do tamanho
+exato da viewport, sem scroll. O defeito não reproduzia; a altura extra vinha do navegador da
+pessoa (extensão, zoom por site).
+
+O que **era** nosso: o `body` vestia o claro da folha, então qualquer rolagem forçada de fora
+revelava um vão claro atrás do shell escuro. A blindagem — `bg-plano` + `overscroll-none` no
+`body` — está em [03 §1.0.1](03_padroes_ui.md).
+
+> **O método que fica:** reporte visual que não reproduz em navegador limpo é estado do navegador
+> de quem reporta — mas quase sempre revela, de brinde, uma blindagem que falta no app. As duas
+> coisas merecem resposta: o diagnóstico honesto e a blindagem.
 
 ## 6. Módulos de regra são puros
 
