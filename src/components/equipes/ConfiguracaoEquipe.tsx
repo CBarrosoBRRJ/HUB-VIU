@@ -121,7 +121,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
       {quadroAberto && (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {/* Abas dos quadros liberados */}
-          <div className="flex flex-wrap items-center gap-1 bg-[#111a3a] px-3 py-2.5">
+          <div role="navigation" aria-label="Seções do quadro" className="flex flex-wrap items-center gap-1 bg-plano px-3 py-2.5">
             {quadros.map((quadro) => {
               const ativa = quadroAberto === quadro.id;
               const { escondidas, restritasFechadas } = resumo(quadro.id);

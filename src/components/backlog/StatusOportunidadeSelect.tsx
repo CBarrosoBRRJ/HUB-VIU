@@ -195,7 +195,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${cores.etiqueta}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-rotulo font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${cores.etiqueta}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -216,7 +216,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${cores.etiqueta}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-rotulo font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${cores.etiqueta}`}
       >
         {conteudoSelo}
         {seloBadge}

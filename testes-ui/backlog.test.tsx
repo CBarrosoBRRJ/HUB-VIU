@@ -151,8 +151,14 @@ describe('a tela abre', () => {
       A ordem acompanha o projeto, não o organograma (PRD 08 §6) — e é especificação da operação.
       Lida da faixa de navegação, que é onde ela se manifesta.
     */
-    // Restrito à faixa: "Talento" também é cabeçalho de coluna, e cabeçalho ordenável é botão.
-    const faixa = document.querySelector('[class*="111a3a"]')!;
+    /*
+      Restrito à faixa: "Talento" também é cabeçalho de coluna, e cabeçalho ordenável é botão.
+
+      A busca é pela **semântica**, não pela cor: este teste já quebrou uma vez porque mirava a
+      classe do fundo (`[class*="111a3a"]`), e a faixa mudou de tom. Cor é aparência; `<nav>` com
+      rótulo é o que a faixa **é**.
+    */
+    const faixa = screen.getByRole('navigation', { name: /seções do quadro/i });
     const abas = [...faixa.querySelectorAll('button')].map((b) => b.textContent?.trim() ?? '');
     expect(abas).toEqual(esperado);
   });

@@ -564,7 +564,7 @@ export function TalentosTable({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Abas: cada uma revela um grupo de colunas do mesmo quadro. */}
-      <div className="flex shrink-0 flex-wrap items-center gap-1 bg-[#111a3a] px-3 py-2.5">
+      <div role="navigation" aria-label="Seções do quadro" className="flex shrink-0 flex-wrap items-center gap-1 bg-plano px-3 py-2.5">
         {abas.map((item) => {
           const Icon = ICONES[item.id] ?? IdCard;
           const ativa = aba === item.id;

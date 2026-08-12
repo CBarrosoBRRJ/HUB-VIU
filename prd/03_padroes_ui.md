@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.0 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 5.1 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -68,6 +68,47 @@ Sem isso a grade do Backlog passa reta por baixo do canto arredondado.
 
 > A barra de rolagem também tem plano: `custom-scrollbar-escura` para a sidebar, porque o trilho
 > claro do `custom-scrollbar` aparecia lá como um risco branco no meio do fundo.
+
+#### E o plano é de vidro
+
+Pedido logo depois — *"o que acha de colocar meio glass com transparência, mas com esse tom
+atual?"*. A sidebar deixou de pintar o tom escuro: ela é uma folha de **branco a 4% com
+`backdrop-blur`**, e quem pinta o tom é o contêiner.
+
+> **Vidro precisa de algo atrás.** Uma camada translúcida sobre cor chapada não vira vidro — vira a
+> mesma cor um pouco mais clara. O efeito depende inteiramente de haver **variação** por baixo para
+> o desfoque revelar.
+
+É para isso que existe o `.brilho-do-plano`: três manchas radiais atrás de tudo, nos matizes da
+**própria paleta de status** (275 · 195 · 320) e em opacidade baixa (14% a 28%). Os matizes não são
+livres de propósito — fundo de outra família que a interface faz o glass virar decoração colada por
+cima. E a opacidade é baixa porque o pedido foi vidro *"com esse tom atual"*: o plano continua sendo
+o escuro aprovado, com vida, não um degradê colorido.
+
+O `shadow-[inset_-1px_0_0_...]` a 6% na borda direita da sidebar é a quina do vidro — não um
+separador. O separador é a diferença de plano; isto é o brilho da aresta.
+
+#### As faixas de abas usam o mesmo tom
+
+*"As barras de navegações de abas deveriam combinar com a sidebar, não?"* — deveriam. Elas usavam
+`bg-[#111a3a]`, um navy próprio, e agora usam `bg-plano`: **um token, dois lugares**. Backlog,
+Contratos, Talentos e Configuração de Equipe, os quatro juntos, porque a faixa é o mesmo elemento
+nos quatro e a divergência ali não seria "trabalho por quadro", seria descuido.
+
+Elas não levam o vidro: a faixa se apoia na folha clara, e `backdrop-blur` sobre branco devolveria
+branco. Combinar aqui é o **tom**, não a técnica.
+
+> Os banners decorativos (`h-16 bg-gradient-to-r from-[#111a3a]…` em Meu Perfil, convites, cartão
+> de usuário) seguem no navy. São outro elemento — moldura de cabeçalho, não navegação —, e o
+> pedido foi sobre as faixas de abas.
+
+> #### O teste passou a mirar a semântica, não a cor
+>
+> A verificação da ordem das abas selecionava a faixa por `[class*="111a3a"]` — e quebrou no
+> instante em que a faixa mudou de tom. Cor é aparência; a faixa agora se declara pelo que **é**
+> (`role="navigation"` com rótulo), e o teste pergunta por isso.
+>
+> Vale como regra: **teste que mira classe de cor está preso à decisão estética do dia.**
 
 ### 1.0.2. Botões de uma mesma barra compartilham a forma — 12/08/2026
 
@@ -222,7 +263,16 @@ como o único vazado.
 
 > # ⛔ A TIPOGRAFIA ESTÁ CONGELADA — 11/08/2026
 >
-> **Nenhum tamanho de fonte se altera sem pedido explícito da operação.** Não como sugestão de
+> **Nenhum tamanho de fonte se altera sem pedido explícito da operação.** Registro dos pedidos:
+>
+> | Quando | O quê | Para |
+> |---|---|---|
+> | 12/08/2026 | *"diminuir as fontes dos botões de Status, está muito grande, pode diminuir um cadinho"* | etiqueta de status: `text-apoio` → `text-rotulo` |
+>
+> O ajuste desceu **um degrau da escala**, não um valor novo: "um cadinho" em um sistema com régua
+> nomeada é o degrau de baixo, e inventar um `0.65rem` no meio do caminho seria acrescentar um
+> quinto degrau para resolver um pedido de um. A altura fixa da etiqueta acompanha sozinha, porque
+> está em `em` — ver [08 §7](08_backlog_e_integracoes.md). Não como sugestão de
 > melhoria, não "de brinde" junto com outra correção, não porque um número parece pequeno lido
 > fora da tela.
 >

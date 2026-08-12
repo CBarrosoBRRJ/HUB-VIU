@@ -175,10 +175,22 @@ function Workspace() {
 
         `overflow-hidden` aqui é estrutural, não estético: é ele que faz o conteúdo respeitar o
         canto arredondado — sem isso, a grade do Backlog passa reta por baixo da curva.
+
+        ## E o plano é de vidro — 12/08/2026
+
+        A sidebar não pinta mais o tom escuro: ela é uma folha de branco a 4% com `backdrop-blur`,
+        e quem pinta o tom é este contêiner. **Vidro precisa de algo atrás** — translucidez sobre
+        cor chapada não vira vidro, vira a mesma cor um pouco mais clara. É para isso que existe o
+        `.brilho-do-plano`: três manchas nos matizes da própria paleta, desfocadas pela sidebar.
       */}
-      <div className="flex flex-1 overflow-hidden bg-plano p-2 pl-0">
+      <div className="relative flex flex-1 overflow-hidden bg-plano">
+        {/*
+          O brilho fica **atrás de tudo** e não recebe evento: é ele que dá ao vidro da sidebar o
+          que refletir. Ver `.brilho-do-plano`.
+        */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 brilho-do-plano" />
         <Sidebar activePage={paginaAtiva ?? activePage} onNavigate={setActivePage} />
-        <main className="flex flex-1 flex-col overflow-hidden rounded-xl bg-[#f4f6fa] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/6">
+        <main className="relative z-10 m-2 flex flex-1 flex-col overflow-hidden rounded-xl bg-[#f4f6fa] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/6">
           {Pagina ? (
             <Pagina />
           ) : (

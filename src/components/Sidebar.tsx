@@ -67,7 +67,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const perfilStyle = usuario ? PERFIL_STYLE[usuario.perfil] : null;
 
   return (
-    <nav className="flex w-64 shrink-0 flex-col">
+    <nav className="relative z-10 flex w-64 shrink-0 flex-col bg-white/4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
       <div className="border-b border-white/10 px-5 py-4">
         <p className="font-display text-sm font-bold text-white">VIU Agenciamento</p>
         <p className="text-apoio text-slate-400">Gestão de talentos</p>

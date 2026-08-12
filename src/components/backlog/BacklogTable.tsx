@@ -1874,7 +1874,7 @@ export function BacklogTable({
         `py-1.5` → `py-1` nas abas, ícones de 14px para 12px. A régua de legibilidade que o gestor
         pediu continua de pé — o que saiu foi ar, não letra.
       */}
-      <div className="flex shrink-0 flex-wrap items-center gap-0.5 bg-[#111a3a] px-2.5 py-1.5">
+      <div role="navigation" aria-label="Seções do quadro" className="flex shrink-0 flex-wrap items-center gap-0.5 bg-plano px-2.5 py-1.5">
         {abas.map((item) => {
           const Icon = ICONES[item.id] ?? Layers;
           const ativa = aba === item.id;
