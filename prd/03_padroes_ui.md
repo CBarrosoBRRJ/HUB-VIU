@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.2 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 5.3 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -86,18 +86,32 @@ livres de propósito — fundo de outra família que a interface faz o glass vir
 cima. E a opacidade é baixa porque o pedido foi vidro *"com esse tom atual"*: o plano continua sendo
 o escuro aprovado, com vida, não um degradê colorido.
 
-O `shadow-[inset_-1px_0_0_...]` na borda direita da sidebar é a quina do vidro — não um separador.
-O separador é a diferença de plano; isto é o brilho da aresta.
-
-> #### "A barra e o fundo estão iguais?" — quase, e o quase era o defeito
+> #### O vidro é o plano inteiro, não um painel sobre ele
 >
-> Conferido contra a referência: nela a sidebar e a moldura em volta da folha são **a mesma
-> superfície contínua**, e a folha é o único objeto que flutua. Aqui a sidebar levava um véu de
-> branco a 4% que a deixava mensuravelmente mais clara que a moldura — duas superfícies escuras
-> ligeiramente diferentes, que é o pior dos dois mundos: nem igual, nem contraste proposital.
+> A sidebar chegou a ter superfície própria: um véu de branco com `backdrop-blur` e um brilho de
+> 1px na aresta direita, para ler como vidro. Primeiro a 4%; depois, na conferência contra a
+> referência, a 3%.
 >
-> O véu caiu para 3%, o mínimo que ainda produz a leitura de vidro. **O tom vem do mesmo token nos
-> dois lugares**; a diferença que resta é a película, não a cor.
+> Não era questão de dosagem. A operação viu o resultado e nomeou o que aquilo produzia — *"tem uma
+> linha e os tons escuros são diferentes"*. As duas queixas eram a mesma coisa: **um segundo plano
+> escuro dentro do primeiro.**
+>
+> ```
+>   sidebar (com véu) │ linha 1px │ moldura (sem véu) │ folha
+>   └──────────── três superfícies em 8px ───────────┘
+> ```
+>
+> Duas cores escuras quase iguais com um traço no meio é o pior dos dois mundos: nem uma superfície
+> contínua, nem um contraste proposital. **Reduzir o véu só torna o degrau mais difícil de nomear,
+> não o remove** — foi o que a rodada anterior fez, e por isso ela voltou.
+>
+> A sidebar não tem mais véu, nem blur, nem aresta. O vidro não morreu: **mudou de escala**. Quem
+> dá luminosidade é o `.brilho-do-plano` por trás de tudo, e a sidebar *participa* dele em vez de
+> flutuar sobre ele — que é exatamente o que a referência faz. Sidebar e moldura são uma superfície
+> só; a folha de trabalho é o único objeto que flutua.
+>
+> **A regra que fica:** num shell de dois planos, só existem dois. Uma terceira superfície entre
+> eles aparece como linha, por mais sutil que seja o tom.
 
 #### Um escuro só, do plano à faixa de abas
 

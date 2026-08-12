@@ -67,8 +67,25 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const usuario = usuarioReal;
   const perfilStyle = usuario ? PERFIL_STYLE[usuario.perfil] : null;
 
+  /*
+    A sidebar **não tem superfície própria** — 12/08/2026.
+
+    Ela chegou a ter: um véu de branco a 3% com `backdrop-blur` e um brilho de 1px na aresta
+    direita, para ler como vidro. A operação viu o resultado e apontou o que aquilo produzia —
+    *"tem uma linha e os tons escuros são diferentes"*. As duas coisas eram verdade, e as duas eram
+    a mesma coisa: **um segundo plano escuro dentro do primeiro.**
+
+    No vão entre a sidebar e a folha apareciam, em 8px, três superfícies: a sidebar (com véu), a
+    linha de 1px, e a moldura (sem véu). Duas cores escuras quase iguais com um traço no meio é o
+    pior dos dois mundos — nem uma superfície contínua, nem um contraste proposital.
+
+    O vidro não morreu: ele só mudou de escala. **O plano inteiro é o vidro** — quem dá a
+    luminosidade é o `.brilho-do-plano` por trás de tudo, e a sidebar participa dele em vez de
+    flutuar sobre ele. É assim na referência: sidebar e moldura são uma superfície só, e a folha de
+    trabalho é o único objeto que flutua.
+  */
   return (
-    <nav className="relative z-10 flex w-64 shrink-0 flex-col bg-white/3 shadow-[inset_-1px_0_0_rgba(255,255,255,0.07)] backdrop-blur-2xl">
+    <nav className="relative z-10 flex w-64 shrink-0 flex-col">
       {/*
         O topo é a **marca**: logo, nome e subtítulo empilhados e centralizados.
 
