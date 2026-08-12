@@ -1581,6 +1581,38 @@ describe('correções da rodada de 11/08/2026', () => {
     }
   });
 
+  it('o fluxo lê como um caminho: cor da etapa e conector entre elas', () => {
+    /*
+      O mapa era cinco caixas brancas idênticas — correto e mudo. Duas adições dão a ele o que o
+      bloco existe para mostrar:
+
+      1. a **cor da etapa** na borda esquerda, a mesma da etiqueta de status na linha da tabela —
+         é o que liga o mapa à grade sem depender de ler o texto;
+      2. o **conector** no vão entre os cartões, que transforma cinco caixas numa sequência.
+
+      A última etapa não tem conector (não há para onde apontar), e o Loop aponta **para trás**:
+      Ajustes devolve para a Revisão em vez de avançar.
+    */
+    montar();
+    const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
+
+    // A cor vem do catálogo de status — a mesma classe que a etiqueta da linha usa.
+    const entrada = cartaoDaEtapa('Entrada');
+    expect(entrada.querySelector('.bg-slate-500'), 'a barra da Entrada usa a cor do status')
+      .toBeTruthy();
+    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-500')).toBeTruthy();
+
+    /*
+      Quatro conectores para cinco etapas: a última não aponta para lugar nenhum.
+
+      A leitura é por `getAttribute('class')`, e não por `.className`: os ícones do lucide são
+      `<svg>`, e ali `className` é um `SVGAnimatedString` — objeto, não texto.
+    */
+    const conectores = [...document.querySelectorAll('[aria-hidden]')]
+      .filter((no) => (no.getAttribute('class') ?? '').includes('-right-4'));
+    expect(conectores).toHaveLength(4);
+  });
+
   it('desmarcar um tique com valor preenchido funciona — e pergunta antes', async () => {
     /*
       O defeito mais sério dos três, e o mais silencioso: `LISTAS` era declarada **depois** do

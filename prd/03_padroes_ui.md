@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.6 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 3.7 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -397,6 +397,32 @@ sequencial — as cinco etapas valem o mesmo, e o tamanho não deveria dizer o c
 >
 > O número de colunas vem do catálogo (`ETAPAS_FLUXO.length`), então uma etapa nova entra na conta
 > sozinha.
+
+### 1.2.9. O mapa do processo lê como um caminho — 12/08/2026
+
+Depois da simetria (§1.2.8), o bloco ficou **correto e mudo**: cinco caixas brancas idênticas, que
+não diziam representar uma sequência. O pedido foi "mais elegante e moderno", e a direção escolhida
+foi a que **agrega informação**, não acabamento.
+
+| Adição | O que ela resolve |
+|--------|-------------------|
+| **Cor da etapa** na borda esquerda | É a mesma de `status.solid` na etiqueta da linha: o azul do "Em Revisão" aqui é o azul do "Em Revisão" na grade. A ligação entre mapa e tabela existia só no texto |
+| **Conector** no vão entre os cartões | Cinco caixas viram um caminho — a última não tem (não há para onde apontar) |
+| **Seta do Loop apontando para trás** | Ajustes **devolve** para a Revisão; uma seta para a frente afirmaria uma sequência que o fluxo não tem |
+| Zero em `slate-300`, contagem viva em `slate-900` | Num quadro em dia quase tudo está zerado, e cinco caixinhas cinzas competiam com a única que tinha trabalho |
+| Sombra no hover | Profundidade só onde há interação |
+
+> **A barra fica na borda esquerda** porque é onde o produto já marca estado de linha — o farol de
+> SLA usa a mesma posição (§3.3.1). Repetir a convenção custa zero aprendizado.
+
+> **O conector mora no vão, desenhado pelo cartão** (`-right-4`, a medida do `gap-4`) — e não numa
+> coluna própria do grid. É o que permite acrescentá-lo **sem desfazer a simetria de §1.2.8**: as
+> colunas seguem em fração, iguais. Uma coluna de conector alternada teria quebrado o
+> `repeat(N, 1fr)` e trazido de volta a assimetria que acabáramos de corrigir.
+
+**Nada de tipografia mudou** — a régua congelada em §1.2 segue intacta. Cor, espaçamento, sombra e
+um ícone novo dão o resultado sem tocar em nenhum tamanho de fonte, que é a ordem de ajuste de
+§1.2.6 aplicada a um pedido de estética.
 
 ### 1.2.4. Densidade do topo do quadro — 11/08/2026
 

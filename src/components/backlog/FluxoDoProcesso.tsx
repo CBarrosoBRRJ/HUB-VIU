@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import {
-  Archive, CheckCircle2, ChevronDown, ChevronUp, CircleSlash, PauseCircle, RotateCcw, Zap,
+  Archive, CheckCircle2, ChevronDown, ChevronRight, ChevronUp, CircleSlash, PauseCircle,
+  RotateCcw, Zap,
 } from 'lucide-react';
 import { Oportunidade, StatusOportunidade } from '../../types';
 import {
@@ -169,13 +170,20 @@ export function FluxoDoProcesso({
           O número de colunas sai do catálogo: uma etapa nova entra na conta sozinha.
         */}
         <div
-          className="grid gap-2"
+          /*
+            `gap-4` em vez de `gap-2`: o vão entre as etapas deixou de ser respiro e passou a ser
+            **onde o conector mora** (12/08/2026). Ele é desenhado por cada cartão, no próprio vão à
+            direita — assim as colunas do grid seguem intactas e a simetria de §1.2.8 continua de pé.
+          */
+          className="grid gap-4"
           style={{ gridTemplateColumns: `repeat(${ETAPAS_FLUXO.length}, minmax(min-content, 1fr))` }}
         >
-          {ETAPAS_FLUXO.map((etapa) => {
+          {ETAPAS_FLUXO.map((etapa, indice) => {
             const status = getStatus(etapa.status);
             const resumo = resumirPorStatus(oportunidades, etapa.status);
             const ativa = etapaAtiva === etapa.status;
+            const ultima = indice === ETAPAS_FLUXO.length - 1;
+            const vazia = resumo.quantidade === 0;
 
             return (
               <motion.button
@@ -194,14 +202,26 @@ export function FluxoDoProcesso({
                   `minmax(min-content, 1fr)` do contêiner, e de lá ela vale para todos ao mesmo
                   tempo, o que é justamente o que produz colunas iguais.
                 */
-                className={`rounded-xl border px-3 py-2.5 text-left transition ${
+                className={`relative rounded-xl border py-2.5 pr-3 pl-4 text-left transition hover:shadow-md ${
                   ativa
-                    ? 'border-indigo-300 bg-indigo-50'
+                    ? 'border-indigo-300 bg-indigo-50 shadow-sm'
                     : etapa.loop
                       ? 'border-amber-200 bg-amber-50/50 hover:border-amber-300'
                       : 'border-slate-200 hover:border-indigo-200'
                 }`}
               >
+                {/*
+                  A **cor da etapa**, numa barra na borda esquerda.
+
+                  É a mesma cor que a etiqueta de status usa na linha da tabela (`status.solid`), e
+                  é isso que o cartão ganha de informação: o azul do "Em Revisão" aqui é o azul do
+                  "Em Revisão" lá embaixo. Antes os cinco eram brancos e idênticos, e a ligação
+                  entre mapa e grade existia só no texto.
+
+                  Na borda esquerda porque é onde o produto já marca estado de linha — o farol de
+                  SLA usa a mesma posição ([03 §3.3.1]). O `pl-4` do cartão abre o lugar dela.
+                */}
+                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.solid}`} />
                 <span
                   className={`flex items-center gap-1 text-selo font-bold uppercase tracking-wider ${
                     etapa.loop ? 'text-amber-600' : 'text-slate-500'
@@ -222,16 +242,49 @@ export function FluxoDoProcesso({
                   <span className="whitespace-nowrap text-xs font-semibold text-slate-700">
                     {status.label}
                   </span>
+                  {/*
+                    Zero recua; número vivo se destaca.
+
+                    Num quadro em dia a maioria das etapas está zerada, e cinco caixinhas cinzas com
+                    "0" competiam com a única que tinha trabalho dentro. O zero perde o fundo e vai
+                    para `slate-300`; quem tem projeto fica em `slate-900` sobre branco — legível de
+                    relance, sem gritar.
+                  */}
                   <span
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-rotulo font-bold ${
-                      resumo.quantidade > 0
-                        ? 'bg-slate-100 text-slate-600'
-                        : 'text-slate-500'
+                    className={`shrink-0 rounded-md px-1.5 py-0.5 text-rotulo font-bold ${
+                      vazia
+                        ? 'text-slate-300'
+                        : 'bg-white text-slate-900 ring-1 ring-slate-200'
                     }`}
                   >
                     {resumo.quantidade}
                   </span>
                 </span>
+
+                {/*
+                  O conector — o que faz cinco caixas lerem como **um caminho**.
+
+                  Ele mora no vão à direita do próprio cartão (`-right-4`, a medida do `gap-4`), e
+                  não numa coluna do grid: assim as colunas seguem iguais e a simetria de §1.2.8
+                  continua valendo. `overflow-visible` no botão seria necessário — por isso ele fica
+                  fora do `overflow-hidden`, ancorado no contêiner da etapa.
+
+                  **A seta do Loop aponta para trás.** Ajustes não avança o processo: devolve para a
+                  Revisão. Uma seta para a frente ali afirmaria uma sequência que o fluxo não tem —
+                  e o bloco existe justamente para ensinar essa forma.
+                */}
+                {!ultima && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute top-1/2 -right-4 flex w-4 -translate-y-1/2 items-center justify-center"
+                  >
+                    {etapa.loop ? (
+                      <RotateCcw className="size-3 text-amber-400" />
+                    ) : (
+                      <ChevronRight className="size-3.5 text-slate-300" />
+                    )}
+                  </span>
+                )}
               </motion.button>
             );
           })}

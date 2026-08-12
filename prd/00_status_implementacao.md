@@ -579,13 +579,22 @@ Na mesma leitura: *"eu corto assimetria"*. As cinco etapas do fluxo mediam o pr�
 mais alto que o Encerrado, e a seção do Fluxo tinha ~60px de vazio no pé contra a vizinha. Resolvido
 com colunas em fração, `auto-rows-fr` e o miolo centrado — [03 §1.2.8](03_padroes_ui.md).
 
+### O mapa passou a ler como um caminho
+
+Fechando a rodada, o pedido de "design mais elegante": o bloco do fluxo ganhou a **cor de cada
+etapa** na borda esquerda (a mesma da etiqueta na grade), **conectores** entre os cartões, e a seta
+do Loop apontando para trás — porque Ajustes devolve para a Revisão em vez de avançar. Cinco caixas
+idênticas viraram uma sequência legível. Detalhe em [03 §1.2.9](03_padroes_ui.md).
+
+Nada de tipografia foi tocado: cor, espaçamento e um ícone deram o resultado.
+
 ### Os números
 
 | Medida | Antes | Depois |
 |--------|------:|-------:|
 | Caminhos para nomear pessoas numa área | 2 | **1** |
 | Colunas de pessoas sem papéis | 9 | **0** |
-| Testes de UI | 131 | **136** |
+| Testes de UI | 131 | **137** |
 
 ---
 
