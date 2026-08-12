@@ -1,6 +1,6 @@
 # Documentação — VIU Agenciamento
 
-**Atualizado:** 11/08/2026 · **Base:** código em [`src/`](../src/)
+**Atualizado:** 12/08/2026 · **Base:** código em [`src/`](../src/)
 
 Esta pasta é a documentação de projeto do sistema: **por que** cada coisa é como é, não só o que
 ela faz. Serve para três usos — auditar uma decisão, recriar o sistema do zero, e dar manutenção
@@ -55,15 +55,17 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 | `utils/fluxoStatus.ts` | [08 §3](08_backlog_e_integracoes.md), [08 §3.3](08_backlog_e_integracoes.md) |
 | `utils/sla.ts` | [08 §4](08_backlog_e_integracoes.md), [09 §4](09_fundacoes_tecnicas.md) |
 | `utils/ingestao.ts` | [08 §10](08_backlog_e_integracoes.md) |
-| `utils/oportunidades.ts` | [08 §2](08_backlog_e_integracoes.md), [08 §7.5](08_backlog_e_integracoes.md) |
+| `utils/oportunidades.ts` | [08 §2](08_backlog_e_integracoes.md), [08 §7.5](08_backlog_e_integracoes.md); a paleta de status: [03 §1.1.0](03_padroes_ui.md) |
 | `utils/moeda.ts` | [09 §2](09_fundacoes_tecnicas.md) |
 | `utils/dates.ts` | [09 §1](09_fundacoes_tecnicas.md) |
 | `utils/persistencia.ts` | [09 §3](09_fundacoes_tecnicas.md) |
 | `utils/ids.ts` | [09 §5](09_fundacoes_tecnicas.md) |
-| `utils/navegacao.ts` · `App.tsx` | [09 §8](09_fundacoes_tecnicas.md) |
+| `utils/navegacao.ts` · `App.tsx` | [09 §8](09_fundacoes_tecnicas.md); o shell de dois planos: [03 §1.0.0–1.0.1](03_padroes_ui.md) |
+| `index.css` · `components/Sidebar.tsx` | [03 §1.0.0](03_padroes_ui.md) — **shell congelado**; tipografia: [03 §1.2](03_padroes_ui.md), régua da grade: [03 §1.2.6](03_padroes_ui.md) |
 | `utils/vigencia.ts` · `utils/talentosStatus.ts` | [02 §5–6](02_quadro_talentos.md) |
 | `utils/equipes.ts` · `utils/saida.ts` | [04 §4](04_pagina_equipes.md), [04 §7](04_pagina_equipes.md) |
-| `utils/convites.ts` · `utils/linkEquipe.ts` · `utils/identidade.ts` · `utils/trocaEmail.ts` | [05 §4.1](05_perfis_usuarios.md) |
+| `utils/convites.ts` · `utils/linkEquipe.ts` · `utils/trocaEmail.ts` | [05 §4.1](05_perfis_usuarios.md) |
+| `utils/identidade.ts` | [05 §4.1](05_perfis_usuarios.md) — e-mail como chave; `nomeCurto` e `sanearCargos`: [03 §1.0.3](03_padroes_ui.md), [09 §5](09_fundacoes_tecnicas.md) |
 | `utils/talentos.ts` · `utils/busca.ts` | [06](06_pagina_talentos.md) |
 | `utils/exportacao.ts` | [08 §6](08_backlog_e_integracoes.md) — o contrato do `.xlsx`, [09 §6](09_fundacoes_tecnicas.md) |
 | `utils/pessoas.ts` | [02 §11](02_quadro_talentos.md) — responsáveis e parceiros |
@@ -148,6 +150,7 @@ por reler o registro correspondente.
 | Popovers em portal — `overflow` recorta filho posicionado | [03 §4](03_padroes_ui.md) |
 | `layoutId` do motion precisa ser único por instância | [03 §7.3](03_padroes_ui.md) |
 | Pesos de coluna somam um total fixo por aba | [03 §3](03_padroes_ui.md), [07 §6](07_visoes_e_relacoes.md) |
+| **Shell e tipografia estão congelados** — só mudam a pedido da operação | [03 §1.0.0](03_padroes_ui.md), [03 §1.2](03_padroes_ui.md) |
 
 ### Segurança
 

@@ -1,6 +1,6 @@
 # PRD 09 — Fundações Técnicas
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 1.6 | **Status:** Vigente | **Data:** 11/08/2026
+**Versão:** 1.7 | **Status:** Vigente | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Datas, moeda, persistência e IDs*
 
@@ -436,6 +436,27 @@ Foi assim que uma ficha de talento nascia duplicada: `garantirTalento` era chama
 **Regra: reducers e updaters de estado são funções puras.** Criar registro, gerar id ou disparar
 efeito colateral dentro deles é um defeito que só aparece em desenvolvimento — ou, pior, só em
 produção.
+
+### Reparo na leitura: corrigir a semente não corrige o que já foi gravado — 12/08/2026
+
+`semIdsRepetidos` (§3) tem agora um irmão: **`sanearCargos`**, em
+[`utils/identidade.ts`](../src/utils/identidade.ts). Os dois resolvem a mesma classe de problema, e
+ela merece nome próprio.
+
+O campo `cargo` da semente nasceu com `'Dono do Sistema'` — que é **vocabulário de permissão, não um
+cargo**. Corrigir a semente resolve quem instala hoje e **não alcança quem já tem o valor gravado**:
+a etiqueta seguia errada no navegador da operação um dia depois da correção.
+
+E não havia caminho pelo versionamento. A persistência versiona por **formato** e descarta tudo na
+virada (§3): não existe migração pontual, e derrubar a versão inteira por causa de uma string
+apagaria os dados de todo mundo. Uma correção de conteúdo não cabe num mecanismo desenhado para
+incompatibilidade de forma.
+
+> **A regra:** defeito que **escreveu dado** precisa de reparo na **leitura**, não de bump de
+> versão. O reparo é seguro porque corrige apenas valores que **ninguém digitaria** — ninguém
+> escolhe "Dono do Sistema" como cargo, do mesmo jeito que ninguém cria dois registros com o mesmo
+> id de propósito. E, sem nada a corrigir, ele devolve a **mesma lista por identidade**, o que
+> permite chamá-lo em toda leitura sem criar referência nova a cada render.
 
 ---
 

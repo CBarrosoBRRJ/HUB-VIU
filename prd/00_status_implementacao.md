@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 23.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 24.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -528,6 +528,136 @@ da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem l�
 
 ---
 
+## 5.16. Identidade, profundidade e legibilidade — 12/08/2026, décima primeira rodada
+
+A rodada mais longa até aqui, e a mais conduzida pela operação: **onze leituras de tela**, cada uma
+apontando uma coisa que o código não sabia que estava errada. Nenhuma delas foi encontrada por
+teste, auditoria ou revisão — todas vieram de alguém olhando o produto.
+
+### A paleta parou de ser escolhida e passou a ser construída
+
+As três primeiras versões da paleta ainda eram **escolhas**: tons tirados a dedo das rampas prontas
+do Tailwind. O problema é que o tier `600` é o **pico de croma** dessas rampas — `blue-600` tem
+croma 0,245. São cores feitas para chamar atenção sozinhas numa página, não para conviver quarenta
+vezes numa coluna. E o equilíbrio de peso batia por conferência manual: escolher, calcular a
+luminância, torcer.
+
+Agora os sete tons saem de uma regra em OKLCH, onde os três eixos são independentes:
+
+| Eixo | Papel | Valor |
+|---|---|---|
+| **claridade** | o **peso** — quanta atenção o bloco puxa | fixo |
+| **croma** | quanto a cor grita | 0,10 no fluxo · 0,13 nos acentos |
+| **matiz** | qual é o estado | a única variável |
+
+**Claridade travada é o que impede o carnaval**, e não a ausência de cor: o que faz uma paleta cheia
+parecer aleatória é um bloco quase preto ao lado de um amarelo luminoso. Com o peso constante, a
+coluna varia em cor sem variar em **atenção** — e todos passam de 4,5:1 com texto branco sem que
+ninguém confira tom a tom. Detalhe em [03 §1.1.0](03_padroes_ui.md).
+
+Conferida depois contra o logo (azul elétrico + amarelo), a paleta já tinha caído na família da
+marca: o plano em 266°, a rampa atravessando o azul, o acento de ação no parente escuro do amarelo.
+Os dois ajustes que a conferência produziu foram **subtrações** — o plano trocou o slate neutro pelo
+matiz da marca, e o navy `#111a3a` das faixas saiu. Nenhuma cor nova entrou ([03 §1.0.4](03_padroes_ui.md)).
+
+### O shell ganhou profundidade — e depois perdeu a superfície que sobrava
+
+Pedido com duas referências: *"a sidebar parece que está em um plano abaixo da área de trabalho"*.
+Plano escuro ao fundo, folha clara flutuando com vão de 8px, canto arredondado e sombra.
+
+O que veio depois é a parte que interessa. Para dar cara de vidro, a sidebar recebeu um véu de
+branco a 4% com `backdrop-blur` e um brilho de 1px na aresta. A operação olhou e disse: *"tem uma
+linha e os tons escuros são diferentes"*. As duas queixas eram a mesma coisa — **um segundo plano
+escuro dentro do primeiro**:
+
+```
+ sidebar (com véu) │ linha 1px │ moldura (sem véu) │ folha
+ └──────────── três superfícies em 8px ───────────┘
+```
+
+**E reduzir o véu não resolve — só torna o degrau mais difícil de nomear.** Foi o que fiz numa
+primeira correção (4% → 3%), e por isso ela voltou. O vidro não morreu: **mudou de escala.** O plano
+inteiro é o vidro, iluminado por trás por três manchas nos matizes da própria paleta, e a sidebar
+*participa* dele em vez de flutuar sobre ele.
+
+> A estrutura foi aprovada e **congelada** em [03 §1.0.0](03_padroes_ui.md), a pedido da operação —
+> mesmo tratamento que a tipografia recebeu em 11/08. Congelam-se os invariantes, não os valores.
+
+### A sidebar virou identidade
+
+Marca no topo (logo oficial de `assets/img/`, importado — o arquivo da operação é a única cópia),
+nome e subtítulo centralizados, seções centralizadas, itens à esquerda porque têm ícone, pessoa no
+rodapé.
+
+Duas regras de dado saíram daí, ambas em [`utils/identidade.ts`](../src/utils/identidade.ts):
+
+- **`nomeCurto`** — primeiro e último nome. O cadastro guarda o nome **civil**, e ele não cabe em
+  256px: o truncamento cortava justamente a palavra que identifica a pessoa. Trata dois casos que o
+  corte ingênuo erra — sufixo de geração viaja com o sobrenome ("Ana de Souza Neto" → "Ana Souza
+  Neto", não "Ana Neto") e partícula não vale como nome.
+- **`sanearCargos`** — a etiqueta debaixo do nome mostra o **cargo**, não o nível de acesso: são
+  perguntas diferentes ("quem é esta pessoa?" contra "o que ela pode fazer?"). O campo guardava
+  "Dono do Sistema" desde a semente, que é vocabulário de permissão. Era **dado errado, não rótulo
+  errado**.
+
+> **E corrigir a semente não bastou.** A etiqueta seguia errada no navegador da operação um dia
+> depois: a persistência versiona por formato e descarta tudo na virada, então não há migração
+> pontual, e derrubar a versão inteira por causa de uma string apagaria os dados de todos.
+> `sanearCargos` roda na leitura e corrige só o valor que um defeito antigo escreveu — mesma lógica
+> do `semIdsRepetidos` ([09 §3](09_fundacoes_tecnicas.md)).
+
+### A legibilidade da grade, e o defeito que a subida revelou
+
+Queixa: *"os dados não estão legíveis… no monitor pequeno fica visível, mas no grande parece que
+fica pixelado"*.
+
+**"Pixelado" é literal, e o diagnóstico muda o alvo.** Monitor grande costuma ter densidade *menor*
+que um notebook — 32" em 1440p dá ~93 PPI contra ~147 de uma tela de 15". O dado estava em ~10px, e
+10px com menos pixels por caractere não fica pequeno: fica **áspero**. A saída já estava escrita no
+código desde 11/08 — *"se a queixa for 'o dado está pequeno', a saída é subir a régua inteira"*.
+
+O achado veio de um **teste**, não do olho. Ao subir a régua, a guarda da hierarquia reprovou: a
+distância entre cabeçalho e dado, negociada em 5%, havia caído para 4,2% sem ninguém tocar nela. Os
+degraus eram **subtrativos** — o vão absoluto continuou o mesmo e a base cresceu embaixo dele. **A
+hierarquia foi acordada em porcentagem e estava escrita em pixel**, e o comentário do código
+prometia o contrário desde sempre.
+
+Cada camada virou uma **fração da régua**, e a refatoração se pagou na hora seguinte: a operação
+devolveu os quatro tamanhos que queria, e os quatro caíam exatos numa régua de 13,6px. **Um número
+trocado.** Com degraus subtrativos seria um sistema de equações, e cada recalibragem uma chance de
+perder a hierarquia sem perceber — que é exatamente o que tinha acabado de acontecer
+([03 §1.2.6](03_padroes_ui.md)).
+
+### Três botões que nasceram um de cada vez
+
+*"Olha que o Novo projeto está menor"* — e estava: raio, padding e corpo diferentes dos outros dois.
+A correção não foi igualar na mão, foi extrair a forma para uma constante, **porque foi assim que
+eles divergiram**: cada edição mexeu num só. Detalhe fino que quase escapou — o botão preenchido
+precisa da `border` mesmo sendo invisível, senão sai 2px mais baixo com o padding idêntico.
+
+### O que esta rodada ensinou
+
+| Lição | Onde nasceu |
+|---|---|
+| **Num shell de dois planos, só existem dois.** Uma terceira superfície entre eles aparece como linha, por mais sutil que seja o tom | o véu da sidebar |
+| **Relação acordada em porcentagem precisa ser escrita em porcentagem.** Como diferença absoluta, ela se desfaz em silêncio no dia em que a base se move | os degraus da grade |
+| **Corrigir a semente não corrige o que já foi gravado.** Defeito que escreveu dado precisa de reparo na leitura | o cargo "Dono do Sistema" |
+| **Teste que mira classe de cor está preso à decisão estética do dia** | a faixa de abas selecionada por `[class*="111a3a"]` |
+| **Paleta cheia não vira carnaval por ser cheia**, e sim por ter peso irregular | as cinco versões da paleta |
+
+### Os números
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Tons escuros diferentes no produto | 3 | **1** |
+| Matizes escolhidos a dedo na paleta de status | 7 | **0** *(todos por regra)* |
+| Superfícies entre o plano e a folha | 3 | **2** |
+| Suítes de regras | 34 | **35** |
+| Testes de UI | 139 | **140** |
+| Leituras de tela que originaram correção | — | **11** |
+
+---
+
 ## 5.15. Três defeitos apontados pela operação — 12/08/2026, décima rodada
 
 Uma leitura da tela, três defeitos. Os dois primeiros vinham de rodadas anteriores; o terceiro era
@@ -601,7 +731,13 @@ quando a coluna Status **rolava** com a grade. Congelada, as etiquetas ficam par
 nove fundos saturados um sob o outro são o arco-íris que a própria regra condena.
 
 Passou ao par suave (`bg-50` · `text-700` · anel) com **caixa alta**, que devolve por forma o
-destaque que a saturação dava. Contratos e Talentos seguem com a preenchida até serem revistos.
+destaque que a saturação dava.
+
+> **A etiqueta suave durou algumas horas.** A leitura seguinte da operação foi *"cores no quadro, e
+> não na fonte, e menos pastéis"*, e ela estava certa — a regra acertava o **risco** e errava a
+> **causa**. O que produz arco-íris não é saturação: é matiz arbitrário com peso irregular. Ver
+> §5.16 e [03 §1.1.1](03_padroes_ui.md). Contratos e Talentos seguem com a preenchida antiga até
+> serem revistos.
 
 E o tom não bastava. A paleta passou por **cinco versões no mesmo dia** antes de assentar:
 
@@ -634,6 +770,7 @@ deixa o plano aparecer em volta. O vão é o detalhe que faz a diferença entre 
 | Caminhos para nomear pessoas numa área | 2 | **1** |
 | Colunas de pessoas sem papéis | 9 | **0** |
 | Testes de UI | 131 | **139** |
+| Versões de paleta até assentar | — | **5** |
 
 ---
 
