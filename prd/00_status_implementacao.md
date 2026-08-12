@@ -593,6 +593,16 @@ Detalhe em [03 §1.2.9](03_padroes_ui.md).
 
 Nada de tipografia foi tocado: cor, espaçamento e um ícone deram o resultado.
 
+### A etiqueta de status ficou suave, e em caixa alta
+
+A última leitura do dia: *"as cores dos botões de status estão muito carnaval"*. A etiqueta era a
+única preenchida do produto, e a regra que a mantinha assim ([03 §1.1.1](03_padroes_ui.md)) nasceu
+quando a coluna Status **rolava** com a grade. Congelada, as etiquetas ficam paradas e empilhadas —
+nove fundos saturados um sob o outro são o arco-íris que a própria regra condena.
+
+Passou ao par suave (`bg-50` · `text-700` · anel) com **caixa alta**, que devolve por forma o
+destaque que a saturação dava. Contratos e Talentos seguem com a preenchida até serem revistos.
+
 ### Os números
 
 | Medida | Antes | Depois |

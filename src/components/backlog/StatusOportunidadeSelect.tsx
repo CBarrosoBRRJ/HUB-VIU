@@ -147,8 +147,20 @@ export function StatusOportunidadeSelect({
     </span>
   );
 
+  /*
+    A etiqueta é **suave e em caixa alta** desde 12/08/2026.
+
+    Era a única preenchida do produto — fundo `500` e texto branco —, e a regra que a mantinha assim
+    ([03 §1.1.1]) nasceu quando a coluna Status rolava junto com o resto da grade. Hoje ela é
+    **congelada**: as etiquetas ficam paradas e empilhadas enquanto a tabela corre ao lado, e nove
+    fundos saturados um sob o outro viram o arco-íris que a própria §1.1.1 condena.
+
+    A caixa alta é o que devolve o destaque que a saturação dava — pedido junto, e as duas coisas se
+    completam: o status continua sendo o elemento mais visível da linha, agora por **posição e
+    forma** em vez de cor cheia.
+  */
   const conteudoSelo = (
-    // Duas linhas em vez de corte: "Aguardando Feedback" não cabe em 110px numa linha só.
+    // Duas linhas em vez de corte: "AGUARDANDO FEEDBACK" não cabe em 110px numa linha só.
     <span className="line-clamp-2">{rotulo}</span>
   );
 
@@ -178,7 +190,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white ${alturaFixa} ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${status.suave}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -199,7 +211,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white transition hover:brightness-110 ${alturaFixa} ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${status.suave}`}
       >
         {conteudoSelo}
         {seloBadge}

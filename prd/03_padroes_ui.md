@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.9 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 4.0 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -37,12 +37,33 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 
 | Tipo | Estilo | Onde |
 |------|--------|------|
-| **Preenchida** (fundo sólido, texto branco) | `bg-<cor>-500` | Apenas o **status do registro** — dado primário do quadro |
-| **Suave** (fundo tênue, texto forte, anel) | `bg-<cor>-50 text-<cor>-700 ring-1 ring-<cor>-200` | Atributos de pessoa: perfil, situação, papel na equipe |
+| **Suave** (fundo tênue, texto forte, anel) | `bg-<cor>-50 text-<cor>-700 ring-1 ring-<cor>-200` | **O padrão** — status do registro, perfil, situação, papel na equipe |
+| **Pastel** (barra ou faixa) | `bg-<cor>-300` | Superfícies repetidas: as barras do cabeçalho (§1.2.9) |
+| **Preenchida** (fundo sólido, texto branco) | `bg-<cor>-500` | Contratos e Talentos, por ora — ver a nota abaixo |
 
 > **Por quê:** com tudo preenchido, cinco cores saturadas competiam por atenção na mesma linha e
 > a grade virava um arco-íris. A etiqueta suave mantém o significado da cor sem disputar com o
-> conteúdo — e o status, que é o que importa no quadro, volta a ser o elemento mais visível.
+> conteúdo.
+
+> #### A exceção do status caiu no Backlog — 12/08/2026
+>
+> Este documento dizia, desde a primeira versão, que a preenchida valia **"apenas para o status do
+> registro — dado primário do quadro"**, e o argumento era bom: o status precisa ser o elemento
+> mais visível da linha.
+>
+> **O que mudou foi o contexto, não o argumento.** A regra nasceu quando a coluna Status rolava
+> junto com o resto da grade — uma etiqueta cheia por linha, entre colunas de texto. Depois disso a
+> coluna virou **congelada**: as etiquetas ficam paradas e empilhadas enquanto a tabela corre ao
+> lado, e nove fundos saturados um sob o outro produzem exatamente o arco-íris que o parágrafo
+> acima condena. *"As cores dos botões de status estão muito carnaval"* — operação, 12/08/2026.
+>
+> O status continua sendo o elemento mais visível da linha; o destaque agora vem de **posição**
+> (segunda coluna, congelada), **forma** (caixa alta, `font-bold`) e **anel**, não de saturação.
+>
+> **Contratos e Talentos ainda usam a preenchida.** Não por decisão, e sim porque a leitura foi
+> feita no Backlog — a mudança fica para quando cada página for revista, como manda o trabalho por
+> quadro. Registrado aqui para que a diferença entre os quadros seja lida como pendência, e não
+> como padrão.
 
 > ⚠️ Classes do Tailwind 4 precisam existir **literais** no código. Nunca `bg-${cor}-500`.
 

@@ -1640,6 +1640,19 @@ describe('correções da rodada de 11/08/2026', () => {
       expect(etiqueta.className, 'a altura da etiqueta é fixa e em em')
         .toContain('min-h-[calc(2.5em+0.5rem)]');
       expect(etiqueta.className, 'e a largura é a da coluna').toContain('w-full');
+
+      /*
+        **Suave e em caixa alta**, não preenchida — 12/08/2026.
+
+        A etiqueta era a única do produto com fundo `500` e texto branco. A regra que a mantinha
+        assim ([03 §1.1.1]) nasceu quando a coluna Status rolava junto com a grade; congelada, as
+        etiquetas ficam paradas e empilhadas, e nove fundos saturados viram o arco-íris que a
+        própria regra condena. A caixa alta devolve o destaque que a saturação dava.
+      */
+      expect(etiqueta.className, 'a etiqueta usa o par suave, com anel').toContain('ring-1');
+      expect(etiqueta.className, 'e caixa alta').toContain('uppercase');
+      expect(etiqueta.className, 'sem fundo saturado').not.toMatch(/bg-\w+-500/);
+      expect(etiqueta.className, 'e sem texto branco sobre cor cheia').not.toContain('text-white');
     }
   });
 

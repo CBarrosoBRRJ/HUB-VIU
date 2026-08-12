@@ -37,20 +37,35 @@ export const STATUS_OPORTUNIDADE: {
    * dela ali — e para de disputar com o conteúdo do cartão.
    */
   barra: string;
+  /**
+   * O par **suave** — fundo tênue, texto forte, anel. É o que a etiqueta da grade usa.
+   *
+   * A etiqueta de status era a única preenchida do produto, e a regra que a mantinha assim está em
+   * [03 §1.1.1](../../prd/03_padroes_ui.md): *"o status é o que importa no quadro, e volta a ser o
+   * elemento mais visível"*. Ela foi escrita quando a coluna Status rolava junto com o resto.
+   *
+   * Hoje a coluna é **congelada**: as etiquetas ficam paradas e empilhadas enquanto a grade corre
+   * ao lado, e nove fundos saturados um sob o outro produzem exatamente o arco-íris que a mesma
+   * §1.1.1 condena — *"as cores dos botões de status estão muito carnaval"* (operação, 12/08/2026).
+   *
+   * O status continua sendo o elemento mais visível da linha, mas por **posição** (segunda coluna,
+   * congelada) e **forma** (caixa alta), não por saturação.
+   */
+  suave: string;
   /** O SLA de triagem corre neste status? */
   emTriagem?: boolean;
   /** Fim de linha: não há mais o que acompanhar. */
   encerra?: boolean;
 }[] = [
-  { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', barra: 'bg-slate-300', emTriagem: true },
-  { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500', barra: 'bg-sky-300' },
-  { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500', barra: 'bg-indigo-300' },
-  { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500', barra: 'bg-violet-300' },
-  { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500', barra: 'bg-amber-300' },
-  { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500', barra: 'bg-yellow-300' },
-  { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', barra: 'bg-emerald-300', encerra: true },
-  { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', barra: 'bg-rose-300', encerra: true },
-  { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', barra: 'bg-slate-200', encerra: true },
+  { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', barra: 'bg-slate-300', suave: 'bg-slate-100 text-slate-700 ring-slate-300', emTriagem: true },
+  { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500', barra: 'bg-sky-300', suave: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500', barra: 'bg-indigo-300', suave: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
+  { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500', barra: 'bg-violet-300', suave: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500', barra: 'bg-amber-300', suave: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500', barra: 'bg-yellow-300', suave: 'bg-yellow-50 text-yellow-700 ring-yellow-200' },
+  { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', barra: 'bg-emerald-300', suave: 'bg-emerald-50 text-emerald-700 ring-emerald-200', encerra: true },
+  { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', barra: 'bg-rose-300', suave: 'bg-rose-50 text-rose-700 ring-rose-200', encerra: true },
+  { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', barra: 'bg-slate-200', suave: 'bg-slate-100 text-slate-600 ring-slate-300', encerra: true },
 ];
 
 export function getStatus(id: StatusOportunidade) {
