@@ -139,24 +139,23 @@ describe('a escala de texto', () => {
         régua encolhia junto com a raiz. **Este é o número que a queixa "nas telas pequenas não dá
         para ver" derrubou**, e o piso existe para ele não voltar por descuido.
 
-        **Os pisos subiram em 12/08/2026**, com a régua: 9,4 → 11,4 no dado, 8,9 → 11,9 no
-        cabeçalho. A queixa que os moveu foi *"no monitor pequeno fica visível, mas no grande
-        parece que fica pixelado"* — e "pixelado" é literal: monitor grande costuma ter densidade
-        **menor** que um notebook (32" em 1440p dá ~93 PPI contra ~147 de uma tela de 15"), e 10px
-        com menos pixels por caractere não fica pequeno, fica áspero.
+        **Os pisos subiram em 12/08/2026**, com a régua, e depois desceram na calibração: a
+        primeira tentativa levou o dado a 11,0px e a operação achou grande. Ela devolveu os quatro
+        números que queria, e o piso passou a ser **o valor que ela escolheu**, com margem de
+        décimo — 9,9 no dado, 10,4 no cabeçalho.
 
-        **11px é o número que importa aqui**, não 10: é onde texto pequeno para de depender da
-        densidade da tela para ser lido. Por isso o piso não é mais "o menor valor que já esteve na
-        tela sem queixa" — é o limiar abaixo do qual a queixa volta em algum monitor.
+        Estes números não são teoria, são veredito de tela. O que o piso protege é que ninguém
+        volte abaixo deles por descuido: foi de ~10px que veio a queixa de "pixelado" no monitor
+        grande, e a diferença entre 9,9 e o que havia antes está toda na régua, não no degrau.
       */
-      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(10.9);
+      expect(dado, `dado ficaria em ${dado.toFixed(1)}px em ${largura}px`).toBeGreaterThanOrEqual(9.9);
       /*
         O cabeçalho é caixa alta, então tolera mais — mas ele **sobe junto** com o dado, e não por
         conta própria: a régua é uma só, e a hierarquia entre as camadas é o que a operação pediu
         que não se perdesse ("mas que não fique maior que o header").
       */
       expect(rotulo, `cabeçalho ficaria em ${rotulo.toFixed(1)}px em ${largura}px`)
-        .toBeGreaterThanOrEqual(11.5);
+        .toBeGreaterThanOrEqual(10.4);
     }
   });
 

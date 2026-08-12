@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.5 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
+**Versão:** 5.6 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -432,7 +432,7 @@ como o único vazado.
 > | Quando | O quê | Para |
 > |---|---|---|
 > | 12/08/2026 | *"diminuir as fontes dos botões de Status, está muito grande, pode diminuir um cadinho"* | etiqueta de status: `text-apoio` → `text-rotulo` |
-> | 12/08/2026 | *"os dados não estão legíveis… no monitor grande parece que fica pixelado"* | régua da grade: `0.8125rem` → `0.9375rem` (§1.2.6) |
+> | 12/08/2026 | *"os dados não estão legíveis… no monitor grande parece que fica pixelado"* | régua da grade: `0.8125rem` → `0.85rem`, calibrada com ela (§1.2.6) |
 >
 > A escala do produto (`--text-*`) **não se moveu em nenhum dos dois**. A grade tem régua própria.
 >
@@ -517,21 +517,35 @@ O bloco dos degraus, desde 11/08, registrava o custo da inversão de hierarquia 
 > *"Se um dia a queixa for 'o dado está pequeno', a saída não é mexer no degrau: é subir a régua
 > inteira, que move as duas camadas juntas."*
 
-Foi o que se fez — `--texto-grade` de `0.8125rem` para `0.9375rem`, **uma variável só**, respeitando
-a lição do dia anterior (a tentativa recusada mexeu na régua *e* nos degraus, e o cabeçalho saltou
-43% de uma vez).
+Foi o que se fez — **uma variável só**, respeitando a lição do dia anterior (a tentativa recusada
+mexeu na régua *e* nos degraus, e o cabeçalho saltou 43% de uma vez). A primeira tentativa levou a
+régua a `0.9375rem`; a calibração com a operação a assentou em `0.85rem`.
 
-| | Antes | **Agora** |
-|---|---:|---:|
-| Nome do projeto | 13,0 / 13,6px | **15,0 / 15,7px** |
-| Cabeçalho | 10,0 / 10,5px | **11,5 / 12,1px** |
-| Dado da célula | 9,5 / 10,0px | **11,0 / 11,5px** |
-| Selos e legendas | 9,0 / 9,4px | **10,4 / 10,9px** |
+| | Antes | 1ª tentativa | **Calibrado** |
+|---|---:|---:|---:|
+| Nome do projeto | 13,0 / 13,6px | 15,0 / 15,7px | **13,6 / 14,2px** |
+| Cabeçalho | 10,0 / 10,5px | 11,5 / 12,1px | **10,5 / 11,0px** |
+| Dado da célula | 9,5 / 10,0px | 11,0 / 11,5px | **9,9 / 10,4px** |
+| Selos e legendas | 9,0 / 9,4px | 10,4 / 10,9px | **9,4 / 9,9px** |
 
 *(raiz no piso / raiz no monitor de 2535px da operação)*
 
-O custo é densidade: a linha ganha ~2px, o que tira cerca de uma linha por tela cheia. Aceito com a
-mesma lógica de antes — o fluxo recolhível devolve 216px a quem precisa de linhas.
+#### A calibração, e o que ela provou
+
+A régua de 15px foi longe demais. A operação olhou a tela e devolveu **os quatro números que
+queria**, um por camada — 13,6 · 10,5 · 10,0 · 9,5.
+
+E os quatro caem exatos numa régua de **13,6px**, porque as frações já guardavam a relação entre as
+camadas: bastou mover a base. **É o argumento da conversão para proporção, provado no primeiro
+uso.** Com degraus subtrativos, atender a "quero o dado em 9,9 e o cabeçalho em 10,5" seria resolver
+um sistema de equações e recalibrar cada desconto, um por um — e cada recalibragem é uma chance de
+perder a hierarquia sem perceber, que foi exatamente o que aconteceu horas antes.
+
+Aqui foi **um número**. A operação escolhe a densidade que quer; a hierarquia acompanha sozinha.
+
+> **O piso do teste passou a ser o veredito da tela.** Ele não é mais "o menor valor que já esteve
+> em produção sem queixa" nem um limiar teórico de legibilidade: é o número que a operação
+> escolheu, com margem de um décimo. O que ele protege é a volta abaixo dele por descuido.
 
 #### O que a subida revelou: a hierarquia estava implementada na unidade errada
 
