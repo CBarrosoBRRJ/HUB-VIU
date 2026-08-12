@@ -104,8 +104,25 @@ export function nivelDeAcesso(contexto, pagina, nomeadoEmAlgum = false) {
         const participa = equipes.some((e) => getPapelNaEquipe(e, usuario.id) !== null);
         return usuario.perfil === 'admin' || participa ? 'total' : 'nenhum';
     }
-    if (usuario.perfil === 'admin')
-        return 'total';
+    /*
+      **O perfil `admin` não abre quadro por si.** — 12/08/2026
+  
+      Havia aqui um `if (usuario.perfil === 'admin') return 'total'`, e ele furava o modelo inteiro:
+      a equipe podia ter o quadro desligado, as abas fechadas e as colunas ocultas, e um admin via
+      tudo assim mesmo. A tela de Equipes prometia um controle que não existia para essas pessoas.
+  
+      **É a mesma confusão que o comentário logo abaixo já registra sobre o `responsavel`** — "o teto
+      do perfil estava valendo como se fosse escopo" —, sobrevivendo uma linha acima, um nível de
+      perfil adiante. Corrigi-la lá e deixá-la aqui foi meia correção.
+  
+      `admin` é perfil de **administração do sistema**: gerir pessoas, equipes e permissões. Isso
+      continua inteiro (as páginas de administração são resolvidas acima, antes desta linha). O que
+      ele deixa de ser é **credencial de dado** — quanto do Backlog um admin enxerga é pergunta de
+      equipe, como para todo mundo.
+  
+      Quem nunca perde acesso é o **dono** (`ehDono`, no topo desta função). Um super-usuário basta;
+      dois viram a porta dos fundos que ninguém lembra de fechar.
+    */
     const equipesQueLiberam = equipes.filter((equipe) => equipe.paginasPermitidas.includes(pagina) && getPapelNaEquipe(equipe, usuario.id) !== null);
     if (equipesQueLiberam.length > 0) {
         // Perfil é teto: membro nunca alcança o quadro inteiro, seja qual for o papel na equipe.
@@ -340,7 +357,17 @@ export function podeCriarRegistro(contexto, pagina) {
 export function podeEditarRegistro(contexto, pagina, contrato) {
     if (escritaBloqueada(contexto))
         return false;
-    if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin')
+    /*
+      Escrita não tem atalho de perfil — 12/08/2026.
+  
+      Havia aqui `|| contexto.usuario.perfil === 'admin'`, e o comentário logo abaixo já explicava,
+      para o `responsavel`, por que isso é errado. **O mesmo furo estava uma linha acima, num nível
+      de perfil adiante** — e foi a terceira vez que ele apareceu no arquivo (ver `nivelDeAcesso`).
+  
+      Deixar o admin editar o que ele não enxerga é pior que deixá-lo ler: a leitura ao menos
+      aparece na tela. Delegar ao nível mantém as duas coerentes por construção.
+    */
+    if (ehDono(contexto.usuario))
         return true;
     /*
       Escrita segue a leitura: quem enxerga o quadro todo edita o quadro todo; quem enxerga só as
@@ -371,7 +398,17 @@ export function podeExcluirRegistro(contexto, pagina, contrato) {
 export function podeEditarTalento(contexto, talento) {
     if (escritaBloqueada(contexto))
         return false;
-    if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin')
+    /*
+      Escrita não tem atalho de perfil — 12/08/2026.
+  
+      Havia aqui `|| contexto.usuario.perfil === 'admin'`, e o comentário logo abaixo já explicava,
+      para o `responsavel`, por que isso é errado. **O mesmo furo estava uma linha acima, num nível
+      de perfil adiante** — e foi a terceira vez que ele apareceu no arquivo (ver `nivelDeAcesso`).
+  
+      Deixar o admin editar o que ele não enxerga é pior que deixá-lo ler: a leitura ao menos
+      aparece na tela. Delegar ao nível mantém as duas coerentes por construção.
+    */
+    if (ehDono(contexto.usuario))
         return true;
     const nomeado = nomeadosDoTalento(talento).includes(contexto.usuario.id);
     const nivel = nivelDeAcesso(contexto, 'talentos', nomeado);
@@ -392,7 +429,17 @@ export function nomeadosDoBacklog(oportunidade) {
 export function podeEditarOportunidade(contexto, oportunidade) {
     if (escritaBloqueada(contexto))
         return false;
-    if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin')
+    /*
+      Escrita não tem atalho de perfil — 12/08/2026.
+  
+      Havia aqui `|| contexto.usuario.perfil === 'admin'`, e o comentário logo abaixo já explicava,
+      para o `responsavel`, por que isso é errado. **O mesmo furo estava uma linha acima, num nível
+      de perfil adiante** — e foi a terceira vez que ele apareceu no arquivo (ver `nivelDeAcesso`).
+  
+      Deixar o admin editar o que ele não enxerga é pior que deixá-lo ler: a leitura ao menos
+      aparece na tela. Delegar ao nível mantém as duas coerentes por construção.
+    */
+    if (ehDono(contexto.usuario))
         return true;
     const nomeado = nomeadosDaOportunidade(oportunidade).includes(contexto.usuario.id);
     const nivel = nivelDeAcesso(contexto, 'backlog', nomeado);

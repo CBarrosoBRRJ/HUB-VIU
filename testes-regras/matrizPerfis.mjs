@@ -16,6 +16,7 @@ import {
   equipesVisiveis, podeGerenciarEquipe, podeDefinirAcessoDaEquipe,
 } from './utils/permissoes.js';
 import { nomeadosDoTalento, contarTalentos } from './utils/talentos.js';
+import { getPapelNaEquipe } from './utils/equipes.js';
 import { VISOES, podeVerVisao, visoesDoQuadro, colunaOculta } from './utils/visoes.js';
 import { colunasDaVisao, TODAS_AS_COLUNAS } from './utils/colunas.js';
 import { filtrarTalentos } from './utils/busca.js';
@@ -115,9 +116,12 @@ for (const usuario of USUARIOS_SEED) {
     }
   }
 
-  // Dono e admin nunca ficam de fora de um quadro.
-  if (ehDono(usuario) || usuario.perfil === 'admin') {
-    ok(`${usuario.nome}: dono/admin vê tudo em todo quadro`,
+  /*
+    **Só o dono nunca fica de fora.** Até 12/08/2026 o admin entrava aqui junto, e era o furo que a
+    operação encontrou: equipe configurada, acesso simulado, e o admin via tudo assim mesmo.
+  */
+  if (ehDono(usuario)) {
+    ok(`${usuario.nome}: o dono vê tudo em todo quadro`,
       PAGINAS_WORKSPACE.every((p) => nivelDeAcesso(ctx(usuario), p.id) === 'total'));
   }
 }
@@ -149,9 +153,23 @@ for (const usuario of USUARIOS_SEED) {
   ok(`${usuario.nome}: abas abertas nunca são negadas`,
     abertas.every((a) => podeVerVisao(ctx(usuario), a.id, ehDono(usuario))));
 
-  if (ehDono(usuario) || usuario.perfil === 'admin') {
-    ok(`${usuario.nome}: dono/admin vê as 6 abas`,
+  if (ehDono(usuario)) {
+    ok(`${usuario.nome}: o dono vê as 6 abas`,
       abas.every((a) => podeVerVisao(ctx(usuario), a.id, ehDono(usuario))));
+  }
+
+  /*
+    O contrapositivo, que é a garantia que a operação pediu: **aba sensível não abre sem liberação
+    da equipe**, seja qual for o perfil. Sem isto, a correção poderia ser desfeita por um atalho
+    novo em qualquer camada, e o teste continuaria verde.
+  */
+  if (!ehDono(usuario)) {
+    const semLiberacao = abas.filter(
+      (a) => a.restrita && !equipes.filter((e) => getPapelNaEquipe(e, usuario.id) !== null)
+        .some((e) => (e.visoesLiberadas ?? []).includes(a.id)),
+    );
+    ok(`${usuario.nome}: aba sensível sem liberação não abre`,
+      semLiberacao.every((a) => !podeVerVisao(ctx(usuario), a.id, false)));
   }
 }
 

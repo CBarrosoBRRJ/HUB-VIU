@@ -147,7 +147,17 @@ const membroDeOutroQuadro = user('u7', 'membro'); // só eqContratos — não v�
 const forasteiro = user('u9', 'membro');        // equipe nenhuma
 
 check('dono vê tudo', nivelDeAcesso(ctx(dono), 'talentos'), 'total');
-check('admin vê tudo', nivelDeAcesso(ctx(admin), 'talentos'), 'total');
+/*
+  **Admin sem equipe não vê o quadro** — mudou em 12/08/2026.
+
+  Este teste afirmava o contrário, e o afirmava porque a regra era essa: o perfil `admin` devolvia
+  `total` em qualquer quadro. A operação configurou uma equipe, simulou a visualização de um admin
+  e viu tudo aberto — "precisamos ter o controle do que a equipe vê ou não".
+
+  `admin` é perfil de administração do sistema, não credencial de dado. Quem continua acima do
+  modelo é só o dono, na linha acima.
+*/
+check('admin sem equipe no quadro não o vê', nivelDeAcesso(ctx(admin), 'talentos'), 'nenhum');
 check('responsável da equipe vê o quadro todo', nivelDeAcesso(ctx(respDaArea), 'talentos'), 'total');
 // A mudança central: membro da equipe também passa a ver só o que é dele.
 check('membro da equipe vê só o dele', nivelDeAcesso(ctx(membroDaArea), 'talentos'), 'nomeado');
@@ -179,7 +189,8 @@ check('mesma regra vale nos contratos',
 
 console.log('\n--- Quem edita a ficha ---');
 check('dono edita', podeEditarTalento(ctx(dono), marina), true);
-check('admin edita', podeEditarTalento(ctx(admin), marina), true);
+// Mesma regra da leitura (ver a nota acima): sem equipe que abra o quadro, o admin não edita.
+check('admin fora da equipe do quadro não edita', podeEditarTalento(ctx(admin), marina), false);
 check('responsável edita o quadro todo', podeEditarTalento(ctx(respDaArea), marina), true);
 // Perfil é teto, equipe é escopo: sem equipe que enxergue o quadro, o teto não vale nada.
 check('responsável sem equipe NÃO edita', podeEditarTalento(ctx(user('u8', 'responsavel')), marina), false);

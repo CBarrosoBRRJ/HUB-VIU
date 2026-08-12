@@ -139,7 +139,12 @@ export function TalentosTable({
     if (!colunasDaVisao(aba).some((coluna) => coluna.field === sort.field)) setSort(null);
   }, [aba, sort]);
 
-  const colunas = colunasDaVisao(aba);
+  /*
+    Coluna oculta **não entra na tabela** — mesmo tratamento do Backlog (12/08/2026): filtrada na
+    origem, ela some do cabeçalho, das larguras e das linhas de uma vez, em vez de virar borrão.
+  */
+  const colunas = colunasDaVisao(aba).filter((coluna) => !colunasOcultas.includes(coluna.id));
+  // Cinto: nada oculto chega aqui depois do filtro. Fica pelas colunas fixas, fora deste caminho.
   const oculta = (id: string) => colunasOcultas.includes(id);
   /** checkbox + Talento + colunas da aba + Ações. */
   const totalColunas = colunas.length + 3;

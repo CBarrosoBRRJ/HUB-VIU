@@ -98,12 +98,24 @@ ok('Diego também herda de Gestão de Contratos', visiveis(diego).includes('cont
 ok('mas como membro vê só as fichas dele',
   nivelDeAcesso(ctx(diego), 'talentos') === 'nomeado');
 
-etapa('6. Dono e admin passam por cima');
+/*
+  Em 12/08/2026 esta etapa se chamava "Dono e admin passam por cima", e o admin passava mesmo — em
+  tudo. A operação configurou uma equipe, simulou a visualização e viu o admin enxergando o que ela
+  tinha acabado de fechar. `admin` virou perfil de administração do sistema; o dado segue a equipe.
+
+  Ana é `membro` em Gestão de Orçamentos e `responsavel` em Gestão de Produção: das 6 abas de
+  Talentos ela fica com 4 — Contato e Financeiro são sensíveis e nenhuma das duas equipes as
+  libera. As fichas ela continua vendo por inteiro, porque **é responsável** numa equipe que abre
+  o quadro; se fosse só membro, veria apenas as suas.
+*/
+etapa('6. O dono passa por cima; o admin segue a equipe');
 ok('dono vê as 6 abas', visiveis(dono).length === 6);
-ok('admin vê as 6 abas', visiveis(ana).length === 6);
+ok('admin vê 4 das 6 — as sensíveis dependem da equipe dele', visiveis(ana).length === 4);
+ok('e as sensíveis são justamente as que faltam',
+  !visiveis(ana).includes('contato') && !visiveis(ana).includes('financeiro'));
 ok('dono vê as 3 fichas',
   registrosVisiveis(ctx(dono), 'talentos', TALENTOS_SEED, nomeadosDoTalento).length === 3);
-ok('admin vê as 3 fichas',
+ok('admin responsável na equipe vê as 3 fichas',
   registrosVisiveis(ctx(ana), 'talentos', TALENTOS_SEED, nomeadosDoTalento).length === 3);
 
 etapa('7. Candidatos de cada área saem da equipe certa');

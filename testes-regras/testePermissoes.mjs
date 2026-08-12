@@ -78,7 +78,13 @@ check('membro edita onde é parceiro', podeEditarRegistro(ctx(membro), 'contrato
 check('membro NÃO edita o alheio', podeEditarRegistro(ctx(membro), 'contratos', alheio), false);
 check('membro nunca exclui, nem o próprio', podeExcluirRegistro(ctx(membro), 'contratos', meu), false);
 check('responsável edita o quadro todo', podeEditarRegistro(ctx(resp), 'contratos', alheio), true);
-check('admin edita tudo', podeEditarRegistro(ctx(admin), 'contratos', alheio), true);
+/*
+  **Escrita segue leitura, inclusive para o admin** — 12/08/2026. Este `admin` não está em equipe
+  que enxergue Contratos, então não edita: deixá-lo editar o que não vê seria pior que deixá-lo
+  ler, porque a leitura ao menos aparece na tela.
+*/
+check('admin fora da equipe do quadro não edita',
+  podeEditarRegistro(ctx(admin), 'contratos', alheio), false);
 check('sem acesso ao quadro não edita nada', podeEditarRegistro(ctx(forasteiro), 'contratos', meu), false);
 // Regra nova (01/08/2026): a nomeação é uma porta de entrada por si só. Nomear alguém de outra
 // área sem lhe dar acesso produziria um responsável incapaz de abrir o próprio registro.

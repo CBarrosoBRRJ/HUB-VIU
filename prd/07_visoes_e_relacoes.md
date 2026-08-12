@@ -1,5 +1,5 @@
 # PRD 07 — Camadas de Acesso e Relações entre Tabelas
-**Versão:** 3.6 | **Status:** Implementado no front-end | **Data:** 04/08/2026
+**Versão:** 3.7 | **Status:** Implementado no front-end | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Permissão por aba e coluna; relações entre quadros*
 
@@ -59,6 +59,48 @@ Três perguntas diferentes, avaliadas em ordem. Cada uma resolve o que a anterio
 | **Quadro** | Esta pessoa trabalha com isto? | Equipes › Configuração › Quadros |
 | **Aba** | Quais dados deste registro ela precisa? | Equipes › Configuração › Abas sensíveis |
 | **Coluna** | Dentro da aba, o que fica de fora? | Equipes › Configuração › Colunas ocultas |
+
+## 1.9. Toda aba tem interruptor — 12/08/2026
+
+Pedido da operação, junto com o defeito de acesso: *"poderíamos ter o flag da aba inteira, e não
+somente a coluna, para facilitar e agilizar"*.
+
+Faltava mesmo, e a falta era estrutural: **aba aberta não tinha como ser fechada.** Dava para
+desligar coluna por coluna — e a aba **continuava na barra, vazia**, porque a camada de visões só
+sabia responder por abas sensíveis.
+
+Agora as duas direções existem, com padrões opostos e listas próprias:
+
+| Aba | Padrão | Lista | Gesto |
+|-----|--------|-------|-------|
+| sensível (`restrita`) | fechada | `visoesLiberadas` | **liberar** |
+| aberta | visível | `visoesOcultas` | **ocultar** |
+
+> **Duas listas para a mesma pergunta parece duplicação, e não é:** elas guardam exceções a
+> *padrões opostos*. Uma lista só obrigaria a eleger um padrão para os dois casos, e nenhum dos
+> dois serve para o outro — aba sensível precisa nascer fechada, aba aberta precisa nascer visível.
+
+Na tela de Equipes, os dois viram **o mesmo interruptor**, e o tom separa o significado sem
+precisar de legenda: âmbar libera dado sensível, índigo oculta aba aberta. Quem configura não
+precisa saber de qual lista veio a resposta.
+
+Nada de persistência quebrou: `visoesOcultas` é opcional e lida com `?? []`, então equipe gravada
+por versão anterior continua carregando — **não houve virada de versão**, porque não houve
+incompatibilidade de forma ([09 §3](09_fundacoes_tecnicas.md)).
+
+### Coluna oculta agora some, em vez de borrar
+
+*"Não quero mais borrar, pode ser ocultar apenas, mais fácil."* — e é mais fácil de um jeito que
+melhora além da tela.
+
+A coluna é filtrada **na origem**, onde a grade monta as seções. Com isso ela some de tudo o que
+deriva dali de uma vez: cabeçalho, `<colgroup>`, largura congelada, exportação, busca e âncoras de
+rolagem. Antes, cada um desses precisava lembrar de perguntar `oculta()` — **e a exportação já
+tinha esquecido uma vez**. Seção que perde todas as colunas some junto: aba sem coluna não é aba.
+
+O `CelulaOculta` continua no caminho como cinto, não como regra: as âncoras congeladas não passam
+pelo filtro de seções, e se um id fixo aparecer numa lista de ocultas gravada por versão anterior,
+é melhor esconder o dado do que exibi-lo.
 
 ## 2. Duas políticas opostas, de propósito
 

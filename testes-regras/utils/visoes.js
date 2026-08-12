@@ -14,6 +14,23 @@
  * O contrário — tudo fechado até liberar — soa mais seguro e é pior na prática: toda equipe nova
  * nasceria cega, alguém liberaria tudo de uma vez para destravar, e a distinção morreria. Marcar
  * o que é sensível mantém a lista curta e a decisão consciente.
+ *
+ * ## Mas toda aba pode ser fechada — 12/08/2026
+ *
+ * O que faltava não era o padrão, era a **saída do padrão**. Aba aberta não tinha como ser
+ * escondida de uma equipe: dava para desligar coluna por coluna, e a aba ficava lá, vazia, porque
+ * esta camada só sabia responder por abas sensíveis.
+ *
+ * Agora as duas direções existem, com padrões opostos e listas próprias:
+ *
+ * | Aba | Padrão | Lista | Gesto |
+ * |-----|--------|-------|-------|
+ * | sensível (`restrita`) | fechada | `visoesLiberadas` | **liberar** |
+ * | aberta | visível | `visoesOcultas` | **ocultar** |
+ *
+ * Duas listas para a mesma pergunta parece duplicação, e não é: elas guardam **exceções a padrões
+ * opostos**. Uma lista só obrigaria a eleger um padrão para os dois casos, e nenhum dos dois
+ * serve para o outro.
  */
 import { getPapelNaEquipe } from './equipes.js';
 export const VISOES = [
@@ -147,20 +164,43 @@ export function podeVerVisao({ usuario, equipes }, visaoId, ehDono = false) {
     const visao = getVisao(visaoId);
     if (!visao)
         return false;
-    if (ehDono || usuario.perfil === 'admin')
+    if (ehDono)
         return true;
-    if (!visao.restrita)
+    const minhas = equipes.filter((equipe) => getPapelNaEquipe(equipe, usuario.id) !== null);
+    // Sensível: **opt-in**. Sem liberação explícita de alguma equipe, não abre.
+    if (visao.restrita)
+        return minhas.some((e) => (e.visoesLiberadas ?? []).includes(visaoId));
+    /*
+      Aberta: **opt-out**. Sem equipe nenhuma não há quem esconda — e some só se **todas** as
+      equipes da pessoa a esconderem, que é a mesma união de `colunaOculta`: o acesso é sempre a
+      soma do que as equipes dão, nunca a interseção.
+    */
+    if (minhas.length === 0)
         return true;
-    return equipes.some((equipe) => getPapelNaEquipe(equipe, usuario.id) !== null &&
-        (equipe.visoesLiberadas ?? []).includes(visaoId));
+    return !minhas.every((e) => (e.visoesOcultas ?? []).includes(visaoId));
 }
-/** Alterna a liberação de uma visão restrita para a equipe. */
+/** Alterna a liberação de uma visão **restrita** para a equipe. */
 export function alternarVisao(equipe, visaoId) {
     const atuais = equipe.visoesLiberadas ?? [];
     const liberadas = atuais.includes(visaoId)
         ? atuais.filter((id) => id !== visaoId)
         : [...atuais, visaoId];
     return { ...equipe, visoesLiberadas: liberadas };
+}
+/**
+ * Alterna a ocultação de uma visão **aberta** para a equipe — 12/08/2026.
+ *
+ * Pedido da operação: *"poderíamos ter o flag da aba inteira, e não somente a coluna, para
+ * facilitar e agilizar"*. Antes, esconder uma aba aberta exigia desligar coluna por coluna — e
+ * ainda assim a aba **continuava na tela**, vazia, porque `podeVerVisao` só sabia responder por
+ * abas sensíveis.
+ */
+export function alternarVisaoOculta(equipe, visaoId) {
+    const atuais = equipe.visoesOcultas ?? [];
+    const ocultas = atuais.includes(visaoId)
+        ? atuais.filter((id) => id !== visaoId)
+        : [...atuais, visaoId];
+    return { ...equipe, visoesOcultas: ocultas };
 }
 /* ------------------------------------------------------------------ *
  * Terceira camada: colunas
@@ -176,7 +216,8 @@ export function alternarVisao(equipe, visaoId) {
  * união do que as equipes dão, como em todo o resto do modelo.
  */
 export function colunaOculta({ usuario, equipes }, colunaId, ehDono = false) {
-    if (ehDono || usuario.perfil === 'admin')
+    // Só o dono está acima do modelo — ver a nota em `nivelDeAcesso` sobre o perfil `admin`.
+    if (ehDono)
         return false;
     const minhas = equipes.filter((equipe) => getPapelNaEquipe(equipe, usuario.id) !== null);
     if (minhas.length === 0)

@@ -255,8 +255,32 @@ export function BacklogTable({
    * nove — a leitura recomeçava a cada troca. Aqui elas aparecem **uma vez**, fixas, e rolar para
    * o lado atravessa os assuntos em sequência. Ver [03 §3.5](../../prd/03_padroes_ui.md).
    */
-  const { ancoras, secoes } = useMemo(() => gradeContinua(visoesVisiveis), [visoesVisiveis]);
+  /*
+    **Coluna oculta não entra na grade** — 12/08/2026.
+
+    Ela entrava, e virava um borrão de largura preservada. A operação pediu o contrário: *"não
+    quero mais borrar, pode ser ocultar apenas"* — e simplificar aqui melhora mais do que a tela.
+    Filtrada **na origem**, a coluna some de tudo o que deriva daqui de uma vez: cabeçalho,
+    `<colgroup>`, largura congelada, exportação, busca e âncoras de rolagem. Antes, cada um desses
+    precisava lembrar de perguntar `oculta()` — e a exportação já tinha esquecido uma vez.
+
+    Uma seção que perde todas as colunas some junto: aba sem coluna não é aba.
+  */
+  const { ancoras, secoes } = useMemo(() => {
+    const grade = gradeContinua(visoesVisiveis);
+    return {
+      ancoras: grade.ancoras,
+      secoes: grade.secoes
+        .map((secao) => ({ ...secao, colunas: secao.colunas.filter((c) => !colunasOcultas.includes(c.id)) }))
+        .filter((secao) => secao.colunas.length > 0),
+    };
+  }, [visoesVisiveis, colunasOcultas]);
   const colunasRolantes = useMemo(() => secoes.flatMap((secao) => secao.colunas), [secoes]);
+  /*
+    O cinto, não a regra: nenhuma coluna oculta chega até aqui depois do filtro acima. Ele fica
+    porque as **âncoras congeladas** não passam por `secoes` — se um id fixo aparecer numa lista
+    de ocultas gravada por uma versão anterior, é melhor esconder o dado do que exibi-lo.
+  */
   const oculta = (id: string) => colunasOcultas.includes(id);
   // checkbox + âncoras + nome + rolantes + ações
   const totalColunas = ancoras.length + colunasRolantes.length + 3;

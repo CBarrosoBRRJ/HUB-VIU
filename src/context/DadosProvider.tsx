@@ -33,7 +33,7 @@ import {
   alternarResponsavelDaArea, encontrarTalentoPorNome, nomeadosDoTalento, nomeEmUso,
   normalizarNomeDeMarca, REDES_VAZIAS,
 } from '../utils/talentos';
-import { alternarColuna, alternarVisao } from '../utils/visoes';
+import { alternarColuna, alternarVisao, alternarVisaoOculta } from '../utils/visoes';
 import {
   alternarPapelNaArea, bloqueadaPorPendencias,
   comPendenciaAberta, comPendenciaChegada,
@@ -298,6 +298,8 @@ interface DadosContextValue {
 
   /** Liga/desliga uma visão **restrita** para a equipe (dado pessoal, financeiro). */
   alternarVisaoDaEquipe: (equipeId: string, visaoId: string) => void;
+  /** Oculta/reexibe uma aba **aberta** para a equipe — o espelho da liberação. */
+  alternarVisaoOcultaDaEquipe: (equipeId: string, visaoId: string) => void;
   /** Oculta/mostra uma coluna para a equipe — bloqueio por exceção. */
   alternarColunaDaEquipe: (equipeId: string, colunaId: string) => void;
 
@@ -818,6 +820,14 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     if (!podeDefinirAcessoDaEquipe(sessaoRef.current)) return;
     setEquipes((atuais) =>
       atuais.map((equipe) => (equipe.id === equipeId ? alternarVisao(equipe, visaoId) : equipe)),
+    );
+  }, []);
+
+  /** Mesma guarda: quem não configura acesso não esconde aba. */
+  const alternarVisaoOcultaDaEquipe = useCallback((equipeId: string, visaoId: string) => {
+    if (!podeDefinirAcessoDaEquipe(sessaoRef.current)) return;
+    setEquipes((atuais) =>
+      atuais.map((equipe) => (equipe.id === equipeId ? alternarVisaoOculta(equipe, visaoId) : equipe)),
     );
   }, []);
 
@@ -1954,6 +1964,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       alternarPaginaDaEquipe,
       definirAreaDaEquipe,
       alternarVisaoDaEquipe,
+      alternarVisaoOcultaDaEquipe,
       alternarColunaDaEquipe,
       recomecarDoZero,
       definirMembroDaEquipe,
@@ -1985,7 +1996,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       receberOportunidades, nivelDoQuadro, linksEquipe, linkDaEquipe,
       renovarLinkDaEquipe, desativarLinkDaEquipe, getLinkPorToken, entrarPorLink, criarSolicitacao, decidirSolicitacao, criarEquipe,
       renomearEquipe, excluirEquipe, alternarPaginaDaEquipe, definirAreaDaEquipe,
-      alternarVisaoDaEquipe, alternarColunaDaEquipe, recomecarDoZero, definirMembroDaEquipe,
+      alternarVisaoDaEquipe, alternarVisaoOcultaDaEquipe, alternarColunaDaEquipe, recomecarDoZero, definirMembroDaEquipe,
       removerMembroDaEquipe,
       desfazerAlteracao, refazerAlteracao, passado, futuro, avisoHistorico,
     ],

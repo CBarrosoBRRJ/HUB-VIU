@@ -190,6 +190,14 @@ export interface Equipe {
    */
   visoesLiberadas?: string[];
   /**
+   * Abas **abertas** que esta equipe não vê — o espelho de `visoesLiberadas`.
+   *
+   * As duas listas existem porque os padrões são opostos, e de propósito: aba sensível nasce
+   * fechada e precisa de liberação; aba aberta nasce visível e precisa de ocultação. Uma lista só
+   * obrigaria a escolher um padrão para as duas, e nenhum dos dois serve para o outro caso.
+   */
+  visoesOcultas?: string[];
+  /**
    * Colunas **ocultas** para a equipe (ids de `TODAS_AS_COLUNAS`).
    *
    * Bloqueio por exceção, ao contrário das visões: quem vê a aba vê as colunas dela, menos estas.

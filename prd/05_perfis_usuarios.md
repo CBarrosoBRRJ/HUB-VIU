@@ -1,5 +1,5 @@
 # PRD 05 — Perfis, Permissões e Isolamento de Dados
-**Versão:** 6.2 | **Status:** Implementado no front-end | **Data:** 04/08/2026
+**Versão:** 6.3 | **Status:** Implementado no front-end | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Perfis, permissões e onboarding*
 
@@ -145,6 +145,71 @@ Seleção por checkbox e, na barra: **definir situação**, **adicionar/remover 
 > os ignorados faria o operador acreditar que mudou 10 quando mudou 7.
 
 ---
+
+## 2.9. O perfil `admin` não é credencial de dado — 12/08/2026
+
+Reporte da operação: *"coloco que X equipe não pode ver N abas ou N colunas, mas quando simulo a
+visualização, a pessoa continua vendo tudo"*. E depois: *"ele também não está ocultando as
+páginas"*.
+
+Estava certo nos três níveis, e a causa era uma só.
+
+### O furo, e as quatro vezes que ele apareceu
+
+`usuario.perfil === 'admin'` curto-circuitava **todas** as camadas de dado:
+
+| Onde | O que fazia |
+|---|---|
+| `nivelDeAcesso` | `admin` → `total` em qualquer quadro |
+| `podeVerVisao` | `admin` → abre aba sensível sem liberação |
+| `colunaOculta` | `admin` → nenhuma coluna oculta |
+| `podeEditarRegistro` · `podeEditarTalento` · `podeEditarOportunidade` | `admin` → edita tudo |
+
+O detalhe que mais incomoda: em `nivelDeAcesso` e em `podeEditarRegistro` havia, **logo abaixo da
+linha do furo**, um comentário explicando por que exatamente aquilo era errado para o perfil
+`responsavel` — corrigido numa rodada anterior:
+
+> *"Antes bastava o perfil `responsavel`, de onde quer que ele viesse — e isso furava a regra
+> central do modelo. O teto do perfil estava valendo como se fosse escopo."*
+
+**A lição estava escrita e não tinha sido aplicada um nível de perfil acima.** Meia correção
+envelhece pior que nenhuma: ela deixa o comentário certo ao lado do código errado, e quem lê
+confia no comentário.
+
+### A regra agora
+
+**`admin` é perfil de administração do sistema** — gerir pessoas, equipes, convites e permissões.
+Isso permanece inteiro: as páginas de administração são resolvidas antes das camadas de dado, e
+`equipesVisiveis`, `podeGerenciarEquipe`, `podeCriarUsuario` e afins seguem com o atalho, porque
+ali administrar *é* o assunto.
+
+O que ele deixa de ser é **credencial de dado**: quanto do Backlog um admin enxerga é pergunta de
+equipe, como para qualquer pessoa.
+
+> **Um super-usuário basta.** Quem continua acima do modelo é só o **dono** (`ehDono`) — e ele é
+> reconhecido por uma flag própria, não por perfil. Dois super-usuários viram a porta dos fundos
+> que ninguém lembra de fechar.
+
+O efeito imediato, medido no seed: Ana Martins (admin, membro em Orçamentos e responsável em
+Produção) passou de 6/6 para **4/6 abas** em Talentos — Contato e Financeiro são sensíveis e
+nenhuma das duas equipes as libera. É exatamente o controle que a tela de Equipes prometia.
+
+### Escrita segue leitura, e isso importa mais
+
+As três funções de edição perderam o atalho junto. **Ler o que não se deveria ao menos aparece na
+tela; editar o que não se enxerga não deixa rastro nenhum para quem usa** — e era o que acontecia,
+porque a leitura foi corrigida antes da escrita e a matriz de perfis pegou a inconsistência na
+mesma rodada.
+
+### `testeAdminNaoFura`
+
+Suíte própria, e separada de propósito: ela não verifica o comportamento de um usuário do seed —
+verifica a **regra**. Para um admin sem equipe, toda camada de dado responde "não"; para o dono,
+"sim". Um atalho novo em qualquer uma delas a quebra na hora.
+
+A `matrizPerfis` ganhou o contrapositivo: **aba sensível não abre sem liberação da equipe, seja
+qual for o perfil.** Sem ele, a correção poderia ser desfeita por um atalho em camada nova e o
+teste continuaria verde.
 
 ## 3. Matriz de permissões
 

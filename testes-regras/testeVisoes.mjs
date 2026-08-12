@@ -59,7 +59,12 @@ const semLiberacao = user('u5', 'membro');
 const comContato = user('u6', 'membro');
 
 check('dono vê a aba restrita', podeVerVisao(ctx(dono), 'talentos:financeiro', true), true);
-check('admin vê a aba restrita', podeVerVisao(ctx(admin), 'talentos:financeiro'), true);
+/*
+  O admin perdeu o atalho em 12/08/2026: aba sensível exige liberação **da equipe dele**, como
+  para qualquer pessoa. Ver a nota em `nivelDeAcesso`.
+*/
+check('admin sem liberação não vê a aba restrita',
+  podeVerVisao(ctx(admin), 'talentos:financeiro'), false);
 check('aba aberta dispensa liberação', podeVerVisao(ctx(semLiberacao), 'talentos:redes'), true);
 check('aba restrita sem liberação: não', podeVerVisao(ctx(semLiberacao), 'talentos:contato'), false);
 check('aba restrita liberada: sim', podeVerVisao(ctx(comContato), 'talentos:contato'), true);

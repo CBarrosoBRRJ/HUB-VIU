@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Eye, EyeOff, LayoutGrid, Lock, Star, TriangleAlert } from 'lucide-react';
+import { EyeOff, LayoutGrid, Lock, Star, TriangleAlert } from 'lucide-react';
 import { AppPage, Equipe, PAGINAS_WORKSPACE } from '../../types';
 import { useDados } from '../../context/DadosProvider';
 import { AREAS } from '../../utils/talentos';
@@ -27,11 +27,22 @@ import { Switch } from '../ui/Switch';
 export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
   const {
     equipes, alternarPaginaDaEquipe, definirAreaDaEquipe, alternarVisaoDaEquipe,
-    alternarColunaDaEquipe,
+    alternarVisaoOcultaDaEquipe, alternarColunaDaEquipe,
   } = useDados();
 
   const ocultas = equipe.colunasOcultas ?? [];
   const liberadas = equipe.visoesLiberadas ?? [];
+  const abasOcultas = equipe.visoesOcultas ?? [];
+
+  /**
+   * A aba está fechada para esta equipe? — 12/08/2026
+   *
+   * Duas perguntas com padrões opostos, respondidas por uma função só: sensível fecha por falta
+   * de liberação, aberta fecha por ocultação explícita. Quem desenha a tela não precisa saber de
+   * qual das duas listas veio a resposta.
+   */
+  const abaFechada = (aba: { id: string; restrita?: boolean }) =>
+    aba.restrita ? !liberadas.includes(aba.id) : abasOcultas.includes(aba.id);
 
   const quadros = useMemo(
     () => PAGINAS_WORKSPACE.filter((pagina) => equipe.paginasPermitidas.includes(pagina.id)),
@@ -57,7 +68,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
       .flatMap((visao) => colunasDaVisao(visao.id))
       .filter((coluna) => ocultas.includes(coluna.id)).length;
     const restritasFechadas = visoes.filter(
-      (visao) => visao.restrita && !liberadas.includes(visao.id),
+      (visao) => (visao.restrita ? !liberadas.includes(visao.id) : abasOcultas.includes(visao.id)),
     ).length;
 
     return { totalColunas, escondidas, restritasFechadas };
@@ -156,9 +167,11 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
           <div className="px-5 py-4">
             <p className="mb-4 text-apoio leading-snug text-slate-500">
               Abas de <strong className="font-semibold text-slate-500">dado sensível</strong> vêm
-              desligadas e precisam ser liberadas. As demais seguem o acesso do quadro. Dentro de
-              cada uma, desligue as colunas que a equipe não deve ver — a célula vira um borrão e a
-              largura é preservada, então a tabela não se desmonta.
+              desligadas e precisam ser liberadas; as demais vêm ligadas. Em qualquer uma,{' '}
+              <strong className="font-semibold text-slate-500">o interruptor da aba fecha tudo de
+              uma vez</strong> — ou desligue coluna por coluna, quando for só uma parte. O que
+              estiver desligado <strong className="font-semibold text-slate-500">não aparece</strong>{' '}
+              para a equipe: nem a aba na barra, nem a coluna na tabela.
             </p>
 
             {abas.length === 0 && (
@@ -169,7 +182,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
 
             <div className="space-y-4">
               {abas.map((aba) => {
-                const restritaFechada = aba.restrita && !liberadas.includes(aba.id);
+                const fechada = abaFechada(aba);
                 const colunas = colunasOcultaveis(aba.id);
                 const fixas = colunasDaVisao(aba.id).length - colunas.length;
 
@@ -177,27 +190,31 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                   <div
                     key={aba.id}
                     className={`rounded-xl border p-3 transition ${
-                      restritaFechada ? 'border-slate-200 bg-slate-50/60' : 'border-slate-200'
+                      fechada ? 'border-slate-200 bg-slate-50/60' : 'border-slate-200'
                     }`}
                   >
                     {/* Cabeçalho da aba */}
                     <div className="flex flex-wrap items-center gap-2">
-                      {aba.restrita ? (
-                        <Switch
-                          ligado={liberadas.includes(aba.id)}
-                          onChange={() => alternarVisaoDaEquipe(equipe.id, aba.id)}
-                          label={`Aba ${aba.label}`}
-                          tom="ambar"
-                          size="sm"
-                        />
-                      ) : (
-                        <span
-                          title="Aba aberta — segue o acesso do quadro"
-                          className="flex size-4 items-center justify-center text-emerald-500"
-                        >
-                          <Eye className="size-3.5" />
-                        </span>
-                      )}
+                      {/*
+                        **Toda aba tem interruptor** — pedido da operação em 12/08/2026. Antes, só
+                        as sensíveis tinham: fechar uma aba aberta exigia desligar coluna por
+                        coluna, e a aba continuava na barra, vazia.
+
+                        O tom separa os dois padrões sem precisar de legenda: âmbar é liberação de
+                        dado sensível, índigo é ocultação de aba aberta.
+                      */}
+                      <Switch
+                        ligado={!fechada}
+                        onChange={() =>
+                          (aba.restrita ? alternarVisaoDaEquipe : alternarVisaoOcultaDaEquipe)(
+                            equipe.id,
+                            aba.id,
+                          )
+                        }
+                        label={`Aba ${aba.label}`}
+                        tom={aba.restrita ? 'ambar' : 'indigo'}
+                        size="sm"
+                      />
 
                       <span className="text-xs font-semibold text-slate-700">{aba.label}</span>
 
@@ -218,7 +235,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                     {/* Colunas */}
                     <div
                       className={`mt-2.5 flex flex-wrap gap-x-4 gap-y-2 ${
-                        restritaFechada ? 'pointer-events-none opacity-40' : ''
+                        fechada ? 'pointer-events-none opacity-40' : ''
                       }`}
                     >
                       {colunas.map((coluna) => {
@@ -260,7 +277,7 @@ export function ConfiguracaoEquipe({ equipe }: { equipe: Equipe }) {
                       </p>
                     )}
 
-                    {restritaFechada && (
+                    {fechada && (
                       <p className="mt-2 flex items-center gap-1 text-rotulo text-slate-500">
                         <EyeOff className="size-3" />
                         A equipe não vê esta aba — as colunas acima não têm efeito.
