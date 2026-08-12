@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.5 | **Status:** Front-end totalmente implementado e auditado | **Data:** 11/08/2026
+**Versão:** 8.6 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -846,6 +846,31 @@ procura (`comValorSemTique`), e o Power BI leria o valor órfão sem saber que f
 tique, a célula da Produção aparece **travada, com o ícone de bloqueio (`Ban`)** e a explicação na
 dica: "este projeto não tem isso" é resposta diferente de "ninguém preencheu ainda".
 
+> #### O defeito que impedia desmarcar — corrigido em 12/08/2026
+>
+> Reporte da operação: *"se eu colocar algum dado, eu não consigo desabilitar"*. E era exato — com
+> valor preenchido, o clique no tique **não fazia absolutamente nada**: sem diálogo, sem erro, sem
+> reação.
+>
+> A causa era uma constante declarada fora de ordem. O catálogo de opções (`LISTAS`) vivia **no
+> meio** do render da célula, depois do bloco dos tiques e antes do bloco das listas — e o de cima
+> a alcançava na *temporal dead zone*, lançando `ReferenceError` justamente ao montar a frase
+> "isto apaga X da coluna Y". Sem valor preenchido o código não chegava a tocá-la, e por isso
+> desmarcar funcionava nesse caso.
+>
+> **O erro era invisível porque a função virou `async`** quando a confirmação deixou de ser
+> `window.confirm` (11/08/2026): exceção em função `async` sem `catch` vira `unhandledrejection` —
+> não aparece na tela, não quebra o render, não deixa rastro para quem está usando. O defeito
+> nasceu com a troca do diálogo e sobreviveu a uma suíte inteira verde.
+>
+> A correção foi mover o catálogo para o escopo do módulo (`OPCOES_DA_COLUNA`), onde nenhuma ordem
+> de declaração o alcança antes da hora — e a duplicação sumiu junto: os dois blocos que o usavam
+> passaram a ler a mesma fonte.
+>
+> **A lição:** função `async` em manipulador de evento engole exceção. Onde o gesto depende dela, o
+> teste precisa exercitar o **caminho com dado**, e não só o caminho vazio — foi exatamente a
+> diferença entre uma suíte verde e um botão morto.
+
 #### De quatro números para um texto — 03/08/2026
 
 A aba guardava **Reels · Vídeos · Post · Cotas**: quatro contagens, estreitas de propósito. A
@@ -996,9 +1021,9 @@ logo depois da Produção, nesta ordem: primeiro quem responde pelo todo, depois
 produção pequena é a mesma pessoa nas três colunas; o modelo não obriga a diferença, só permite
 registrá-la.
 
-**Orçamento é a única sem `area` declarada.** Tem célula própria, com papéis de responsável e
-apoio; as demais nomeiam só responsáveis. Quem mexer ali precisa saber que `AreaResponsavelCell`
-não a atende.
+**Todas declaram `area`, inclusive Orçamento** — desde 11/08/2026. Era a única exceção, com
+célula própria; quando os papéis de responsável e apoio passaram a valer em toda coluna de pessoas
+(§6.0.3), a exceção perdeu o motivo e saiu. A área é o que leva a coluna ao painel com papéis.
 
 #### A decisão que ela reverte
 
@@ -1323,7 +1348,7 @@ As colunas **próprias** da Demanda, na ordem do catálogo:
 > (§4.3), com a data na dica. **E o Orçamento saiu em 03/08/2026**, com todas as demais colunas
 > de pessoas, para o Time.
 
-#### 6.0.3. Orçamento: responsável e apoio
+#### 6.0.3. Responsável e apoio — em **todas** as colunas de pessoas
 
 Com mais de uma pessoa na área, *"quem responde"* e *"quem ajuda"* são perguntas diferentes — e a
 operação precisa saber a quem cobrar a entrega. O painel mostra **dois botões por pessoa**,
@@ -1334,8 +1359,25 @@ responsável é gesto corrente, e vale um clique, não três.
 
 | | Guardado em | No cartão de perfil |
 |---|---|---|
-| Responsável | `responsaveis.orcamento` | "responsável" |
-| Apoio | `apoios.orcamento` | "parceiro" |
+| Responsável | `responsaveis[area]` | "responsável" |
+| Apoio | `apoios[area]` | "parceiro" |
+
+> #### Valia só para Orçamento até 11/08/2026
+>
+> A distinção nasceu na coluna de Orçamento, com célula própria; as **outras nove** colunas de
+> pessoas nomeavam uma lista plana de responsáveis. A operação pediu a mesma regra em toda parte —
+> *"a regra deve ser como fizemos na de Orçamento"* —, e o argumento que a justificou lá vale
+> igual nas demais: uma dupla de produção tem titular e substituto, e a lista plana dizia que os
+> dois respondem.
+>
+> **A exceção sumiu junto, e isso importa mais que o recurso.** Orçamento era a única coluna sem
+> `area` declarada no catálogo, justamente porque tinha caminho próprio — havia um `if (chave ===
+> 'orcamento')` na tabela desenhando um segundo painel igual ao primeiro. Duas implementações do
+> mesmo desenho divergem, sempre; agora existe **uma célula e um caminho**, e `testeColunas`
+> trava a ausência da exceção em vez da exceção.
+>
+> Saiu junto a ação `alternarResponsavelDaOportunidade` do provider, órfã no mesmo gesto: duas
+> formas de nomear a mesma pessoa na mesma linha divergiriam também.
 
 **Apoios contam como nomeados.** Quem apoia precisa ver a linha — `nomeadosDaOportunidade` inclui
 os dois, e a permissão de edição segue junto.
@@ -1821,8 +1863,29 @@ Consequências que o teste trava (`testeDeclinio.mjs`):
 |-------|--------|---------|
 | Menu de decisão | `Declinado pelo Mercado` | há espaço, e é o momento da escolha |
 | Etiqueta na linha | `Decl. Mercado` | a coluna Status tem ~110px |
-| Card de Finalização | `Mercado 2` | é uma quebra, o contexto já é o declínio |
+| Card de Finalização | `Mercado` + badge `2` | ver abaixo |
 | `title` | nome completo + explicação | onde cabe tudo |
+
+> #### Três leituras da operação até o card ficar de pé — 11 e 12/08/2026
+>
+> | Versão | O que a tela mostrava | O que quebrou |
+> |--------|----------------------|---------------|
+> | Original | `Interno 1` · `Talento 2` | **"Talento 2" lia como um talento numerado** — abreviação colada na contagem |
+> | 1ª correção | `Declinado pelo Talento 2`, um por linha | cada linha repetia "Declinado" sob um cabeçalho escrito **Declinado** |
+> | 2ª correção | `Internamente 1` · `Talento 2`, um por linha | com os três motivos, o card **esticava** e desalinhava do vizinho |
+> | **Atual** | `Internamente` `1` · `Talento` `2`, lado a lado | — |
+>
+> O que ficou: **só a metade que varia** (`soMotivo` — o "Declinado" está no título, três
+> centímetros acima), os três **lado a lado** com `flex-wrap`, e a contagem num **badge** de fundo
+> próprio.
+>
+> O badge é o detalhe que fecha o caso: ele dá a pausa entre o nome e o número que o espaço em
+> branco não dava. Sem ele, voltar ao layout lado a lado devolveria o "Talento 2" da primeira
+> versão — a ambiguidade nunca foi do rótulo, era da **colagem** entre rótulo e contagem.
+>
+> A forma curta (`curto`) continua existindo — e continua certa — **na etiqueta da linha**, onde a
+> coluna tem 106px e a própria coluna Status diz do que se trata. São três rótulos para três
+> lugares, cada um com o espaço e o contexto que tem.
 
 ### A pergunta vem antes, não depois
 

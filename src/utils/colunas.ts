@@ -865,13 +865,17 @@ export const COLUNAS_BACKLOG: Record<string, ColunaCatalogo[]> = {
     },
     {
       /*
-        Orçamento **não declara área**, e é a única assim.
+        Orçamento passou a declarar a área como todas as outras — 11/08/2026.
 
-        Tem célula própria, com papéis de responsável e apoio — as demais nomeiam só responsáveis.
-        Quem mexer aqui precisa saber: `AreaResponsavelCell` não a atende.
+        Ela era a **única exceção**: não declarava `area` porque tinha célula própria, a única com
+        papéis de responsável e apoio. A operação pediu que a distinção valesse para todas as
+        colunas de pessoas ("a regra deve ser como fizemos na de Orçamento"), e com isso a exceção
+        perdeu a razão de existir — some o `if` especial na tabela, e a coluna volta para o caminho
+        comum.
       */
       id: `${B}:time:orcamento`,
       label: 'Orçamento',
+      area: 'orcamento',
       peso: 6,
       largura: 120,
       align: 'center',

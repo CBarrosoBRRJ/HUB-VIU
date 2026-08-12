@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 22.0 | **Data:** 11/08/2026 | **Base:** código em `src/`
+**Versão:** 23.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -525,6 +525,60 @@ forma, não no fim do dia.*
 O rastro de refatorações do dia: um comentário citava o `AREA_DA_ABA` já removido como se existisse,
 e outro prometia que `praca`, `alcanceEstimado` e `publicoAlvo` "continuam no modelo" — a auditoria
 da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem lê confia.
+
+---
+
+## 5.15. Três defeitos apontados pela operação — 12/08/2026, décima rodada
+
+Uma leitura da tela, três defeitos. Os dois primeiros vinham de rodadas anteriores; o terceiro era
+um recurso que existia numa coluna só.
+
+### O card Declinado, e o "Talento 2"
+
+O card abreviava o motivo e colava a contagem: `Talento 2` — que a operação leu como o nome de um
+talento numerado. Foram **três voltas** até assentar: nome inteiro (passou a repetir "Declinado"
+sob um cabeçalho escrito Declinado), um por linha (esticava o card com os três motivos), e enfim
+os três lado a lado com a contagem num **badge**. O badge é o que resolve de fato — a ambiguidade
+nunca foi do rótulo, era da colagem entre rótulo e número ([08 §7.5](08_backlog_e_integracoes.md)).
+
+### O tique que não desmarcava — e o erro que ninguém via
+
+Reporte: *"se eu colocar algum dado, eu não consigo desabilitar"*. Com valor preenchido, o clique
+no tique do Escopo **não fazia nada**: sem diálogo, sem erro, sem reação.
+
+A causa era uma constante declarada fora de ordem — o catálogo `LISTAS` vivia no meio do render,
+depois do bloco que o usava, e o de cima o alcançava na *temporal dead zone*. `ReferenceError`
+exatamente ao montar a frase "isto apaga X da coluna Y".
+
+**O que o tornou invisível foi a mudança de ontem**: a função virou `async` quando a confirmação
+deixou de ser `window.confirm`, e exceção em `async` sem `catch` vira `unhandledrejection` — não
+aparece na tela, não quebra o render, não deixa rastro. O defeito nasceu com a troca do diálogo e
+atravessou uma suíte inteira verde, porque nenhum teste exercitava **desmarcar com valor
+preenchido** — só o caminho vazio, que não toca a constante.
+
+> **A lição:** função `async` em manipulador de evento engole exceção. Onde o gesto depende dela, o
+> teste precisa exercitar o caminho **com dado**. Foi a diferença entre uma suíte verde e um botão
+> morto.
+
+### Responsável e apoio em todas as colunas de pessoas
+
+A distinção existia **só em Orçamento**, por uma célula própria; as outras nove nomeavam uma lista
+plana. A operação pediu a mesma regra em toda parte, e o argumento que valia lá vale igual nas
+demais: uma dupla de produção tem titular e substituto, e a lista plana dizia que os dois
+respondem.
+
+**A exceção sumiu junto, e isso importa mais que o recurso.** Orçamento era a única coluna sem
+`area` no catálogo, com um `if` próprio na tabela desenhando um segundo painel igual ao primeiro.
+Agora há **uma célula e um caminho** — e `testeColunas` trava a ausência da exceção em vez da
+exceção. Saiu também a ação `alternarResponsavelDaOportunidade`, órfã no mesmo gesto.
+
+### Os números
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Caminhos para nomear pessoas numa área | 2 | **1** |
+| Colunas de pessoas sem papéis | 9 | **0** |
+| Testes de UI | 131 | **135** |
 
 ---
 

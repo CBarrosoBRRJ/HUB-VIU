@@ -86,13 +86,23 @@ check('nenhuma aba está vazia',
   espalhada pelas demais abas. Sem a segunda metade, uma coluna esquecida em Produção passaria
   despercebida — e apareceria como pessoa duplicada em duas telas.
 */
+/*
+  **A exceção do Orçamento caiu em 11/08/2026.**
+
+  Ela era a única coluna de pessoas sem `area` declarada, porque tinha célula própria — a única com
+  papéis de responsável e apoio. Quando a operação pediu a distinção em todas as áreas ("a regra
+  deve ser como fizemos na de Orçamento"), a exceção perdeu a razão de existir: a área é o que leva
+  a coluna ao caminho com papéis, e não havia mais motivo para uma coluna ficar fora dele.
+
+  O teste virou o contrário do que era: antes travava a exceção, agora trava a ausência dela.
+*/
 const time = COLUNAS_BACKLOG['backlog:time'];
 check('Time declara as áreas, na ordem do trabalho',
   time.filter((c) => c.area).map((c) => c.area),
-  ['talent', 'gp', 'conteudo', 'audiencia', 'producao', 'artistico', 'executivo',
+  ['talent', 'orcamento', 'gp', 'conteudo', 'audiencia', 'producao', 'artistico', 'executivo',
    'pagamento', 'juridico']);
-check('mais o Orçamento, sem área e pela chave',
-  time.some((c) => c.id.endsWith(':orcamento') && !c.area), true);
+check('nenhuma coluna de pessoas fica sem área — nem o Orçamento',
+  time.some((c) => c.id.endsWith(':orcamento') && !c.area), false);
 /*
   Dez desde 03/08/2026: **Produtor Artístico** e **Executivo** entraram como as duas frentes da
   Produção. Numa produção pequena é a mesma pessoa nas três colunas — o modelo não obriga a

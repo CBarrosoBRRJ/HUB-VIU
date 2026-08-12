@@ -297,15 +297,34 @@ export function FluxoDoProcesso({
                   sem essa quebra não diz se o problema é de capacidade, de proposta ou de elenco.
                   Só aparece no card de Declinado, e só com registros para mostrar.
                 */}
+                {/*
+                  Os motivos, um por linha, **sem repetir "Declinado"** — 12/08/2026.
+
+                  Eram abreviados e colados na contagem ("Talento 2"), o que lia como o nome de um
+                  talento numerado. A contagem foi para a direita, longe do nome, e o rótulo passou
+                  a ser só a metade que varia (`soMotivo`): o "Declinado" já está no título do card,
+                  logo acima. O `title` do hover continua trazendo o nome completo e o valor.
+                */}
                 {desfecho === 'declinado' && declinios.length > 0 && (
                   <span className="mt-1.5 flex flex-wrap gap-1">
                     {declinios.map((item) => (
                       <span
                         key={item.id}
-                        title={`${item.label}: ${item.quantidade} — ${formatarMoeda(item.valor)}`}
-                        className="rounded bg-rose-50 px-1.5 py-0.5 text-rotulo font-medium text-rose-700 ring-1 ring-rose-100"
+                        title={`${item.labelCompleto}: ${item.quantidade} — ${formatarMoeda(item.valor)}`}
+                        className="flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-rotulo font-medium text-rose-700 ring-1 ring-rose-100"
                       >
-                        {item.label} <strong className="font-bold">{item.quantidade}</strong>
+                        {item.label}
+                        {/*
+                          A contagem num **badge**, e não solta ao lado do nome.
+
+                          É o que separa "Talento" de "2" sem precisar de uma linha por motivo:
+                          colados viravam "Talento 2", que a operação leu como um talento numerado
+                          (11/08/2026). O fundo próprio dá a pausa que o espaço não dava — e os três
+                          motivos voltam a caber lado a lado, sem esticar o card.
+                        */}
+                        <strong className="rounded bg-rose-100 px-1 font-bold text-rose-800">
+                          {item.quantidade}
+                        </strong>
                       </span>
                     ))}
                   </span>

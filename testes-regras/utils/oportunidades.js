@@ -129,23 +129,40 @@ export function resumirPorStatus(oportunidades, status, referencia = new Date())
  * `label` é o nome completo — usado onde há espaço: o menu de decisão e o card de Finalização.
  * `curto` é o que cabe na etiqueta da linha, onde a coluna tem pouco mais de 100px.
  */
+/**
+ * Os três motivos, com **um rótulo por lugar** — cada um tem espaço e contexto diferentes.
+ *
+ * | Campo | Onde | Exemplo |
+ * |-------|------|---------|
+ * | `label` | menu de decisão, `title` | `Declinado pelo Talento` |
+ * | `curto` | etiqueta da linha | `Decl. Talento` — a coluna Status tem ~106px |
+ * | `soMotivo` | card de Finalização | `Talento` — o título do card já diz "Declinado" |
+ *
+ * `soMotivo` entrou em 12/08/2026. O card exibia `curto` com a contagem colada (`Talento 2`), e a
+ * operação leu como o nome de um talento numerado; a primeira correção pôs o `label` inteiro, e aí
+ * cada linha repetia "Declinado" logo abaixo de um cabeçalho escrito **Declinado**. O que o card
+ * precisa é só a metade que varia — a outra metade está a três centímetros dali, no título.
+ */
 export const MOTIVOS_DECLINIO = [
     {
         id: 'interno',
         label: 'Declinado Internamente',
         curto: 'Interno',
+        soMotivo: 'Internamente',
         hint: 'A agência recusou — capacidade, agenda, conflito ou fit',
     },
     {
         id: 'mercado',
         label: 'Declinado pelo Mercado',
         curto: 'Mercado',
+        soMotivo: 'Mercado',
         hint: 'O cliente desistiu, escolheu outro caminho ou não avançou',
     },
     {
         id: 'talento',
         label: 'Declinado pelo Talento',
         curto: 'Talento',
+        soMotivo: 'Talento',
         hint: 'O talento não aceitou o projeto',
     },
 ];
@@ -176,16 +193,25 @@ export function rotuloDoStatus(status, motivoId, curto = false) {
  */
 export function resumirDeclinios(oportunidades, referencia = new Date()) {
     const declinadas = oportunidades.filter((op) => op.status === 'declinado' && finalizadaRecentemente(op, referencia));
-    const resumo = (id, label, itens) => ({
+    const resumo = (id, label, labelCompleto, itens) => ({
         id,
         label,
+        labelCompleto,
         quantidade: itens.length,
         valor: somarValores(itens.map((op) => op.valorProjeto)).total,
     });
-    const porMotivo = MOTIVOS_DECLINIO.map((motivo) => resumo(motivo.id, motivo.curto, declinadas.filter((op) => op.motivoDeclinio === motivo.id)));
+    /*
+      O rótulo é **só o motivo** — o "Declinado" está no título do card, três centímetros acima.
+  
+      Duas correções em dois dias, e as duas vieram da tela: `curto` com a contagem colada produzia
+      "Talento 2", que lia como um talento numerado; o `label` inteiro resolveu a ambiguidade e criou
+      outra coisa — três linhas repetindo "Declinado" sob um cabeçalho escrito **Declinado**.
+      `soMotivo` guarda a metade que varia, e a contagem foi para a direita da linha, longe do nome.
+    */
+    const porMotivo = MOTIVOS_DECLINIO.map((motivo) => resumo(motivo.id, motivo.soMotivo, motivo.label, declinadas.filter((op) => op.motivoDeclinio === motivo.id)));
     const semMotivo = declinadas.filter((op) => !getMotivoDeclinio(op.motivoDeclinio));
     if (semMotivo.length > 0)
-        porMotivo.push(resumo('sem_motivo', 'Sem motivo', semMotivo));
+        porMotivo.push(resumo('sem_motivo', 'Sem motivo', 'Declinado sem motivo registrado', semMotivo));
     return porMotivo.filter((item) => item.quantidade > 0);
 }
 /* ------------------------------------------------------------------ *

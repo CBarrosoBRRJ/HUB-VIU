@@ -20,6 +20,7 @@ import { cleanup, render, screen, within, fireEvent, waitFor } from '@testing-li
 import { DadosProvider } from '../src/context/DadosProvider';
 import { DialogoProvider } from '../src/components/ui/Dialogo';
 import { BacklogAgenciados } from '../src/pages/BacklogAgenciados';
+import { COLUNAS_BACKLOG } from '../src/utils/colunas';
 
 /** Cada teste começa com o `localStorage` limpo: o seed é o ponto de partida conhecido. */
 beforeEach(() => window.localStorage.clear());
@@ -1507,6 +1508,103 @@ describe('duplicar projeto', () => {
   });
 });
 
+describe('correções da rodada de 11/08/2026', () => {
+  /*
+    Três defeitos apontados pela operação numa leitura só. Cada teste aqui reproduz o gesto exato
+    que a encontrou — é o que impede a volta.
+  */
+
+  it('o card Declinado mostra só o motivo, lado a lado, com a contagem destacada', () => {
+    /*
+      Três leituras da operação em sequência, cada uma corrigindo a anterior:
+
+      1. `Talento 2` — abreviação colada na contagem — lia como o nome de um talento numerado;
+      2. o nome inteiro resolveu a ambiguidade e criou outra: cada linha repetia "Declinado" sob um
+         cabeçalho escrito **Declinado**;
+      3. um motivo por linha esticava o card quando os três apareciam.
+
+      O que ficou: só a metade que varia, os três lado a lado, e a contagem num badge — que é o que
+      separa "Talento" de "2" sem gastar uma linha por motivo.
+    */
+    montar();
+    const cardDeclinado = screen.getByText('Declinado').closest('button')!;
+
+    expect(cardDeclinado.textContent).toContain('Internamente');
+    expect(cardDeclinado.textContent).toContain('Talento');
+    // "Declinado" aparece uma vez só: no título do card.
+    expect(cardDeclinado.textContent?.match(/Declinado/g)).toHaveLength(1);
+
+    /*
+      A contagem vive em elemento próprio — é o badge que dá a pausa que o espaço não dava.
+
+      O teste verifica a **estrutura**, não o número: a quantidade depende do seed e da janela de
+      30 dias, e travá-la aqui faria este teste falhar por um motivo que não tem nada a ver com o
+      que ele protege.
+    */
+    const chips = [...cardDeclinado.querySelectorAll('strong')];
+    expect(chips.length, 'cada motivo tem sua contagem em badge').toBeGreaterThan(0);
+    for (const chip of chips) {
+      expect(chip.textContent).toMatch(/^\d+$/);
+    }
+  });
+
+  it('desmarcar um tique com valor preenchido funciona — e pergunta antes', async () => {
+    /*
+      O defeito mais sério dos três, e o mais silencioso: `LISTAS` era declarada **depois** do
+      bloco que a usava para montar a frase da confirmação. Temporal dead zone → `ReferenceError`
+      dentro de uma função `async` → `unhandledrejection`. O clique não fazia nada, sem erro na
+      tela. Só acontecia com valor preenchido, porque sem valor o código não chegava a tocar nela.
+    */
+    montar();
+    const coca = () => linhas().find((l) => l.textContent?.includes('Coca-Cola Verão'))!;
+    const tique = () => within(coca()).getByLabelText('Edição neste projeto') as HTMLInputElement;
+
+    // O seed traz a Coca-Cola com o tique marcado e "Interna" preenchido na Produção.
+    expect(tique().checked).toBe(true);
+
+    fireEvent.click(tique());
+
+    const dialogo = await screen.findByRole('alertdialog');
+    // A frase que o ReferenceError impedia de montar — ela nomeia o que será apagado.
+    expect(dialogo.textContent).toContain('Interna');
+    fireEvent.click(within(dialogo).getByRole('button', { name: /Desmarcar e apagar/ }));
+
+    await waitFor(() => expect(tique().checked).toBe(false));
+  });
+
+  it('desmarcar um tique sem valor não pergunta nada', async () => {
+    // A guarda que já existia e continua valendo: diálogo sem motivo ensina a clicar sem ler.
+    montar();
+    const ambev = () => linhas().find((l) => l.textContent?.includes('Ambev'))!;
+    const tique = () => within(ambev()).getByLabelText('Edição neste projeto') as HTMLInputElement;
+
+    fireEvent.click(tique());
+    await waitFor(() => expect(tique().checked).toBe(true));
+
+    fireEvent.click(tique());
+    await waitFor(() => expect(tique().checked).toBe(false));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  it('toda coluna de pessoas distingue responsável de apoio', () => {
+    /*
+      Só Orçamento distinguia os dois papéis, por uma célula própria; as demais nomeavam uma lista
+      plana. A operação pediu a mesma regra em toda parte — com mais de uma pessoa na área, "quem
+      responde" e "quem ajuda" são perguntas diferentes.
+
+      A verificação é pela **ausência de exceção**: toda coluna de pessoas do Backlog declara área
+      no catálogo, e é a área que leva ao caminho com papéis.
+    */
+    const colunasDePessoas = Object.values(COLUNAS_BACKLOG)
+      .flat()
+      .filter((coluna) => /:(orcamento|talent|gp|audiencia|conteudo|producao|pagamento|juridico|artistico|executivo)$/.test(coluna.id));
+
+    expect(colunasDePessoas.length).toBeGreaterThan(0);
+    const semArea = colunasDePessoas.filter((coluna) => !coluna.area).map((coluna) => coluna.id);
+    expect(semArea, 'coluna de pessoas sem área não recebe os papéis').toEqual([]);
+  });
+});
+
 describe('editar uma linha não vaza para as outras', () => {
   /*
     Reporte da operação em 03/08/2026: "quando mudamos um ou N dados de uma linha, ela muda de
@@ -1680,10 +1778,21 @@ describe('pendências — com quem está a bola', () => {
     const renner = linhas().find((l) => l.textContent?.includes('Renner Inverno'))!;
     abrirPainelDeStatus(renner);
 
-    expect(screen.getByText('Declinado pelo Talento')).toBeTruthy();
+    /*
+      A busca é pelos **botões do painel**, não pelo texto solto na tela.
+
+      Buscar o texto no documento inteiro passou a colidir em 11/08/2026, quando o card de
+      Finalização deixou de abreviar os motivos ("Talento 2" lia como um talento numerado) e passou
+      a escrever "Declinado pelo Talento" por extenso. O mesmo texto passou a existir em dois
+      lugares legítimos — e o teste não estava falando do card, estava falando das opções que a
+      Revisão oferece.
+    */
+    const motivosOferecidos = screen.getAllByRole('button')
+      .map((botao) => botao.getAttribute('data-dica'))
+      .filter((dica): dica is string => Boolean(dica?.startsWith('Declinado')));
+
     // Interno e Mercado são conversas do retorno do cliente — vivem no Aguardando Feedback.
-    expect(screen.queryByText('Declinado Internamente')).toBeNull();
-    expect(screen.queryByText('Declinado pelo Mercado')).toBeNull();
+    expect(motivosOferecidos).toEqual(['Declinado pelo Talento']);
   });
 
   it('status sem esperas no menu não ganha bloco — a Entrada abre o painel de sempre', () => {

@@ -34,7 +34,7 @@ import {
 } from '../utils/talentos';
 import { alternarColuna, alternarVisao } from '../utils/visoes';
 import {
-  alternarPapelNaArea, alternarResponsavelNaOportunidade, bloqueadaPorPendencias,
+  alternarPapelNaArea, bloqueadaPorPendencias,
   comPendenciaAberta, comPendenciaChegada,
   comPendenciaReaberta, DESFECHOS_TERMINAIS, destravaDoTique,
   exclusividadeDe,
@@ -236,13 +236,15 @@ interface DadosContextValue {
   marcarPendenciaChegou: (id: string, pendenciaId: string) => void;
   reabrirPendenciaDaOportunidade: (id: string, pendenciaId: string) => void;
   descartarPendenciaDaOportunidade: (id: string, pendenciaId: string) => void;
-  alternarResponsavelDaOportunidade: (id: string, area: AreaTalento, usuarioId: string) => void;
   /**
    * Coloca a pessoa como **responsável** ou **apoio** da área — clicar no papel que ela já tem a
    * remove da linha.
    *
-   * Separado de `alternarResponsavelDaOportunidade`, que continua servindo as áreas sem distinção
-   * de papel.
+   * **Atende todas as áreas desde 11/08/2026.** Antes convivia com uma
+   * `alternarResponsavelDaOportunidade`, sem papel, que servia as demais colunas de pessoas: a
+   * operação pediu a distinção em toda parte ("a regra deve ser como fizemos na de Orçamento") e a
+   * versão sem papel ficou órfã no mesmo gesto. Duas formas de nomear a mesma pessoa na mesma
+   * linha divergiriam — saiu a que respondia menos.
    */
   alternarPapelDaOportunidade: (
     id: string, area: AreaTalento, usuarioId: string, papel: PapelNaArea,
@@ -1440,20 +1442,6 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const alternarResponsavelDaOportunidade = useCallback(
-    (id: string, area: AreaTalento, usuarioId: string) => {
-      setOportunidades((atuais) =>
-        atuais.map((op) =>
-          op.id === id
-            ? // Atribuir alguém é conferência: quem olhou a linha para nomear, olhou a linha.
-              { ...alternarResponsavelNaOportunidade(op, area, usuarioId), revisada: true }
-            : op,
-        ),
-      );
-    },
-    [],
-  );
-
   const alternarPapelDaOportunidade = useCallback(
     (id: string, area: AreaTalento, usuarioId: string, papel: PapelNaArea) => {
       setOportunidades((atuais) =>
@@ -1945,7 +1933,6 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       marcarPendenciaChegou,
       reabrirPendenciaDaOportunidade,
       descartarPendenciaDaOportunidade,
-      alternarResponsavelDaOportunidade,
       alternarPapelDaOportunidade,
       duplicarOportunidade,
       marcarOportunidadeRevisada,
@@ -1993,7 +1980,6 @@ export function DadosProvider({ children }: { children: ReactNode }) {
       definirStatusDaOportunidade, definirPrioridadeDaOportunidade,
       definirCampoOpcaoDaOportunidade, definirTiqueDeEscopo, abrirPendenciaDaOportunidade,
       marcarPendenciaChegou, reabrirPendenciaDaOportunidade, descartarPendenciaDaOportunidade,
-      alternarResponsavelDaOportunidade,
       alternarPapelDaOportunidade, duplicarOportunidade, marcarOportunidadeRevisada, excluirOportunidade,
       receberOportunidades, nivelDoQuadro, linksEquipe, linkDaEquipe,
       renovarLinkDaEquipe, desativarLinkDaEquipe, getLinkPorToken, entrarPorLink, criarSolicitacao, decidirSolicitacao, criarEquipe,

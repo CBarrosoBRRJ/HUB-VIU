@@ -63,6 +63,41 @@ const QUANTIDADES = {
 
 /** As colunas de link, e o que cada uma aponta. */
 const LINKS = { linkProposta: 'proposta', linkSalesforce: 'Salesforce', linkPastaOrcamento: 'pasta de orçamento', linkPastaPlanejamento: 'pasta de planejamento' } as const;
+
+/**
+ * As opções de cada coluna de lista fechada.
+ *
+ * ## Por que vive no módulo, e não dentro do render
+ *
+ * Estava declarada como `const LISTAS` **no meio** do render da célula — depois do bloco que
+ * desenha os tiques do Escopo, e antes do que desenha as colunas de lista. Os dois usavam a mesma
+ * variável, e o de cima a alcançava na *temporal dead zone*: `ReferenceError` na hora de montar a
+ * frase "isto apaga X da coluna Y".
+ *
+ * **O erro era invisível.** A função que desmarca o tique virou `async` quando a confirmação
+ * deixou de ser `window.confirm` (11/08/2026), e exceção em função `async` sem `catch` vira
+ * `unhandledrejection`: o clique não fazia nada, sem erro na tela, sem nada no lugar. A operação
+ * descreveu como "marquei errado e não consigo desmarcar" — e era só quando havia valor
+ * preenchido, porque sem valor o código não chegava a tocar nesta constante.
+ *
+ * No módulo, o problema deixa de existir: não há ordem de declaração que alcance uma constante de
+ * escopo superior. E as opções não dependem da linha — só o *valor* dependia, e ele é lido direto
+ * de `op` onde é preciso.
+ */
+const OPCOES_DA_COLUNA = {
+  output: TIPOS_OUTPUT,
+  edicao: TIPOS_EDICAO,
+  formatoConteudo: FORMATOS_CONTEUDO,
+  alcanceAudiencia: ALCANCES_AUDIENCIA,
+} as const;
+
+/** O rótulo legível de um valor de lista fechada — `undefined` quando não há valor ou opção. */
+function rotuloDaOpcao(campo: string, valor: unknown): string | undefined {
+  const opcoes = OPCOES_DA_COLUNA[campo as keyof typeof OPCOES_DA_COLUNA] as
+    | readonly { id: string; label: string }[]
+    | undefined;
+  return opcoes?.find((opcao) => opcao.id === valor)?.label;
+}
 import { PrioridadeSelect } from './PrioridadeSelect';
 
 export type CampoOportunidade =
@@ -130,7 +165,7 @@ export function BacklogTable({
   const {
     sessao, talentos, marcas, contratos, usuarios, definirStatusDaOportunidade,
     definirPrioridadeDaOportunidade, definirCampoOpcaoDaOportunidade,
-    alternarResponsavelDaOportunidade, alternarPapelDaOportunidade, definirTiqueDeEscopo,
+    alternarPapelDaOportunidade, definirTiqueDeEscopo,
     abrirPendenciaDaOportunidade, marcarPendenciaChegou, reabrirPendenciaDaOportunidade,
     descartarPendenciaDaOportunidade,
     duplicarOportunidade,
@@ -725,8 +760,18 @@ export function BacklogTable({
    * Coluna que nomeia pessoas de uma área — a área vem sempre da **coluna**.
    *
    * Enquanto cada aba tinha uma área só, herdá-la da aba bastava; Produção trouxe duas (Produção
-   * e GP) e a declaração migrou para o catálogo. Orçamento não passa por aqui: tem célula própria,
-   * com papéis de responsável e apoio.
+   * e GP) e a declaração migrou para o catálogo.
+   *
+   * ## Responsável e apoio, em **todas** as áreas — 11/08/2026
+   *
+   * Até aqui só Orçamento distinguia os dois papéis, por uma célula própria; as demais nomeavam
+   * uma lista plana de responsáveis. A operação pediu a mesma regra em toda parte — *"a regra deve
+   * ser como fizemos na de Orçamento"* —, e o motivo é o mesmo que valeu lá: com mais de uma
+   * pessoa na área, **"quem responde" e "quem ajuda" são perguntas diferentes**, e a lista plana
+   * respondia só a primeira. Quem cobra a entrega precisa saber de quem cobrar.
+   *
+   * Com isso a exceção sumiu: Orçamento passou a declarar `area` no catálogo e vem por aqui como
+   * as outras. Uma célula, um caminho — era a exceção que mantinha as duas versões vivas.
    */
   function celulaResponsavel(op: Oportunidade, coluna: ColunaCatalogo, podeEditar: boolean) {
     const area = coluna.area;
@@ -737,9 +782,10 @@ export function BacklogTable({
       <AreaResponsavelCell
         area={area}
         usuarioIds={responsaveisDaAreaNaOportunidade(op, area)}
-        onAlternar={
+        apoioIds={apoiosDaAreaNaOportunidade(op, area)}
+        onAlternarPapel={
           podeEditar
-            ? (usuarioId) => alternarResponsavelDaOportunidade(op.id, area, usuarioId)
+            ? (usuarioId, papel) => alternarPapelDaOportunidade(op.id, area, usuarioId, papel)
             : undefined
         }
       />
@@ -1075,8 +1121,7 @@ export function BacklogTable({
         async function alternar() {
           if (!marcado) return definirTiqueDeEscopo(op.id, tique!.tique, true);
           if (temValor) {
-            const rotulo = LISTAS[tique!.campo as keyof typeof LISTAS]?.opcoes
-              .find((o) => o.id === op[tique!.campo])?.label ?? 'o valor';
+            const rotulo = rotuloDaOpcao(tique!.campo, op[tique!.campo]) ?? 'o valor';
             const ok = await confirmar({
               titulo: `Desmarcar ${tique!.label}?`,
               descricao: `Isto apaga "${rotulo}" da coluna ${tique!.label}, na aba Produção.`,
@@ -1122,16 +1167,10 @@ export function BacklogTable({
         aqui sem exceção nenhuma porque seguem o contrato das outras duas: id de lista, rótulo do
         catálogo, e ausência significando "não classificado".
       */
-      const LISTAS = {
-        output: { opcoes: TIPOS_OUTPUT, valor: op.output },
-        edicao: { opcoes: TIPOS_EDICAO, valor: op.edicao },
-        formatoConteudo: { opcoes: FORMATOS_CONTEUDO, valor: op.formatoConteudo },
-        alcanceAudiencia: { opcoes: ALCANCES_AUDIENCIA, valor: op.alcanceAudiencia },
-      } as const;
-
-      if (chave in LISTAS) {
-        const campoLista = chave as keyof typeof LISTAS;
-        const { opcoes, valor } = LISTAS[campoLista];
+      if (chave in OPCOES_DA_COLUNA) {
+        const campoLista = chave as keyof typeof OPCOES_DA_COLUNA;
+        const opcoes = OPCOES_DA_COLUNA[campoLista];
+        const valor = op[campoLista];
         const par = destravaDaColuna(campoLista);
 
         /*
@@ -1448,37 +1487,13 @@ export function BacklogTable({
       }
 
       /*
-        Responsável pelo orçamento, no Escopo.
+        O caso especial de Orçamento **saiu em 11/08/2026**.
 
-        Diferente das demais colunas de responsável, esta não vem da aba: ela vive no Escopo porque
-        saber **quem vai orçar** é parte de aceitar a demanda. A lista continua saindo da equipe da
-        área — é `AreaResponsavelCell` quem resolve isso.
+        Ele existia porque só esta coluna distinguia responsável de apoio. Quando a distinção
+        passou a valer para todas as áreas (ver `celulaResponsavel`), o bloco virou uma segunda
+        implementação do mesmo desenho — e duas implementações do mesmo desenho divergem, sempre.
+        A coluna agora declara `area: 'orcamento'` no catálogo e desce pelo caminho comum.
       */
-      if (chave === 'orcamento') {
-        return (
-          <td key={coluna.id} className="px-2 py-2">
-            {oculta(coluna.id) ? (
-              <CelulaOculta label={coluna.label} largura="curta" />
-            ) : (
-              <AreaResponsavelCell
-                area="orcamento"
-                usuarioIds={responsaveisDaAreaNaOportunidade(op, 'orcamento')}
-                apoioIds={apoiosDaAreaNaOportunidade(op, 'orcamento')}
-                /*
-                  Com mais de uma pessoa na área, "quem responde" e "quem ajuda" são perguntas
-                  diferentes — e a operação precisa saber a quem cobrar a entrega.
-                */
-                onAlternarPapel={
-                  podeEditar
-                    ? (usuarioId, papel) =>
-                      alternarPapelDaOportunidade(op.id, 'orcamento', usuarioId, papel)
-                    : undefined
-                }
-              />
-            )}
-          </td>
-        );
-      }
 
       /* --- Pessoas de uma área --- */
       if (coluna.area) {
