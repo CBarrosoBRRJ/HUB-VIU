@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 24.1 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 24.2 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -668,6 +668,18 @@ precisa da `border` mesmo sendo invisível, senão sai 2px mais baixo com o padd
 | **Teste que mira classe de cor está preso à decisão estética do dia** | a faixa de abas selecionada por `[class*="111a3a"]` |
 | **Paleta cheia não vira carnaval por ser cheia**, e sim por ter peso irregular | as cinco versões da paleta |
 | **Documentação errada não falha em lugar nenhum.** O que é mecanicamente verificável no PRD tem de ser verificado por teste — o resto envelhece em silêncio | a auditoria de sincronia do fim do dia |
+| **"Produção está diferente" se responde por hash, não por olho.** Os bundles eram idênticos; a diferença era zoom por site e `localStorage` — estado do navegador, por origem | a primeira publicação no Easypanel ([09 §5.1](09_fundacoes_tecnicas.md)) |
+
+### A primeira publicação externa
+
+O produto foi ao ar no Easypanel (`npm run start` = `vite preview` sobre o build). A conferência
+"produção × localhost" encontrou os bundles **byte a byte idênticos** no `.js` e com uma única
+regra morta de diferença no `.css` — resíduo da varredura do Tailwind sobre testes e PRD, que foi
+restrita a `src/` + `index.html` na sequência. O build agora é **determinístico**: mesmo `src/`,
+mesmo hash — detalhe em [09 §5.1](09_fundacoes_tecnicas.md).
+
+O que legitimamente difere entre origens (zoom por site, régua pessoal, dados do `localStorage`)
+está registrado lá, com o reset de cada um.
 
 ### Os números
 

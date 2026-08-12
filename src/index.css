@@ -2,6 +2,31 @@
 
 /*
   ================================================================================================
+  A VARREDURA DO TAILWIND É RESTRITA AO QUE RENDERIZA — 12/08/2026
+  ================================================================================================
+
+  Por padrão, o Tailwind 4 varre o repositório inteiro atrás de candidatos a classe — inclusive
+  os testes e o PRD. Qualquer palavra que pareça uma classe num teste ("bg-sky-300" numa asserção,
+  "static" numa frase) vira regra no CSS de produção.
+
+  Foi assim que a pergunta "produção está igual ao localhost?" custou uma investigação: os bundles
+  divergiam em 24 bytes, e a diferença inteira era `.static{position:static}` — uma regra morta,
+  gerada por um token que existia num arquivo de teste de um commit intermediário. Nenhum efeito
+  visual; muito efeito na auditoria, porque hash diferente parece deploy defasado.
+
+  Com a varredura restrita, o CSS passa a depender só de `src/` e do `index.html` (que carrega as
+  classes do `<body>`). A consequência que importa: **buildar o mesmo `src/` produz o mesmo CSS,
+  byte a byte** — e "produção = localhost" deixa de ser impressão e vira comparação de hash.
+
+  Os testes não perdem nada: o jsdom não aplica o CSS buildado — as asserções leem `className`,
+  não a regra.
+*/
+@source not "../testes-ui";
+@source not "../testes-regras";
+@source not "../prd";
+
+/*
+  ================================================================================================
   A ESCALA DE TEXTO — 11/08/2026
   ================================================================================================
 

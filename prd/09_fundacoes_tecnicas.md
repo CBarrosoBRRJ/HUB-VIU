@@ -1,6 +1,6 @@
 # PRD 09 — Fundações Técnicas
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 1.7 | **Status:** Vigente | **Data:** 12/08/2026
+**Versão:** 1.8 | **Status:** Vigente | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Datas, moeda, persistência e IDs*
 
@@ -459,6 +459,46 @@ incompatibilidade de forma.
 > permite chamá-lo em toda leitura sem criar referência nova a cada render.
 
 ---
+
+## 5.1. O build é determinístico — e isso é auditável por hash — 12/08/2026
+
+A primeira publicação externa (Easypanel, `npm run start` = `vite preview` sobre o `dist/`) veio
+com uma pergunta da operação: *"a fonte e os tamanhos ficaram diferentes do localhost"*. A
+investigação vale registrar pelos dois lados — o que **era** diferença e o que não era.
+
+### O que não era: o código
+
+O `.js` publicado era **byte a byte idêntico** ao build local. O `.css` divergia em 24 bytes, e a
+diferença inteira era `.static{position:static}` — uma regra **morta**, sem efeito visual algum.
+
+De onde ela veio: o Tailwind 4, por padrão, varre o repositório inteiro atrás de candidatos a
+classe — **inclusive testes e PRD**. Qualquer palavra que pareça classe num teste ("bg-sky-300"
+numa asserção, "static" numa frase) vira regra no CSS de produção. A regra morta era o resíduo de
+um token que existiu num teste de um commit intermediário.
+
+A correção é estrutural: `@source not` para `testes-ui/`, `testes-regras/` e `prd/`
+([`index.css`](../src/index.css)). O CSS passa a depender só de `src/` e do `index.html` — e
+**buildar o mesmo `src/` produz o mesmo CSS, byte a byte**. "Produção = localhost" deixou de ser
+impressão e virou comparação de hash.
+
+### O que era: estado do navegador, por origem
+
+A diferença visual dos prints era real, e não vinha do deploy. Duas coisas variam **por origem**
+(`localhost:3001` e o domínio publicado são origens diferentes), e é assim por desenho:
+
+| | O quê | Por quê |
+|---|---|---|
+| **zoom por site** | o Chrome memoriza o zoom de cada origem — um Ctrl+`-` dado no localhost semanas atrás continua lá | comportamento do navegador; `Ctrl+0` zera |
+| **régua pessoal** | o fator de texto de Meu Perfil vive no `localStorage`, que é por origem | decisão do produto ([03 §1.2](03_padroes_ui.md)): a régua é **da pessoa naquele navegador**, não da conta |
+| **dados** | o seed e o que se digitou também vivem no `localStorage` | débito nº 1 — sem banco, cada navegador tem sua realidade |
+
+O diagnóstico se fecha por geometria: a sidebar tem **largura mínima de 256px** em CSS (16rem, com
+a raiz que nunca desce de 16px). No print do localhost ela media ~218px físicos — impossível sem
+zoom abaixo de 100%. Não há valor de código que produza 218; só o navegador produz.
+
+> **A regra que fica:** antes de tratar "produção está diferente" como defeito de deploy, comparar
+> os bundles por hash. Se os bytes batem, a diferença está no navegador — zoom, régua pessoal ou
+> dados locais — e cada um desses tem dono e reset próprios.
 
 ## 6. Módulos de regra são puros
 
