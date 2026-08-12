@@ -555,7 +555,18 @@ parecer aleatória é um bloco quase preto ao lado de um amarelo luminoso. Com o
 coluna varia em cor sem variar em **atenção** — e todos passam de 4,5:1 com texto branco sem que
 ninguém confira tom a tom. Detalhe em [03 §1.1.0](03_padroes_ui.md).
 
-Conferida depois contra o logo (azul elétrico + amarelo), a paleta já tinha caído na família da
+No fim do dia a regra atravessou para **Contratos**, que carregava treze matizes a dedo — com
+âmbar, laranja e amarelo em três status distintos, e rosa e vermelho em dois desfechos. Ele não
+ganhou paleta nova: ganhou a **mesma regra**, subdividida em nove passos em vez de quatro, reusando
+os três acentos. Com treze status a cor não consegue ser identificador — ninguém decora treze cores
+—, então ela virou **indicador de posição**: passos vizinhos propositalmente próximos, para se ler
+de longe se a linha está no começo ou no fim ([02 §5.3](02_quadro_talentos.md)).
+
+O quadro **Talentos** ficou de fora, e não por esquecimento: ele não exibe status de esteira, e sim
+o farol de vigência — semáforo de prazo é outro vocabulário, com significado próprio que a rampa
+não substitui.
+
+Conferida contra o logo (azul elétrico + amarelo), a paleta já tinha caído na família da
 marca: o plano em 266°, a rampa atravessando o azul, o acento de ação no parente escuro do amarelo.
 Os dois ajustes que a conferência produziu foram **subtrações** — o plano trocou o slate neutro pelo
 matiz da marca, e o navy `#111a3a` das faixas saiu. Nenhuma cor nova entrou ([03 §1.0.4](03_padroes_ui.md)).
@@ -650,9 +661,10 @@ precisa da `border` mesmo sendo invisível, senão sai 2px mais baixo com o padd
 | Medida | Antes | Depois |
 |--------|------:|-------:|
 | Tons escuros diferentes no produto | 3 | **1** |
-| Matizes escolhidos a dedo na paleta de status | 7 | **0** *(todos por regra)* |
+| Matizes a dedo na paleta do Backlog | 7 | **0** *(todos por regra)* |
+| Matizes a dedo na esteira de Contratos | 13 | **0** *(todos por regra)* |
 | Superfícies entre o plano e a folha | 3 | **2** |
-| Suítes de regras | 34 | **35** |
+| Suítes de regras | 34 | **36** |
 | Testes de UI | 139 | **140** |
 | Leituras de tela que originaram correção | — | **11** |
 

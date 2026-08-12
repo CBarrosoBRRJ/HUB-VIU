@@ -119,6 +119,47 @@
 
   /*
     ==============================================================================================
+    ## A esteira de Contratos — a mesma regra, nove passos — 12/08/2026
+    ==============================================================================================
+
+    O quadro de Contratos tem **treze status**: uma esteira sequencial de nove passos, um desfecho
+    e três interrupções. Ele carregava treze matizes escolhidos a dedo — slate, sky, indigo,
+    violet, blue, cyan, teal, amber, orange, emerald, yellow, rose, red. É o carnaval em estado
+    puro, e com um agravante que o Backlog não tinha: **âmbar, laranja e amarelo lado a lado**, e
+    **rosa e vermelho** para dois desfechos diferentes. Cores que nem se distinguem entre si e
+    ainda assim brigam com o resto.
+
+    A regra é a mesma da paleta de status (§ acima): claridade fixa, matiz variando, croma dizendo
+    o papel. O que muda é a **subdivisão do arco** — o Backlog tem quatro etapas e a esteira tem
+    nove, então elas percorrem o mesmo caminho com passos diferentes.
+
+    ## Por que nove passos quase iguais é o desenho certo
+
+    Com treze status, **a cor não consegue ser identificador** — ninguém decora treze cores. Ela só
+    pode ser *indicador de posição*. Por isso os passos vizinhos são propositalmente próximos: quem
+    olha a coluna não precisa distinguir "Revisão Inicial" de "Aprovação Inicial" pela cor (o texto
+    diz), precisa ver **de longe se a linha está no começo ou no fim da esteira**.
+
+    O croma cresce junto com o matiz — de 0,03 no primeiro passo a 0,11 no último. É a mesma ideia
+    da Entrada do Backlog, esticada: começo dessaturado porque nada foi decidido, e a saturação
+    entrando conforme o contrato anda. São dois eixos progredindo juntos, e é o que dá distinção
+    aos vizinhos sem alargar o arco.
+
+    Os desfechos **não estão aqui**: reusam os acentos da paleta de status, porque significam a
+    mesma coisa nos dois quadros. Ver `utils/talentosStatus.ts`.
+  */
+  --color-esteira-1: oklch(0.52 0.030 250); /* Criação */
+  --color-esteira-2: oklch(0.52 0.040 257); /* Revisão Inicial */
+  --color-esteira-3: oklch(0.52 0.050 264); /* Aprovação Inicial */
+  --color-esteira-4: oklch(0.52 0.060 272); /* Chancela */
+  --color-esteira-5: oklch(0.52 0.070 279); /* Revisão Conecta */
+  --color-esteira-6: oklch(0.52 0.080 286); /* Via CGA */
+  --color-esteira-7: oklch(0.52 0.090 293); /* Aprovação Conecta */
+  --color-esteira-8: oklch(0.52 0.100 301); /* Requisição Enviada */
+  --color-esteira-9: oklch(0.52 0.110 308); /* Em Assinatura */
+
+  /*
+    ==============================================================================================
     ## O plano de fundo — a moldura em que a folha de trabalho flutua — 12/08/2026
     ==============================================================================================
 

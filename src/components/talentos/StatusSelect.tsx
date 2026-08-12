@@ -54,7 +54,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
         type="button"
         animate={controls}
         onClick={() => setIsOpen((open) => !open)}
-        className={`relative flex w-full items-center justify-center rounded-md px-2 py-2 text-xs font-semibold text-white transition-colors duration-300 hover:brightness-110 ${STATUS_STYLE[value].solid}`}
+        className={`relative flex w-full items-center justify-center rounded-md px-2 py-2 text-xs font-semibold transition-colors duration-300 hover:brightness-110 ${STATUS_STYLE[value].etiqueta}`}
       >
         {/* Onda que se expande para fora da etiqueta na troca. */}
         <AnimatePresence>
@@ -116,7 +116,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
                       onChange(status);
                       setIsOpen(false);
                     }}
-                    className={`flex items-center justify-center gap-1 rounded-md px-2 py-2 text-apoio font-semibold text-white ${STATUS_STYLE[status].solid}`}
+                    className={`flex items-center justify-center gap-1 rounded-md px-2 py-2 text-apoio font-semibold ${STATUS_STYLE[status].etiqueta}`}
                   >
                     <span className="truncate">{status}</span>
                     {status === value && <Check className="size-3 shrink-0" />}

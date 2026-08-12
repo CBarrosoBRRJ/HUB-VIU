@@ -1,5 +1,5 @@
 # PRD 02 — Página "Contratos de Agenciados"
-**Versão:** 2.7 | **Status:** Implementado (front-end, exportação nativa em Excel `.xlsx`, persistência local) | **Data:** 04/08/2026
+**Versão:** 2.8 | **Status:** Implementado (front-end, exportação nativa em Excel `.xlsx`, persistência local) | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Quadro de Contratos de Agenciados*
 
@@ -148,20 +148,66 @@ Requisição Enviada → Em Assinatura → Concluído
 | `Cancelado` | Encerrado sem efeito — sai do farol de cores |
 | `Vencido` | Vigência expirada |
 
-### 5.3. Paleta exata — `STATUS_STYLE[status].solid`
+### 5.3. A paleta da esteira — migrada para a regra em 12/08/2026
 
-| Status | Classe | Status | Classe |
-|--------|--------|--------|--------|
-| Criação | `bg-slate-500` | Aprovação Conecta | `bg-teal-500` |
-| Revisão Inicial | `bg-sky-500` | Requisição Enviada | `bg-amber-500` |
-| Aprovação Inicial | `bg-indigo-500` | Em Assinatura | `bg-orange-500` |
-| Chancela | `bg-violet-500` | Concluído | `bg-emerald-500` |
-| Revisão Conecta | `bg-blue-500` | Parado | `bg-yellow-500` |
-| Via CGA | `bg-cyan-600` | Cancelado | `bg-rose-500` |
-| | | Vencido | `bg-red-600` |
+Este quadro carregava **treze matizes escolhidos a dedo**: slate, sky, indigo, violet, blue, cyan,
+teal, amber, orange, emerald, yellow, rose, red. Carnaval em estado puro, com dois agravantes que o
+Backlog não tinha:
+
+- **âmbar, laranja e amarelo** em três status distintos — cores que nem se distinguem entre si;
+- **rosa e vermelho** para dois desfechos diferentes, pela mesma razão.
+
+A migração não trouxe paleta nova: trouxe **a mesma regra** do Backlog ([03 §1.1.0](03_padroes_ui.md))
+— claridade fixa, matiz variando, croma dizendo o papel. O que muda entre os dois quadros é a
+**subdivisão do arco**: o Backlog tem quatro etapas, esta esteira tem nove.
+
+#### A esteira
+
+```
+  Criação → Revisão Inicial → … → Requisição Enviada → Em Assinatura
+  esteira-1                             esteira-8        esteira-9
+  H 250, C 0,03  ─────────────────────────────────────►  H 308, C 0,11
+```
+
+**Com treze status, a cor não consegue ser identificador** — ninguém decora treze cores. Ela só
+pode ser *indicador de posição*, e por isso os passos vizinhos são propositalmente próximos: quem
+varre a coluna não precisa distinguir "Revisão Inicial" de "Aprovação Inicial" pela cor (o texto
+diz), precisa ver **de longe se a linha está no começo ou no fim**.
+
+O croma cresce junto com o matiz — 0,03 no primeiro passo, 0,11 no último. É a ideia da Entrada do
+Backlog esticada: começo dessaturado porque nada foi decidido, saturação entrando conforme o
+contrato anda. Dois eixos progredindo juntos, que é o que dá distinção aos vizinhos sem alargar o
+arco.
+
+#### Os desfechos reusam os acentos do Backlog
+
+| Status | Tom | Por quê |
+|---|---|---|
+| Concluído | `acento-ganho` | acabou, e deu negócio |
+| Parado | `acento-acao` | *parou, depende de alguém* — a única cor quente da paleta |
+| Cancelado | `acento-perda` | acabou sem negócio, por decisão |
+| **Vencido** | *vazado* | acabou por **tempo** — é história, não pendência |
+
+São os mesmos tokens do outro quadro **de propósito**: "parado esperando alguém" significa a mesma
+coisa nos dois, e quem trabalha nos dois não deveria reaprender a paleta.
+
+**Vencido é o único vazado**, e é o que o separa de Cancelado. Os dois eram vermelhos vizinhos
+(`rose-500` e `red-600`), indistinguíveis de relance para dois fins muito diferentes. Mesmo
+tratamento do Encerrado no Backlog: o que terminou por decurso de prazo **recua**, em vez de
+disputar atenção.
+
+#### O que o teste trava
+
+`testeEsteira` guarda a forma, não os valores: a esteira na ordem do avanço, os desfechos fora
+dela, o vazado único — e, o mais importante, **o vocabulário compartilhado**, comparando os acentos
+deste quadro com os do Backlog. Divergiu, quebra.
+
+Há também uma guarda contra a volta: **nenhum status pode usar rampa pronta do Tailwind**. Foi
+exatamente assim que a paleta chegou a treze cores — um status novo, uma cor nova, sem ninguém
+olhar o conjunto.
 
 > **Restrição do Tailwind 4:** as classes precisam existir **literais** no código. Nada de
-> `bg-${cor}-500` — o JIT não gera a regra e a etiqueta sai sem cor.
+> interpolação — o JIT não gera a regra e a etiqueta sai sem cor.
 
 ### 5.4. Transições
 

@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.6 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
+**Versão:** 5.7 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -416,10 +416,16 @@ como o único vazado.
 > A caixa alta veio na versão suave, para devolver o destaque que a saturação dava. Ela **fica**:
 > com fundo cheio, é o que impede o rótulo curto de boiar dentro do bloco.
 >
-> **Contratos e Talentos ainda usam a preenchida antiga** (`bg-<cor>-500`, tons escolhidos a dedo).
-> Não por decisão, e sim porque a leitura foi feita no Backlog — a migração para a paleta
-> construída fica para quando cada página for revista, como manda o trabalho por quadro. Registrado
-> aqui para que a diferença entre os quadros seja lida como pendência, e não como padrão.
+> **Contratos migrou em 12/08/2026** — [02 §5.3](02_quadro_talentos.md). Ele carregava treze
+> matizes a dedo, com âmbar/laranja/amarelo em três status distintos e rosa/vermelho em dois
+> desfechos. Não ganhou paleta nova: ganhou **a mesma regra**, subdividida em nove passos em vez de
+> quatro, e reusando os três acentos — porque "parado esperando alguém" significa a mesma coisa nos
+> dois quadros, e quem trabalha nos dois não deveria reaprender a cor.
+>
+> **O quadro Talentos não entra nesta migração**, e não por esquecimento: ele não exibe status de
+> esteira. O que ele mostra é o **farol de vigência** (`VIGENCIA_TONE_STYLE`), que é outro
+> vocabulário — verde/amarelo/vermelho é semáforo de prazo, e semáforo tem significado próprio que
+> a rampa não substitui.
 
 > ATENÇÃO: classes do Tailwind 4 precisam existir **literais** no código. Nunca interpoladas.
 

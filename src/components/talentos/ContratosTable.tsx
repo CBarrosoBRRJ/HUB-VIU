@@ -181,7 +181,7 @@ export function ContratosTable({
         .map((status) => ({
           chave: status,
           titulo: status,
-          cor: STATUS_STYLE[status].solid,
+          cor: STATUS_STYLE[status].barra,
           itens: sortedContracts.filter((contract) => contract.status === status),
         }))
         .filter((grupo) => grupo.itens.length > 0);
@@ -426,7 +426,7 @@ export function ContratosTable({
             />
           ) : (
             <span
-              className={`flex w-full items-center justify-center rounded-md px-2 py-2 text-xs font-semibold text-white ${STATUS_STYLE[contract.status].solid}`}
+              className={`flex w-full items-center justify-center rounded-md px-2 py-2 text-xs font-semibold ${STATUS_STYLE[contract.status].etiqueta}`}
             >
               <span className="truncate">{contract.status}</span>
             </span>
