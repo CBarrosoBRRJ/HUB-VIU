@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 24.2 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 25.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 36 suítes · 1.544 verificações · **0 falhas** + 144 testes de UI (ver §5) |
+| Testes | ✅ 37 suítes · 1.557 verificações · **0 falhas** + 144 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -263,7 +263,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 
 ## 5. Testes
 
-36 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
+37 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
 `src/utils/` e `src/data/` para JS e rodando no Node, via `rodar.sh`:
 
 | Suíte | Cobre |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.544 verificações em 36 suítes de regra, mais 144 testes de UI. 0 falhas.**
+**Estado atual: 1.557 verificações em 37 suítes de regra, mais 144 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -537,6 +537,87 @@ forma, não no fim do dia.*
 O rastro de refatorações do dia: um comentário citava o `AREA_DA_ABA` já removido como se existisse,
 e outro prometia que `praca`, `alcanceEstimado` e `publicoAlvo` "continuam no modelo" — a auditoria
 da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem lê confia.
+
+---
+
+## 5.17. O controle de acesso passa a valer — 12/08/2026, décima segunda rodada
+
+A rodada em que a operação encontrou o defeito mais grave do dia, e o encontrou do jeito certo:
+**configurando e conferindo.** Ela fechou abas e colunas para uma equipe, entrou em "Ver como" e
+viu tudo aberto.
+
+### Uma causa, três queixas
+
+*"Coloco que X equipe não pode ver N abas ou N colunas, mas quando simulo, a pessoa continua vendo
+tudo"* — e, minutos depois, *"ele também não está ocultando as páginas"*. Três reportes, um
+`if`: `usuario.perfil === 'admin'` curto-circuitava **todas** as camadas de dado.
+
+| Camada | O que o admin fazia |
+|---|---|
+| quadro (`nivelDeAcesso`) | abria **qualquer** página |
+| aba (`podeVerVisao`) | via aba sensível sem liberação |
+| coluna (`colunaOculta`) | não tinha coluna nenhuma oculta |
+| escrita (3 funções) | editava tudo |
+
+### O que torna este caso instrutivo
+
+Em duas dessas funções havia, **logo abaixo da linha do furo**, um comentário explicando por que
+exatamente aquilo era errado — para o perfil `responsavel`, corrigido numa rodada anterior:
+
+> *"O teto do perfil estava valendo como se fosse escopo."*
+
+**A lição estava escrita e não tinha sido aplicada um nível de perfil acima.** É o padrão mais caro
+que apareceu no projeto: a correção certa, feita pela metade. Meia correção envelhece pior que
+nenhuma, porque deixa o comentário correto ao lado do código errado — e quem lê confia no
+comentário.
+
+`admin` virou o que sempre deveria ter sido: perfil de **administração do sistema** (pessoas,
+equipes, convites, permissões), não **credencial de dado**. Um super-usuário basta, e ele é o dono
+— reconhecido por flag própria, nunca por perfil. Detalhe em [05 §2.9](05_perfis_usuarios.md).
+
+> **Escrita foi junto, e importa mais.** Ler o que não se deveria ao menos aparece na tela; editar
+> o que não se enxerga não deixa rastro para quem usa. Corrigi a leitura primeiro, e a
+> `matrizPerfis` pegou a inconsistência na mesma rodada — o teste existia justamente para isso.
+
+### O flag da aba, que a operação pediu junto
+
+*"Poderíamos ter o flag da aba inteira, e não somente a coluna."* Faltava, e a falta era
+estrutural: **aba aberta não tinha como ser fechada.** Dava para desligar coluna por coluna, e a
+aba continuava na barra, vazia.
+
+Agora as duas direções existem, com padrões opostos — sensível nasce fechada e se **libera**;
+aberta nasce visível e se **oculta**. Na tela, o mesmo interruptor; o tom diz qual é qual
+([07 §1.9](07_visoes_e_relacoes.md)). Sem virada de persistência: o campo é opcional, e não houve
+incompatibilidade de forma.
+
+### E ocultar em vez de borrar
+
+*"Não quero mais borrar, pode ser ocultar apenas, mais fácil."* Era mais fácil e melhorou além da
+tela: filtrada **na origem**, a coluna some de tudo o que deriva dali de uma vez — cabeçalho,
+larguras, exportação, busca, âncoras de rolagem. Antes, cada um desses precisava lembrar de
+perguntar `oculta()`, **e a exportação já tinha esquecido uma vez**.
+
+### Os testes que ficaram
+
+`testeAdminNaoFura` é suíte própria e separada de propósito: ela não verifica o comportamento de um
+usuário do seed — verifica a **regra**. Admin sem equipe recebe "não" em toda camada; o dono recebe
+"sim". Atalho novo em qualquer uma delas a quebra na hora.
+
+A `matrizPerfis` ganhou o **contrapositivo**: aba sensível não abre sem liberação, seja qual for o
+perfil. Sem ele, a correção poderia ser desfeita por um atalho em camada nova e o teste continuaria
+verde.
+
+> **Oito asserções diziam "admin passa por cima" e foram reescritas.** Elas não eram descuido: eram
+> a regra antiga, testada. Vale a distinção — o produto mudou de ideia, o teste não estava errado.
+
+### Os números
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Camadas de acesso que o perfil `admin` furava | 4 | **0** |
+| Direções de controle por aba | 1 *(só liberar)* | **2** |
+| Colunas ocultas que ainda ocupam espaço na grade | todas | **0** |
+| Suítes de regras | 36 | **37** |
 
 ---
 
@@ -1715,7 +1796,7 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 36 suítes e os 144 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 4 | **Sem CI** | As 37 suítes e os 144 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
@@ -1733,7 +1814,7 @@ Ordenado por impacto real, não por facilidade.
 
 | Débito | Como foi fechado |
 |--------|------------------|
-| ~~Testes fora do repositório~~ | As 36 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
+| ~~Testes fora do repositório~~ | As 37 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
 | ~~PRD desatualizado sem ninguém notar~~ | Resolvido em 12/08/2026 por `documentacao.test.tsx`: link quebrado, variável CSS fantasma, símbolo sumido e documento sem versão passaram a **falhar a suíte**. O que o teste não cobre — se o texto está certo — segue sendo trabalho de quem escreve |
 | ~~Projeto não versionado em Git~~ | Resolvido em 12/08/2026: repositório publicado, histórico com mensagem por decisão. O que restou do débito — **nenhum gatilho automático** — é o item 4 |
 | ~~`strict` do TypeScript desligado~~ | Medido: 3 erros no projeto inteiro. Corrigidos, e `strict` + `noUnusedLocals` + `noUnusedParameters` entraram (§5.6) |
@@ -1864,7 +1945,7 @@ esquema. O dia 1 é `prisma migrate dev`.
 
 ### Fase 3 — Engenharia
 
-11. **Pôr as 36 suítes em CI** — o Git saiu do débito em 12/08/2026; as suítes já estão no repositório, falta o gatilho
+11. **Pôr as 37 suítes em CI** — o Git saiu do débito em 12/08/2026; as suítes já estão no repositório, falta o gatilho
 12. ~~Avaliar `strict: true`~~ — **feito em 03/08** (§5.6)
 13. Paginação/virtualização e debounce nas listas grandes
 14. UUID do banco no lugar dos contadores de sessão ([09 §5](09_fundacoes_tecnicas.md)) — o schema
@@ -1951,7 +2032,7 @@ npm run dev                    # porta 3001 (strictPort — 3000 é de outro pro
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
 npm run test:ui                # 144 testes de UI
-cd testes-regras && bash rodar.sh   # 36 suítes de regra — espere "TOTAL DE FALHAS: 0"
+cd testes-regras && bash rodar.sh   # 37 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
 

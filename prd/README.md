@@ -49,8 +49,8 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 
 | Código | Documento |
 |--------|-----------|
-| `utils/permissoes.ts` | [05 §3](05_perfis_usuarios.md), [05 §3.4](05_perfis_usuarios.md) |
-| `utils/visoes.ts` · `utils/colunas.ts` | [07 §1–6](07_visoes_e_relacoes.md); larguras em px e grade contínua: [08 §6](08_backlog_e_integracoes.md), [00 §5.12](00_status_implementacao.md), [09 §8](09_fundacoes_tecnicas.md) |
+| `utils/permissoes.ts` | [05 §3](05_perfis_usuarios.md), [05 §3.4](05_perfis_usuarios.md); **o perfil `admin` não é credencial de dado**: [05 §2.9](05_perfis_usuarios.md) |
+| `utils/visoes.ts` · `utils/colunas.ts` | [07 §1–6](07_visoes_e_relacoes.md), interruptor por aba: [07 §1.9](07_visoes_e_relacoes.md); larguras em px e grade contínua: [08 §6](08_backlog_e_integracoes.md), [00 §5.12](00_status_implementacao.md), [09 §8](09_fundacoes_tecnicas.md) |
 | `utils/referencias.ts` | [07 §10](07_visoes_e_relacoes.md) |
 | `utils/fluxoStatus.ts` | [08 §3](08_backlog_e_integracoes.md), [08 §3.3](08_backlog_e_integracoes.md) |
 | `utils/sla.ts` | [08 §4](08_backlog_e_integracoes.md), [09 §4](09_fundacoes_tecnicas.md) |
@@ -151,6 +151,7 @@ por reler o registro correspondente.
 | `layoutId` do motion precisa ser único por instância | [03 §7.3](03_padroes_ui.md) |
 | Pesos de coluna somam um total fixo por aba | [03 §3](03_padroes_ui.md), [07 §6](07_visoes_e_relacoes.md) |
 | **Shell e tipografia estão congelados** — só mudam a pedido da operação | [03 §1.0.0](03_padroes_ui.md), [03 §1.2](03_padroes_ui.md) |
+| **Só o dono está acima do modelo de acesso** — `admin` administra, mas lê e escreve pelo que as equipes dele dão | [05 §2.9](05_perfis_usuarios.md) |
 
 ### Segurança
 
