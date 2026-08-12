@@ -94,6 +94,27 @@ export function nomeCurto(nome) {
     }
     return `${primeiro} ${ultimo}`;
 }
+/**
+ * `cargo` guarda **o que a pessoa faz**, nunca o que ela pode fazer.
+ *
+ * A semente nasceu com `cargo: 'Dono do Sistema'` — que é vocabulário de permissão, não um cargo.
+ * Corrigir a semente resolve quem instala hoje, e **não alcança quem já tem o valor gravado**: a
+ * persistência versiona por formato e descarta tudo na virada, então não há migração pontual, e
+ * derrubar a versão inteira por causa de uma string apagaria os dados de todo mundo.
+ *
+ * Este reparo é a alternativa: ele roda na leitura, corrige o valor que um defeito meu escreveu, e
+ * não toca em nada que alguém tenha digitado — "Dono do Sistema" é uma frase que ninguém escolhe
+ * como cargo. Mesma lógica do `semIdsRepetidos` em `persistencia.ts`: a garantia vale sempre,
+ * venha o dado de onde vier.
+ */
+const CARGOS_INVALIDOS = {
+    'Dono do Sistema': 'Desenvolvedor',
+};
+export function sanearCargos(usuarios) {
+    if (!usuarios.some((u) => CARGOS_INVALIDOS[u.cargo]))
+        return usuarios;
+    return usuarios.map((u) => (CARGOS_INVALIDOS[u.cargo] ? { ...u, cargo: CARGOS_INVALIDOS[u.cargo] } : u));
+}
 export function mensagemErroIdentidade(erro, dominios) {
     switch (erro) {
         case 'formato':

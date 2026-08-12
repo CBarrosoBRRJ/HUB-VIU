@@ -7,6 +7,7 @@ import { AppPage } from '../types';
 import { useDados } from '../context/DadosProvider';
 import { ehDono, PERFIL_LABEL } from '../utils/permissoes';
 import { nomeCurto } from '../utils/identidade';
+import logoViu from '../../assets/img/viu_hub_logo.jpg';
 import { Avatar } from './usuarios/Avatar';
 import { PERFIL_STYLE } from './usuarios/PerfilSelect';
 import { Floating } from './ui/Floating';
@@ -89,14 +90,17 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
       {/*
         O topo é a **marca**: logo, nome e subtítulo empilhados e centralizados.
 
-        O logo entra por caminho (`/logo-viu.svg`), não por `import`: trocar a arte oficial vira
-        sobrescrever um arquivo em `public/`, sem recompilar nem editar componente. O `alt` é vazio
-        porque o nome vem escrito logo abaixo — anunciar "VIU" duas vezes num leitor de tela é
-        ruído, não acessibilidade.
+        O logo é a **arte oficial**, importada de `assets/img/viu_hub_logo.jpg` — o caminho que a
+        operação mantém. Entra por `import` e não por caminho público de propósito: o arquivo dela
+        é a única cópia, e o Vite versiona o bundle. Um duplicado em `public/` seria mais um lugar
+        para a marca ficar desatualizada.
+
+        O `alt` é vazio porque o nome vem escrito logo abaixo — anunciar "VIU" duas vezes num
+        leitor de tela é ruído, não acessibilidade.
       */}
-      <div className="border-b border-white/10 px-5 py-4 text-center">
-        <img src="/logo-viu.svg" alt="" className="mx-auto size-10 rounded-[0.7rem]" />
-        <p className="mt-2 font-display text-sm font-bold text-white">VIU Agenciamento</p>
+      <div className="border-b border-white/10 px-5 pb-4 pt-5 text-center">
+        <img src={logoViu} alt="" className="mx-auto size-20 rounded-2xl" />
+        <p className="mt-2.5 font-display text-sm font-bold text-white">VIU Agenciamento</p>
         <p className="text-apoio text-slate-400">Gestão de talentos</p>
       </div>
 
@@ -192,8 +196,14 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               }`}
             >
               <Avatar usuario={usuario} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-dado font-medium text-slate-200">
+              {/*
+                O nome fica **centralizado e em caixa alta** entre o avatar e o chevron — pedido da
+                operação. A caixa alta é a mesma forma do bloco de marca no topo: a coluna abre e
+                fecha com o mesmo tratamento, e o meio dela fica alinhado à esquerda porque ali
+                mandam os ícones do menu.
+              */}
+              <span className="min-w-0 flex-1 text-center">
+                <span className="block truncate text-dado font-semibold uppercase tracking-wide text-slate-100">
                   {nomeCurto(usuario.nome)}
                 </span>
                 {/*

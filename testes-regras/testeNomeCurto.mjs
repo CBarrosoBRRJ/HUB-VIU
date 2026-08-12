@@ -1,4 +1,4 @@
-import { nomeCurto } from './utils/identidade.js';
+import { nomeCurto, sanearCargos } from './utils/identidade.js';
 
 let falhas = 0;
 function check(nome, real, esperado) {
@@ -53,6 +53,36 @@ const iniciaisDe = (nome) => {
 };
 check('as iniciais do nome curto batem com as do nome inteiro',
   iniciaisDe(nomeCurto('Caio Cesar Moura Barroso')), iniciaisDe('Caio Cesar Moura Barroso'));
+
+/*
+  `cargo` guarda o que a pessoa FAZ, nunca o que ela pode fazer.
+
+  A semente nasceu com `cargo: 'Dono do Sistema'` — vocabulário de permissão num campo de cargo.
+  Corrigir a semente não alcança quem já tem o valor gravado no navegador, e a persistência não tem
+  migração pontual: ou se derruba a versão inteira (apagando os dados de todo mundo por causa de
+  uma string), ou se repara na leitura. É o segundo.
+*/
+console.log('\n--- O cargo não guarda vocabulário de permissão ---');
+const u = (cargo) => ({ id: 'u1', nome: 'Caio Cesar Moura Barroso', cargo });
+
+check('o valor herdado é corrigido',
+  sanearCargos([u('Dono do Sistema')])[0].cargo, 'Desenvolvedor');
+check('cargo digitado pela pessoa não é tocado',
+  sanearCargos([u('Analista de Agenciamento')])[0].cargo, 'Analista de Agenciamento');
+check('cargo vazio não vira nada',
+  sanearCargos([u('')])[0].cargo, '');
+check('os demais campos atravessam intactos',
+  sanearCargos([u('Dono do Sistema')])[0].nome, 'Caio Cesar Moura Barroso');
+check('e os outros usuários da lista também',
+  sanearCargos([u('Dono do Sistema'), { id: 'u2', nome: 'Ana', cargo: 'Gerente' }]).map((x) => x.cargo),
+  ['Desenvolvedor', 'Gerente']);
+
+/*
+  Sem nada a corrigir, devolve a MESMA lista — não uma cópia. É o que permite chamar o reparo em
+  toda leitura sem criar identidade nova a cada render.
+*/
+const limpa = [u('Desenvolvedor')];
+check('lista já sã volta por identidade, sem cópia', sanearCargos(limpa) === limpa, true);
 
 console.log(falhas === 0 ? '\nTodos os casos passaram.' : `\n${falhas} caso(s) falharam.`);
 process.exit(falhas === 0 ? 0 : 1);

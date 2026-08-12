@@ -12,6 +12,7 @@ import {
   TipoPendencia,
 } from '../types';
 import { USUARIO_ATUAL_ID, USUARIOS_SEED } from '../data/usuarios';
+import { sanearCargos } from '../utils/identidade';
 import { EQUIPES_SEED } from '../data/equipes';
 import { TALENTOS_SEED } from '../data/talentos';
 import { MARCAS_SEED } from '../data/marcas';
@@ -382,7 +383,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     Não é o banco: é o que evita que um F5 durante a apresentação apague tudo o que foi
     cadastrado. Detalhes e limites em `utils/persistencia.ts`.
   */
-  const [usuarios, setUsuarios] = useState<Usuario[]>(() => carregar('usuarios', USUARIOS_SEED));
+  const [usuarios, setUsuarios] = useState<Usuario[]>(() => sanearCargos(carregar('usuarios', USUARIOS_SEED)));
   const [equipes, setEquipes] = useState<Equipe[]>(() => carregar('equipes', EQUIPES_SEED));
   const [concessoes, setConcessoes] = useState<Concessao[]>(() => carregar('concessoes', []));
   /*

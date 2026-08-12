@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.3 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 5.4 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -32,6 +32,30 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 > **Uma cor de ação só.** Verde e indigo disputando o papel de botão primário faziam a tela
 > parecer duas interfaces coladas. Verde ficou reservado ao gesto de "criar uma linha nova",
 > que já é sinalizado pelo botão de criação.
+
+### 1.0.0. ⛔ A ESTRUTURA DO SHELL ESTÁ CONGELADA — 12/08/2026
+
+> **A moldura do produto — plano escuro, folha de trabalho e sidebar — não se altera sem pedido
+> explícito da operação.** Não como melhoria, não "de brinde" junto com outra correção, não porque
+> uma referência nova pareceu bonita.
+>
+> Aprovada em 12/08/2026, palavras da operação: *"chegamos no layout e padrão da sidebar e página,
+> pode atualizar no PRD para que não mudarmos essa estrutura"*.
+
+O que está congelado — os **invariantes**, não os pixels:
+
+| | Invariante |
+|---|---|
+| **Dois planos, e só dois** | plano escuro ao fundo, folha clara flutuando. Uma terceira superfície entre eles aparece como linha, por mais sutil que seja o tom (§1.0.1) |
+| **A sidebar é o plano** | sem fundo próprio, sem borda, sem véu, sem aresta. Ela participa do plano; não flutua sobre ele |
+| **O vão existe** | a folha respira 8px por todos os lados. Sem ele, ela volta a parecer uma coluna *ao lado* da sidebar |
+| **Um escuro só** | `--color-plano` serve sidebar, moldura e faixas de abas. Nenhum segundo escuro entra no produto |
+| **A ordem da sidebar** | marca centralizada no topo · seções centralizadas · itens à esquerda · pessoa no rodapé |
+| **A luz vem de trás** | `.brilho-do-plano`, atrás de tudo. Profundidade não se resolve com sombra em componente |
+
+> **O que não está congelado:** valores. Tamanho do logo, opacidade das manchas, raio do canto — são
+> ajustes, e a operação pede quando quiser. O que não muda é a **estrutura** acima; cada linha dela
+> custou uma rodada de correção, e três delas foram detectadas por olho humano num print.
 
 ### 1.0.1. O shell: dois planos — 12/08/2026
 
@@ -177,13 +201,13 @@ Cinco pedidos numa tacada, todos sobre a mesma coluna.
     Gestão de talentos     <- centralizado
 ```
 
-O logo entra **por caminho** (`/logo-viu.svg` em `public/`), não por `import`: trocar a arte oficial
-é sobrescrever um arquivo, sem recompilar nem editar componente. O que está lá é um **placeholder**
-— e carrega no próprio arquivo o aviso de que é.
+O logo é a **arte oficial**, importada de `assets/img/viu_hub_logo.jpg` — o caminho que a operação
+mantém. Entra por `import`, e não por caminho público, de propósito: **o arquivo dela é a única
+cópia**, e o Vite versiona o bundle. Um duplicado em `public/` seria mais um lugar para a marca
+ficar desatualizada.
 
-> Limitação conhecida do placeholder: SVG carregado por `<img>` vive num documento isolado e não
-> enxerga as fontes da página, então o texto dele cai na sans do sistema. É mais um motivo para
-> trocar pelo arquivo oficial.
+> O placeholder que existiu por algumas horas (`public/logo-viu.svg`) foi removido junto — arte
+> aproximada que sobrevive à chegada da oficial é a definição de dívida silenciosa.
 
 O `alt` é **vazio** de propósito: o nome vem escrito logo abaixo, e anunciar "VIU" duas vezes num
 leitor de tela é ruído, não acessibilidade.
@@ -225,6 +249,26 @@ onde a permissão *é* o assunto — Usuários, Meu Perfil, banner de visualiza�
 
 > Este era um caso de campo com o valor errado, não de rótulo errado: `cargo` guardava
 > "Dono do Sistema" desde a semente. Corrigir o dado resolveu os dois lados.
+
+#### E o dado errado precisou de reparo, não de rótulo novo
+
+Corrigir a semente resolve quem instala hoje e **não alcança quem já tem o valor gravado** — a
+etiqueta seguia dizendo "DONO DO SISTEMA" no navegador da operação, um dia depois da correção. A
+persistência versiona por formato e descarta tudo na virada: não há migração pontual, e derrubar a
+versão inteira por causa de uma string apagaria os dados de todo mundo.
+
+`sanearCargos` ([`utils/identidade.ts`](../src/utils/identidade.ts)) é a alternativa: roda na
+leitura, corrige o valor que um defeito antigo escreveu, e **não toca no que alguém digitou** —
+"Dono do Sistema" é uma frase que ninguém escolhe como cargo. É a mesma lógica do `semIdsRepetidos`
+em `persistencia.ts`: a garantia vale sempre, venha o dado de onde vier. Sem nada a corrigir, ele
+devolve a **mesma lista por identidade**, o que permite chamá-lo em toda leitura sem criar
+referência nova a cada render.
+
+#### O rodapé: nome centralizado, em caixa alta
+
+`CAIO BARROSO` entre o avatar e o chevron. A caixa alta é a mesma forma do bloco de marca no topo —
+**a coluna abre e fecha com o mesmo tratamento**, e o miolo dela fica à esquerda porque ali mandam
+os ícones do menu.
 
 ### 1.0.4. A paleta e a marca — a conferência de 12/08/2026
 
