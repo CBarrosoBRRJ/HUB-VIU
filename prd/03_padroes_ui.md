@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.1 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 5.2 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -79,14 +79,35 @@ atual?"*. A sidebar deixou de pintar o tom escuro: ela é uma folha de **branco 
 > mesma cor um pouco mais clara. O efeito depende inteiramente de haver **variação** por baixo para
 > o desfoque revelar.
 
-É para isso que existe o `.brilho-do-plano`: três manchas radiais atrás de tudo, nos matizes da
-**própria paleta de status** (275 · 195 · 320) e em opacidade baixa (14% a 28%). Os matizes não são
+É para isso que existe o `.brilho-do-plano`: três manchas radiais atrás de tudo, ancoradas no
+**matiz da marca** (266°) com uma abertura para o ciano e outra para o violeta — e em opacidade
+contida (20% a 42%). Os matizes não são
 livres de propósito — fundo de outra família que a interface faz o glass virar decoração colada por
 cima. E a opacidade é baixa porque o pedido foi vidro *"com esse tom atual"*: o plano continua sendo
 o escuro aprovado, com vida, não um degradê colorido.
 
-O `shadow-[inset_-1px_0_0_...]` a 6% na borda direita da sidebar é a quina do vidro — não um
-separador. O separador é a diferença de plano; isto é o brilho da aresta.
+O `shadow-[inset_-1px_0_0_...]` na borda direita da sidebar é a quina do vidro — não um separador.
+O separador é a diferença de plano; isto é o brilho da aresta.
+
+> #### "A barra e o fundo estão iguais?" — quase, e o quase era o defeito
+>
+> Conferido contra a referência: nela a sidebar e a moldura em volta da folha são **a mesma
+> superfície contínua**, e a folha é o único objeto que flutua. Aqui a sidebar levava um véu de
+> branco a 4% que a deixava mensuravelmente mais clara que a moldura — duas superfícies escuras
+> ligeiramente diferentes, que é o pior dos dois mundos: nem igual, nem contraste proposital.
+>
+> O véu caiu para 3%, o mínimo que ainda produz a leitura de vidro. **O tom vem do mesmo token nos
+> dois lugares**; a diferença que resta é a película, não a cor.
+
+#### Um escuro só, do plano à faixa de abas
+
+O produto tinha **três escuros diferentes**, e nenhum deles se conhecia: `bg-white` na sidebar
+(depois um slate neutro), `#111a3a` nas faixas de abas, e o gradiente navy dos banners.
+
+Hoje `--color-plano` é o matiz **da marca** — 266°, o azul do logo VIU —, num croma baixo o
+bastante para ser fundo e não decoração. Ele serve a sidebar, a moldura da folha e as quatro faixas
+de abas: **um valor, três lugares**. Nem preto neutro (que numa tela grande vira buraco), nem o
+navy antigo, que era uma cor própria sem parentesco com nada.
 
 #### As faixas de abas usam o mesmo tom
 
@@ -129,6 +150,91 @@ forma, cor em cada botão.
 > detalhe que faz três botões "com o mesmo padding" ainda saírem desalinhados.
 
 `backlog.test.tsx` trava a **geometria**, não a cor — a cor é justamente o que deve diferir.
+
+### 1.0.3. A sidebar: identidade no topo, pessoa embaixo — 12/08/2026
+
+Cinco pedidos numa tacada, todos sobre a mesma coluna.
+
+#### O topo virou bloco de marca
+
+```
+        [ logo ]           <- /logo-viu.svg, 40px, centralizado
+    VIU Agenciamento       <- centralizado
+    Gestão de talentos     <- centralizado
+```
+
+O logo entra **por caminho** (`/logo-viu.svg` em `public/`), não por `import`: trocar a arte oficial
+é sobrescrever um arquivo, sem recompilar nem editar componente. O que está lá é um **placeholder**
+— e carrega no próprio arquivo o aviso de que é.
+
+> Limitação conhecida do placeholder: SVG carregado por `<img>` vive num documento isolado e não
+> enxerga as fontes da página, então o texto dele cai na sans do sistema. É mais um motivo para
+> trocar pelo arquivo oficial.
+
+O `alt` é **vazio** de propósito: o nome vem escrito logo abaixo, e anunciar "VIU" duas vezes num
+leitor de tela é ruído, não acessibilidade.
+
+#### Os nomes das áreas, centralizados
+
+`WORKSPACE` e `ADMINISTRAÇÃO` acompanham o eixo do bloco de marca. Os itens do menu seguem
+alinhados à esquerda — eles têm ícone, e ícone centralizado destrói a coluna de leitura que o menu
+inteiro depende.
+
+#### O nome: primeiro e último
+
+*"Caio Barroso"*, não "Caio Cesar Moura Bar…". O cadastro guarda o **nome civil**, e ele não cabe
+em 256px — o truncamento cortava justamente a palavra que identifica a pessoa.
+
+`nomeCurto` em [`utils/identidade.ts`](../src/utils/identidade.ts) é a mesma regra que
+`getIniciais` já usava no avatar (primeira + última), agora por extenso. Dois casos que o corte
+ingênuo erra e que a função trata:
+
+| Entrada | Corte ingênuo | `nomeCurto` |
+|---|---|---|
+| "Ana de Souza Neto" | "Ana Neto" — perde a família | **"Ana Souza Neto"** |
+| "Marcos de Andrade" | "Marcos Andrade" | "Marcos Andrade" |
+
+Sufixo de geração (Filho, Neto, Júnior…) **viaja com o sobrenome**: "Neto" sozinho não identifica
+família nenhuma. `testeNomeCurto` cobre os dois, as partículas e as bordas — inclusive a coerência
+com as iniciais do avatar, que mostrariam "CB" ao lado de um nome que não começa com C nem termina
+com B se as duas regras divergissem.
+
+#### A etiqueta mostra o cargo, não o nível de acesso
+
+Ela dizia "Dono do Sistema", que é **vocabulário de permissão** — a resposta para "o que esta
+pessoa pode fazer?". Debaixo de um nome, a pergunta é outra: **"quem é esta pessoa?"**. Agora
+mostra `usuario.cargo`, e o cargo do dono virou "Desenvolvedor" (temporário, a pedido).
+
+Nada se perdeu: o nível continua legível pela **cor** do chip, e por extenso na dica. E as telas
+onde a permissão *é* o assunto — Usuários, Meu Perfil, banner de visualização — seguem com
+`rotuloDeNivel`, que não foi tocado.
+
+> Este era um caso de campo com o valor errado, não de rótulo errado: `cargo` guardava
+> "Dono do Sistema" desde a semente. Corrigir o dado resolveu os dois lados.
+
+### 1.0.4. A paleta e a marca — a conferência de 12/08/2026
+
+Pergunta da operação: *"verifica a paleta de cores de toda a página e sidebar, e vê se elas
+combinam ou se podemos melhorar"*. Conferido com o logo em mãos — **azul elétrico e amarelo**.
+
+O resultado foi melhor do que o esperado, e por acidente feliz: a paleta construída (§1.1.0) já
+tinha caído na família da marca antes de alguém olhar o logo.
+
+| Elemento | Matiz | Relação com a marca |
+|---|---|---|
+| logo VIU | ~266° | — |
+| `--color-plano` | **266°** | *era* 260° neutro; alinhado nesta rodada |
+| rampa do fluxo | 248° → 308° | atravessa o azul da marca |
+| `acento-acao` | 62° | o parente escuro do amarelo da marca |
+
+Os dois ajustes que a conferência produziu foram **subtrações**, não acréscimos: o plano trocou o
+slate neutro pelo matiz da marca, e o navy `#111a3a` das faixas saiu de cena. A paleta não ganhou
+nenhuma cor nova.
+
+> **O que deliberadamente não foi feito:** trazer o amarelo da marca para a interface. Amarelo puro
+> não existe no peso em que esta paleta trabalha (claridade ~0,52) — nessa faixa ele é ocre, que é
+> exatamente o `acento-acao` que já existe. Forçá-lo mais claro quebraria o L constante, que é a
+> regra que segura a paleta inteira. O amarelo é da **marca**; a interface fica com o parente dele.
 
 ### 1.1.0. A paleta de status — construída por regra, não escolhida a dedo — 12/08/2026
 

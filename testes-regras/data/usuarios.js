@@ -9,7 +9,7 @@ export const USUARIOS_SEED = [
         id: 'u0',
         nome: 'Caio Cesar Moura Barroso',
         email: 'barroso.ccmb@gmail.com',
-        cargo: 'Dono do Sistema',
+        cargo: 'Desenvolvedor',
         telefone: '(21) 99550-8701',
         local: 'Caxias do Sul, RS',
         nascimento: '1990-01-01',

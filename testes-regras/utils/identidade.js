@@ -45,6 +45,55 @@ export function validarEmail(email, { usuarios, dominios, ignorarId }) {
         return 'duplicado';
     return null;
 }
+/**
+ * Sufixos de geração: fazem parte do sobrenome, não são um nome a mais.
+ *
+ * "Ana de Souza Neto" reduzida a "Ana Neto" perde a família — é "Souza Neto" que identifica a
+ * pessoa. Sem esta lista, o corte por última palavra devolveria exatamente isso.
+ */
+const SUFIXOS_DE_FAMILIA = new Set([
+    'filho', 'filha', 'neto', 'neta', 'sobrinho', 'sobrinha',
+    'junior', 'júnior', 'jr', 'jr.', 'segundo', 'terceiro', 'ii', 'iii',
+]);
+/** Partículas que ligam sobrenomes e não valem como nome por si — "de", "da", "dos"… */
+const PARTICULAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'di', 'du', 'del', 'della', 'van', 'von', 'la', 'le']);
+/**
+ * O nome como as pessoas se chamam: **primeiro e último** — 12/08/2026.
+ *
+ * A sidebar exibia o nome de cadastro inteiro, e o cadastro é o nome civil: "Caio Cesar Moura
+ * Barroso" não cabe em 256px e virava "Caio Cesar Moura Bar…", que é pior que qualquer versão
+ * curta — corta no meio da palavra que identifica a pessoa. Pedido da operação: *"o primeiro e
+ * último nome, ex: Caio Barroso"*.
+ *
+ * É a mesma regra que `getIniciais` já usava para o avatar (primeira + última inicial), agora
+ * escrita por extenso: as duas partes que uma pessoa usa para se apresentar.
+ *
+ * Dois casos que o corte ingênuo erra, e que esta função trata:
+ *
+ * | Entrada | Corte ingênuo | Aqui |
+ * |---|---|---|
+ * | "Ana de Souza Neto" | "Ana Neto" — perde a família | "Ana Souza Neto" |
+ * | "Marcos de Andrade" | "Marcos Andrade" | "Marcos Andrade" (a partícula sai) |
+ *
+ * Nome de uma palavra só volta inteiro; entrada vazia volta vazia.
+ */
+export function nomeCurto(nome) {
+    const partes = nome.trim().split(/\s+/).filter(Boolean);
+    if (partes.length <= 1)
+        return partes[0] ?? '';
+    const primeiro = partes[0];
+    const ultimo = partes[partes.length - 1];
+    /*
+      Sufixo de geração só é sufixo se houver sobrenome antes dele para carregar — e esse anterior
+      não pode ser partícula ("Ana da Neto" não existe; se fosse o caso, o sufixo vira o sobrenome).
+    */
+    if (SUFIXOS_DE_FAMILIA.has(ultimo.toLowerCase()) && partes.length >= 3) {
+        const anterior = partes[partes.length - 2];
+        if (!PARTICULAS.has(anterior.toLowerCase()))
+            return `${primeiro} ${anterior} ${ultimo}`;
+    }
+    return `${primeiro} ${ultimo}`;
+}
 export function mensagemErroIdentidade(erro, dominios) {
     switch (erro) {
         case 'formato':

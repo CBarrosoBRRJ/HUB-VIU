@@ -132,10 +132,14 @@
     o **vão** que deixa o plano aparecer em volta, e o canto arredondado que diz que a folha tem
     borda própria.
 
-    O tom é um slate profundo com um resto de azul (croma 0,015), não um preto neutro: ele fica na
-    mesma família fria da paleta de status, e preto puro numa tela grande vira um buraco.
+    O tom é um azul profundo — **o matiz da marca** (266°, o mesmo do azul do logo VIU), num croma
+    baixo o bastante para ser fundo e não decoração. Nem preto neutro, que numa tela grande vira um
+    buraco, nem o navy antigo `#111a3a`, que era uma cor própria sem parentesco com nada.
+
+    Este é o token que a sidebar, a moldura em volta da folha e as faixas de abas usam — um valor,
+    três lugares. Era aí que o produto tinha três escuros diferentes.
   */
-  --color-plano: oklch(0.24 0.015 260);
+  --color-plano: oklch(0.23 0.045 266);
 }
 
 @layer base {
@@ -696,7 +700,7 @@
 */
 .brilho-do-plano {
   background:
-    radial-gradient(48rem 34rem at -6% -4%, oklch(0.55 0.15 275 / 0.28), transparent 66%),
-    radial-gradient(42rem 30rem at 6% 104%, oklch(0.58 0.12 195 / 0.18), transparent 62%),
-    radial-gradient(38rem 28rem at 104% 100%, oklch(0.52 0.13 320 / 0.14), transparent 60%);
+    radial-gradient(40rem 30rem at -8% -6%, oklch(0.58 0.19 266 / 0.42), transparent 64%),
+    radial-gradient(34rem 26rem at 2% 106%, oklch(0.60 0.14 200 / 0.26), transparent 60%),
+    radial-gradient(38rem 28rem at 106% 102%, oklch(0.54 0.15 316 / 0.20), transparent 60%);
 }

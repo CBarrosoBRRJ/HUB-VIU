@@ -6,6 +6,7 @@ import {
 import { AppPage } from '../types';
 import { useDados } from '../context/DadosProvider';
 import { ehDono, PERFIL_LABEL } from '../utils/permissoes';
+import { nomeCurto } from '../utils/identidade';
 import { Avatar } from './usuarios/Avatar';
 import { PERFIL_STYLE } from './usuarios/PerfilSelect';
 import { Floating } from './ui/Floating';
@@ -67,9 +68,18 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const perfilStyle = usuario ? PERFIL_STYLE[usuario.perfil] : null;
 
   return (
-    <nav className="relative z-10 flex w-64 shrink-0 flex-col bg-white/4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
-      <div className="border-b border-white/10 px-5 py-4">
-        <p className="font-display text-sm font-bold text-white">VIU Agenciamento</p>
+    <nav className="relative z-10 flex w-64 shrink-0 flex-col bg-white/3 shadow-[inset_-1px_0_0_rgba(255,255,255,0.07)] backdrop-blur-2xl">
+      {/*
+        O topo é a **marca**: logo, nome e subtítulo empilhados e centralizados.
+
+        O logo entra por caminho (`/logo-viu.svg`), não por `import`: trocar a arte oficial vira
+        sobrescrever um arquivo em `public/`, sem recompilar nem editar componente. O `alt` é vazio
+        porque o nome vem escrito logo abaixo — anunciar "VIU" duas vezes num leitor de tela é
+        ruído, não acessibilidade.
+      */}
+      <div className="border-b border-white/10 px-5 py-4 text-center">
+        <img src="/logo-viu.svg" alt="" className="mx-auto size-10 rounded-[0.7rem]" />
+        <p className="mt-2 font-display text-sm font-bold text-white">VIU Agenciamento</p>
         <p className="text-apoio text-slate-400">Gestão de talentos</p>
       </div>
 
@@ -90,7 +100,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
           return (
             <div key={secao.titulo}>
-              <p className="px-3 pb-2 pt-1 text-rotulo font-bold uppercase tracking-[0.16em] text-slate-500">
+              <p className="px-3 pb-2 pt-1 text-center text-rotulo font-bold uppercase tracking-[0.16em] text-slate-500">
                 {secao.titulo}
               </p>
 
@@ -167,12 +177,22 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               <Avatar usuario={usuario} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-dado font-medium text-slate-200">
-                  {usuario.nome}
+                  {nomeCurto(usuario.nome)}
                 </span>
+                {/*
+                  A etiqueta mostra o **cargo**, não o nível de acesso.
+
+                  Ela dizia "Dono do Sistema", que é vocabulário de permissão — a resposta para
+                  "o que esta pessoa pode fazer?". Debaixo de um nome, a pergunta é outra: "quem é
+                  esta pessoa?". O nível continua legível pela **cor** do chip, e por extenso na
+                  dica; as telas de acesso (Usuários, Meu Perfil, banner de visualização) seguem
+                  com `rotuloDeNivel`, onde a permissão é o assunto.
+                */}
                 <span
-                  className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-selo font-bold uppercase tracking-wider ring-1 ${perfilStyle?.chip}`}
+                  title={`Nível de acesso: ${ehDono(usuario) ? 'Dono do Sistema' : PERFIL_LABEL[usuario.perfil]}`}
+                  className={`mt-0.5 block truncate rounded px-1.5 py-0.5 text-selo font-bold uppercase tracking-wider ring-1 ${perfilStyle?.chip}`}
                 >
-                  {ehDono(usuario) ? 'Dono do Sistema' : PERFIL_LABEL[usuario.perfil]}
+                  {usuario.cargo}
                 </span>
               </span>
             </button>
