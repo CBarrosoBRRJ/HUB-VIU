@@ -94,25 +94,40 @@ check('só Entrada corre o SLA',
 check('três status encerram',
   STATUS_OPORTUNIDADE.filter((s) => s.encerra).map((s) => s.id), ['fechado', 'declinado', 'encerrado']);
 /*
-  A cor deixou de morar no status e passou a morar na **família** (12/08/2026): sete matizes viraram
-  quatro, e cada um passou a dizer o que a linha exige em vez de nomear a etapa. O teste acompanha —
-  o que precisa existir agora é a família, e a paleta precisa atender todas elas.
+  A cor mora em `PALETA_STATUS`, não no catálogo de status — foi assim que ela chegou a sete matizes
+  arbitrários: um status novo, uma cor nova, sem ninguém olhar o conjunto (12/08/2026).
+
+  O que se trava aqui é a **forma da paleta**: a rampa fria do fluxo (quatro vizinhas), os acentos
+  fora dela, e o arquivado que recua em vez de ganhar cor.
 */
-check('todo status declara família e rótulo',
-  STATUS_OPORTUNIDADE.every((s) => s.familia && s.label), true);
-check('a paleta atende todas as famílias em uso',
-  [...new Set(STATUS_OPORTUNIDADE.map((s) => s.familia))]
-    .every((familia) => PALETA_STATUS[familia]?.suave && PALETA_STATUS[familia]?.barra
-      && PALETA_STATUS[familia]?.dot), true);
+check('todo status tem rótulo', STATUS_OPORTUNIDADE.every((s) => s.label), true);
+check('a paleta cobre os nove status',
+  STATUS_OPORTUNIDADE.every((s) => PALETA_STATUS[s.id]?.suave && PALETA_STATUS[s.id]?.barra
+    && PALETA_STATUS[s.id]?.dot), true);
+
+const matiz = (classe) => /bg-([a-z]+)-\d+/.exec(classe)[1];
+
+// A rampa: quatro matizes vizinhos, um por etapa do fluxo — distintos entre si.
+const doFluxo = ['entrada', 'elaboracao', 'revisao', 'aguardando_feedback']
+  .map((id) => matiz(PALETA_STATUS[id].barra));
+check('cada etapa do fluxo tem seu matiz', new Set(doFluxo).size, 4);
+check('e a rampa é a fria, na ordem do avanço', doFluxo, ['slate', 'sky', 'indigo', 'violet']);
+
+// O âmbar é a única cor quente, e marca os dois status que param e esperam alguém.
+check('Ajustes e StandBy dividem o acento de ação',
+  matiz(PALETA_STATUS.ajuste.barra) === matiz(PALETA_STATUS.standby.barra), true);
+check('o acento de ação é o âmbar', matiz(PALETA_STATUS.ajuste.barra), 'amber');
+
 /*
-  O que se conta é **matiz**, não classe: `fim` usa um cinza mais fechado que `andamento`, então há
-  cinco famílias em quatro cores. É o matiz que produz — ou não — o efeito carnaval; dois tons do
-  mesmo cinza lêem como uma cor só.
+  O defeito que a versão anterior tinha: Entrada e Encerrado no mesmo cinza — começo e fim do
+  processo idênticos. O arquivado se separa pelo **texto apagado**, não por outro matiz.
 */
-check('quatro matizes, não sete',
-  new Set(
-    Object.values(PALETA_STATUS).map((c) => /bg-([a-z]+)-\d+/.exec(c.barra)[1]),
-  ).size, 4);
+check('Encerrado não se confunde com Entrada',
+  PALETA_STATUS.encerrado.suave === PALETA_STATUS.entrada.suave, false);
+check('e ele é o único que recua no texto',
+  STATUS_OPORTUNIDADE.filter((s) => PALETA_STATUS[s.id].suave.includes('text-slate-500'))
+    .map((s) => s.id), ['encerrado']);
+
 check('status inválido cai em Entrada', getStatus('inventado').id, 'entrada');
 check('em Entrada não saiu da triagem', saiuDaTriagem(op({ status: 'entrada' })), false);
 check('em Elaboração já saiu', saiuDaTriagem(op({ status: 'elaboracao' })), true);

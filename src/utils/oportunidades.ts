@@ -20,96 +20,135 @@ import { somarValores } from './moeda';
 
 /**
  * ================================================================================================
- * A PALETA DE STATUS — quatro famílias, e a cor diz **o que a linha exige** — 12/08/2026
+ * A PALETA DE STATUS — uma rampa fria para o fluxo, acentos para o que sai dele — 12/08/2026
  * ================================================================================================
  *
- * Antes cada status tinha a sua cor: slate, sky, indigo, violet, amber, yellow, emerald, rose —
- * **sete matizes para nove estados**. O resultado, nas palavras da operação, era "muito carnaval",
- * e o defeito é anterior ao tom: *cor por etapa é uma convenção que ninguém decora*. Quem olha a
- * coluna não pergunta "em que etapa está?" — isso o texto responde. Pergunta **"o que preciso
- * olhar?"**, e é isso que a cor passa a responder.
+ * ## As duas tentativas anteriores, e o que cada uma ensinou
  *
- * | Família | Cor | O que diz | Status |
- * |---------|-----|-----------|--------|
- * | `andamento` | cinza-azulado | segue seu curso, nada a fazer agora | Entrada · Em Elaboração · Em Revisão · Aguardando Feedback |
- * | `acao` | âmbar | **parou, e depende de alguém** | Ajustes · StandBy |
- * | `ganho` | esmeralda | acabou, e deu negócio | Negócio Fechado |
- * | `perda` | rosa | acabou sem negócio | Declinado |
- * | `fim` | cinza mais fechado | acabou sem decisão — o arquivamento | Encerrado |
+ * | Versão | O que era | Por que caiu |
+ * |--------|-----------|--------------|
+ * | Original | uma cor por status, escolhidas uma a uma | "muito carnaval": sete matizes de famílias conflitantes — azul, roxo, âmbar, amarelo, verde, rosa |
+ * | Semântica | quatro matizes por significado | perdeu a distinção entre etapas, e **pintou Entrada e Encerrado do mesmo cinza** — o começo e o fim do processo iguais |
  *
- * São **quatro matizes** (cinza, âmbar, esmeralda, rosa) em vez de sete, e cada um carrega um
- * porquê. O âmbar é o que ganha mais: ele deixa de ser "a cor do Ajustes" e passa a significar
- * *pede ação* — que é a única coisa que alguém precisa achar de relance numa coluna de quarenta
- * linhas.
+ * O erro da primeira não era *ter cor*: era a paleta ser **arbitrária**. O da segunda foi jogar
+ * fora a distinção junto com o excesso.
  *
- * A distinção entre as quatro etapas de andamento continua existindo: está **escrita**, em caixa
- * alta, dentro da etiqueta.
+ * ## A rampa
+ *
+ * O fluxo usa **quatro matizes vizinhos no espectro frio** — slate → sky → indigo → violet. Cores
+ * análogas lêem como *uma família*, não como sete cores brigando: a diferença entre uma etapa e a
+ * seguinte é visível, e o conjunto continua sendo um bloco só para quem olha de longe.
+ *
+ * A progressão não é decorativa. Ela **acompanha o avanço**: o cinza neutro de quem acabou de
+ * chegar, esfriando para o azul conforme o projeto anda, até o violeta de quem está com o cliente.
+ *
+ * ```
+ *   ENTRADA  →  EM ELABORAÇÃO  →  EM REVISÃO  →  AGUARDANDO FEEDBACK
+ *   slate         sky               indigo         violet
+ *   └──────────── a rampa fria: quatro vizinhas ────────────┘
+ * ```
+ *
+ * ## Os acentos, e por que são só três
+ *
+ * | Cor | Onde | Por quê |
+ * |-----|------|---------|
+ * | **âmbar** | Ajustes · StandBy | a **única quente** da paleta, e ela significa *parou, depende de alguém* — é o que precisa saltar numa coluna de quarenta linhas |
+ * | esmeralda | Negócio Fechado | acabou, e deu negócio |
+ * | rosa | Declinado | acabou sem negócio |
+ *
+ * ## O Encerrado **recua** em vez de ganhar cor
+ *
+ * Ele foi o defeito da versão anterior: usava o mesmo cinza da Entrada, e começo e fim do processo
+ * ficavam idênticos. Agora ele é o único da paleta com **texto apagado** (`slate-500` sobre
+ * `slate-200`) — o arquivamento não disputa atenção com nada, e a diferença para a Entrada, que
+ * tem texto forte sobre fundo claro, se lê sem comparar lado a lado.
  */
-export type FamiliaStatus = 'andamento' | 'acao' | 'ganho' | 'perda' | 'fim';
-
-/**
- * As classes de cada família — **literais**, exigência do JIT do Tailwind ([09 §7]).
- *
- * | Campo | Onde |
- * |-------|------|
- * | `suave` | a etiqueta da grade: fundo tênue, texto forte, anel ([03 §1.1.1]) |
- * | `barra` | a borda colorida dos cards do cabeçalho ([03 §1.2.9]) |
- * | `dot` | o ponto das opções, dentro do painel de status |
- */
-export const PALETA_STATUS: Record<FamiliaStatus, { suave: string; barra: string; dot: string }> = {
-  andamento: {
+const RAMPA = {
+  /* A rampa fria do fluxo — quatro vizinhas, do neutro ao violeta. */
+  slate: {
     suave: 'bg-slate-100 text-slate-700 ring-slate-300',
     barra: 'bg-slate-300',
     dot: 'bg-slate-400',
   },
-  acao: {
+  sky: {
+    suave: 'bg-sky-50 text-sky-700 ring-sky-200',
+    barra: 'bg-sky-300',
+    dot: 'bg-sky-400',
+  },
+  indigo: {
+    suave: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
+    barra: 'bg-indigo-300',
+    dot: 'bg-indigo-400',
+  },
+  violet: {
+    suave: 'bg-violet-50 text-violet-700 ring-violet-200',
+    barra: 'bg-violet-300',
+    dot: 'bg-violet-400',
+  },
+  /* Os acentos — fora da rampa de propósito: eles marcam o que **sai** do curso normal. */
+  ambar: {
     suave: 'bg-amber-50 text-amber-800 ring-amber-300',
-    barra: 'bg-amber-300',
+    barra: 'bg-amber-400',
     dot: 'bg-amber-500',
   },
-  ganho: {
+  esmeralda: {
     suave: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     barra: 'bg-emerald-300',
     dot: 'bg-emerald-500',
   },
-  perda: {
+  rosa: {
     suave: 'bg-rose-50 text-rose-700 ring-rose-200',
     barra: 'bg-rose-300',
     dot: 'bg-rose-400',
   },
-  /* Um degrau mais fechado que `andamento`: o arquivado recua, mas continua legível. */
-  fim: {
-    suave: 'bg-slate-200 text-slate-600 ring-slate-300',
+  /* O arquivado: o único com texto apagado. Ele recua, e é isso que o separa da Entrada. */
+  arquivado: {
+    suave: 'bg-slate-200 text-slate-500 ring-slate-300',
     barra: 'bg-slate-400',
     dot: 'bg-slate-400',
   },
+} as const;
+
+export const PALETA_STATUS: Record<StatusOportunidade, (typeof RAMPA)[keyof typeof RAMPA]> = {
+  entrada: RAMPA.slate,
+  elaboracao: RAMPA.sky,
+  revisao: RAMPA.indigo,
+  aguardando_feedback: RAMPA.violet,
+  ajuste: RAMPA.ambar,
+  standby: RAMPA.ambar,
+  fechado: RAMPA.esmeralda,
+  declinado: RAMPA.rosa,
+  encerrado: RAMPA.arquivado,
 };
 
 export const STATUS_OPORTUNIDADE: {
   id: StatusOportunidade;
   label: string;
-  /** A que família a cor pertence — ver `PALETA_STATUS`. */
-  familia: FamiliaStatus;
   /** O SLA de triagem corre neste status? */
   emTriagem?: boolean;
   /** Fim de linha: não há mais o que acompanhar. */
   encerra?: boolean;
 }[] = [
-  { id: 'entrada', label: 'Entrada', familia: 'andamento', emTriagem: true },
-  { id: 'elaboracao', label: 'Em Elaboração', familia: 'andamento' },
-  { id: 'revisao', label: 'Em Revisão', familia: 'andamento' },
-  { id: 'aguardando_feedback', label: 'Aguardando Feedback', familia: 'andamento' },
-  /* Ajustes e StandBy são os dois pontos em que o projeto **para e espera alguém**. */
-  { id: 'ajuste', label: 'Ajustes', familia: 'acao' },
-  { id: 'standby', label: 'StandBy', familia: 'acao' },
-  { id: 'fechado', label: 'Negócio Fechado', familia: 'ganho', encerra: true },
-  { id: 'declinado', label: 'Declinado', familia: 'perda', encerra: true },
-  { id: 'encerrado', label: 'Encerrado', familia: 'fim', encerra: true },
+  { id: 'entrada', label: 'Entrada', emTriagem: true },
+  { id: 'elaboracao', label: 'Em Elaboração' },
+  { id: 'revisao', label: 'Em Revisão' },
+  { id: 'aguardando_feedback', label: 'Aguardando Feedback' },
+  { id: 'ajuste', label: 'Ajustes' },
+  { id: 'standby', label: 'StandBy' },
+  { id: 'fechado', label: 'Negócio Fechado', encerra: true },
+  { id: 'declinado', label: 'Declinado', encerra: true },
+  { id: 'encerrado', label: 'Encerrado', encerra: true },
 ];
 
-/** As classes de cor de um status — o atalho que evita `PALETA_STATUS[getStatus(id).familia]`. */
+/**
+ * As classes de cor de um status.
+ *
+ * A cor **não mora no catálogo de status** de propósito: foi assim que a paleta chegou a sete
+ * matizes arbitrários — um status novo, uma cor nova, sem ninguém olhar o conjunto. Aqui, um
+ * status novo escolhe um degrau da rampa ou um acento que já existe.
+ */
 export function coresDoStatus(id: StatusOportunidade) {
-  return PALETA_STATUS[getStatus(id).familia];
+  return PALETA_STATUS[id] ?? RAMPA.slate;
 }
 
 export function getStatus(id: StatusOportunidade) {

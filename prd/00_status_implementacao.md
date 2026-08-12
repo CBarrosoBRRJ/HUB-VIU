@@ -603,12 +603,17 @@ nove fundos saturados um sob o outro são o arco-íris que a própria regra cond
 Passou ao par suave (`bg-50` · `text-700` · anel) com **caixa alta**, que devolve por forma o
 destaque que a saturação dava. Contratos e Talentos seguem com a preenchida até serem revistos.
 
-E o tom não bastava: a segunda leitura mostrou que o problema era a **quantidade de matizes** —
-sete cores para nove estados, cor por etapa, convenção que ninguém decora. A paleta foi reagrupada
-em **quatro matizes com significado** (`andamento` · `acao` · `ganho` · `perda` · `fim`), e a cor
-passou a responder "o que preciso olhar?" em vez de "em que etapa está?", que o texto já diz —
-[03 §1.1.0](03_padroes_ui.md). Nenhuma classe de cor mora mais no catálogo de status: ele declara
-a família, e a paleta faz o resto.
+E o tom não bastava. A paleta passou por **três versões no mesmo dia** antes de assentar:
+
+1. **original** — uma cor por status, escolhidas uma a uma: sete matizes de famílias conflitantes;
+2. **semântica** — quatro matizes por significado: perdeu a distinção entre etapas e, pior, pintou
+   **Entrada e Encerrado do mesmo cinza**, deixando começo e fim do processo idênticos;
+3. **rampa** — quatro vizinhas no espectro frio para o fluxo (slate → sky → indigo → violet), mais
+   três acentos fora dela (âmbar para o que pede ação, esmeralda para o ganho, rosa para a perda).
+
+O erro da primeira não era *ter cor*: era a paleta ser **arbitrária**. Cores análogas dão distinção
+entre etapas sem virar carnaval — lêem como uma família de longe e como quatro coisas de perto.
+Detalhe em [03 §1.1.0](03_padroes_ui.md); nenhuma classe de cor mora no catálogo de status.
 
 ### Os números
 

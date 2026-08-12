@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 4.1 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 4.2 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -33,39 +33,59 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 > parecer duas interfaces coladas. Verde ficou reservado ao gesto de "criar uma linha nova",
 > que já é sinalizado pelo botão de criação.
 
-### 1.1.0. A paleta de status — a cor diz **o que a linha exige** — 12/08/2026
+### 1.1.0. A paleta de status — rampa fria e acentos — 12/08/2026
 
-Cada status tinha a sua cor: slate, sky, indigo, violet, amber, yellow, emerald, rose. **Sete
-matizes para nove estados** — e o problema é anterior ao tom, que já tinha sido suavizado uma vez
-sem resolver: *cor por etapa é uma convenção que ninguém decora*.
+Três versões no mesmo dia, e cada uma ensinou uma coisa:
 
-Quem olha a coluna Status não pergunta "em que etapa está?" — o texto responde isso, em caixa alta.
-Pergunta **"o que preciso olhar?"**. A paleta passou a responder essa:
+| Versão | O que era | Por que caiu |
+|--------|-----------|--------------|
+| Original | uma cor por status, escolhidas uma a uma | *"muito carnaval"* — sete matizes de famílias conflitantes |
+| Semântica | quatro matizes por significado | perdeu a distinção entre etapas, e **pintou Entrada e Encerrado do mesmo cinza** |
+| **Rampa** | quatro vizinhas para o fluxo + três acentos | — |
 
-| Família | Cor | O que diz | Status |
-|---------|-----|-----------|--------|
-| `andamento` | cinza-azulado | segue seu curso, nada a fazer agora | Entrada · Em Elaboração · Em Revisão · Aguardando Feedback |
-| `acao` | **âmbar** | **parou, e depende de alguém** | Ajustes · StandBy |
-| `ganho` | esmeralda | acabou, e deu negócio | Negócio Fechado |
-| `perda` | rosa | acabou sem negócio | Declinado |
-| `fim` | cinza mais fechado | acabou sem decisão — o arquivamento | Encerrado |
+**O erro da primeira não era ter cor: era a paleta ser arbitrária.** O da segunda foi jogar fora a
+distinção junto com o excesso — a operação previu, corretamente, que a equipe preferiria com cores.
 
-**Quatro matizes** (cinza, âmbar, esmeralda, rosa) em cinco famílias — `fim` é um segundo tom do
-mesmo cinza, e dois tons de um matiz lêem como uma cor só.
+#### A rampa
 
-> **O âmbar é quem mais ganha.** Ele deixa de ser "a cor do Ajustes" e passa a significar *pede
-> ação* — a única coisa que alguém precisa achar de relance numa coluna de quarenta linhas. Com
-> sete cores, nada saltava; com uma cor para um significado, o que importa salta sozinho.
+```
+  ENTRADA   →   EM ELABORAÇÃO   →   EM REVISÃO   →   AGUARDANDO FEEDBACK
+   slate            sky                indigo             violet
+   └──────────── quatro vizinhas no espectro frio ────────────┘
+```
 
-A distinção entre as quatro etapas de andamento não se perdeu: ela está **escrita**, e a caixa alta
-a torna legível de relance. Cor é para o que o texto não diz.
+**Cores análogas lêem como uma família, não como cores brigando.** A diferença entre uma etapa e a
+seguinte é visível de perto; de longe, o conjunto continua sendo um bloco só. E a progressão não é
+decorativa: acompanha o avanço — o cinza neutro de quem acabou de chegar, esfriando para o azul
+conforme o projeto anda, até o violeta de quem está com o cliente.
 
-**Onde vive:** `PALETA_STATUS` em [`utils/oportunidades.ts`](../src/utils/oportunidades.ts), com
-`suave` (etiqueta), `barra` (cards do cabeçalho) e `dot` (pontos do painel). O status declara só a
-**família**; nenhuma classe de cor mora no catálogo de status, e é isso que impede a paleta de
-voltar a crescer um matiz por vez.
+#### Os acentos, e por que são três
 
-`testeIngestao` trava a contagem de matizes.
+| Cor | Onde | Por quê |
+|-----|------|---------|
+| **âmbar** | Ajustes · StandBy | a **única quente** da paleta, e significa *parou, depende de alguém* — o que precisa saltar numa coluna de quarenta linhas |
+| esmeralda | Negócio Fechado | acabou, e deu negócio |
+| rosa | Declinado | acabou sem negócio |
+
+Eles ficam **fora da rampa** de propósito: marcam o que sai do curso normal.
+
+#### O Encerrado recua, em vez de ganhar cor
+
+Foi o defeito da versão anterior — mesmo cinza da Entrada, começo e fim do processo idênticos. Ele
+é agora o único da paleta com **texto apagado** (`slate-500` sobre `slate-200`): o arquivamento não
+disputa atenção com nada, e a diferença para a Entrada — texto forte sobre fundo claro — se lê sem
+comparar lado a lado.
+
+#### Onde a cor mora
+
+`PALETA_STATUS` em [`utils/oportunidades.ts`](../src/utils/oportunidades.ts), com `suave`
+(etiqueta), `barra` (cards do cabeçalho) e `dot` (pontos do painel). **Nenhuma classe de cor no
+catálogo de status** — foi assim que a paleta chegou a sete matizes arbitrários: um status novo,
+uma cor nova, sem ninguém olhar o conjunto. Aqui, um status novo escolhe um degrau da rampa ou um
+acento que já existe.
+
+`testeIngestao` trava a forma da paleta: a rampa na ordem do avanço, o âmbar como acento único de
+ação, e o arquivado como o único que recua no texto.
 
 ### 1.1.1. Etiquetas: preenchida × suave
 

@@ -1596,21 +1596,24 @@ describe('correções da rodada de 11/08/2026', () => {
     const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
 
     /*
-      A cor vem da **família**, não do status: `andamento` é cinza, `acao` âmbar, `ganho`
-      esmeralda, `perda` rosa. Quatro matizes em vez de sete, e cada um diz o que a linha exige.
+      A **rampa fria** do fluxo — quatro vizinhas no espectro, na ordem do avanço — e os acentos
+      fora dela. Cores análogas dão distinção entre etapas sem virar carnaval: elas lêem como uma
+      família só de longe, e como quatro coisas diferentes de perto.
     */
-    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300'), 'andamento é cinza')
-      .toBeTruthy();
-    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-slate-300'), 'Revisão também é andamento')
-      .toBeTruthy();
-    expect(cartaoDaEtapa('Ajustes').querySelector('.bg-amber-300'), 'Ajustes pede ação')
+    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Elaboração').querySelector('.bg-sky-300')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-300')).toBeTruthy();
+    expect(cartaoDaEtapa('Aguardando Feedback').querySelector('.bg-violet-300')).toBeTruthy();
+
+    // O âmbar é a única cor quente, e marca o que parou esperando alguém.
+    expect(cartaoDaEtapa('Ajustes').querySelector('.bg-amber-400'), 'Ajustes pede ação')
       .toBeTruthy();
 
     const cardDeclinado = screen.getByText('Declinado').closest('button')!;
-    expect(cardDeclinado.querySelector('.bg-rose-300'), 'perda é rosa').toBeTruthy();
+    expect(cardDeclinado.querySelector('.bg-rose-300'), 'declinado é rosa').toBeTruthy();
     expect(
       screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-emerald-300'),
-      'ganho é esmeralda',
+      'fechado é esmeralda',
     ).toBeTruthy();
 
     /*
