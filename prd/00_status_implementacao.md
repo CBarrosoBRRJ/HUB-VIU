@@ -599,7 +599,7 @@ Nada de tipografia foi tocado: cor, espaçamento e um ícone deram o resultado.
 |--------|------:|-------:|
 | Caminhos para nomear pessoas numa área | 2 | **1** |
 | Colunas de pessoas sem papéis | 9 | **0** |
-| Testes de UI | 131 | **138** |
+| Testes de UI | 131 | **139** |
 
 ---
 

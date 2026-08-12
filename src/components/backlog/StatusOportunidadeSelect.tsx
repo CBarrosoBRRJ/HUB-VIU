@@ -152,6 +152,20 @@ export function StatusOportunidadeSelect({
     <span className="line-clamp-2">{rotulo}</span>
   );
 
+  /**
+   * A etiqueta tem **sempre a altura de duas linhas** — 12/08/2026.
+   *
+   * A largura nunca variou (`w-full` a torna a da coluna), mas a altura sim: "Aguardando Feedback"
+   * quebra em duas linhas e "Ajustes" cabe em uma. Numa coluna congelada, que fica parada enquanto
+   * o resto rola, a diferença aparecia como um degrau subindo e descendo a cada linha — *"cada um
+   * de um tamanho fica feio ao movimentar"*.
+   *
+   * A medida vem do maior rótulo do catálogo, e é escrita em `em` de propósito: `2.5em` são as
+   * duas linhas de `leading-tight` (1.25 cada) e `0.5rem` é o `py-1`. Em `em`, ela acompanha a
+   * régua fluida da grade — em pixel, descolaria dela na primeira tela diferente.
+   */
+  const alturaFixa = 'min-h-[calc(2.5em+0.5rem)]';
+
   // Sem permissão de escrita, ou já num estado final: a etiqueta é só informação.
   if (!onChange || final) {
     return (
@@ -164,7 +178,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white ${alturaFixa} ${status.solid}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -185,7 +199,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white transition hover:brightness-110 ${status.solid}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-semibold leading-tight text-white transition hover:brightness-110 ${alturaFixa} ${status.solid}`}
       >
         {conteudoSelo}
         {seloBadge}

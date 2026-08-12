@@ -1623,6 +1623,26 @@ describe('correções da rodada de 11/08/2026', () => {
     expect(setas, 'os conectores foram removidos a pedido da operação').toHaveLength(0);
   });
 
+  it('a etiqueta de status tem sempre a mesma altura', () => {
+    /*
+      A largura nunca variou (`w-full` a torna a da coluna); a altura sim — "Aguardando Feedback"
+      quebra em duas linhas e "Ajustes" cabe numa. Na coluna congelada, que fica parada enquanto o
+      resto rola, isso virava um degrau subindo e descendo a cada linha.
+
+      A medida está em `em` de propósito: acompanha a régua fluida da grade. Em pixel, descolaria
+      dela na primeira tela de tamanho diferente — foi a lição das rodadas de tipografia.
+    */
+    montar();
+    const etiquetas = linhas().map((l) => within(l).getByLabelText(/^Avançar de/));
+    expect(etiquetas.length).toBeGreaterThan(0);
+
+    for (const etiqueta of etiquetas) {
+      expect(etiqueta.className, 'a altura da etiqueta é fixa e em em')
+        .toContain('min-h-[calc(2.5em+0.5rem)]');
+      expect(etiqueta.className, 'e a largura é a da coluna').toContain('w-full');
+    }
+  });
+
   it('cada etapa mostra quanto há nela, não só quantos', () => {
     /*
       Os cards de Finalização sempre mostraram o valor; os do fluxo, só a contagem — a mesma

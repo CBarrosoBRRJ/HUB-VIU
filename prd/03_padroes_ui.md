@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 3.8 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 3.9 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -375,6 +375,30 @@ fundo branco, e **seis lado a lado** na aba Demanda.
 
 `py-1.5` → `py-1` nas 11 células de seleção do Backlog (`OpcaoSelect`, `EtiquetaSelect`,
 `StatusOportunidadeSelect` e as células da grade): ~4px por célula, sem tirar um pixel de letra.
+
+### 1.2.10. Altura fixa na etiqueta de status — 12/08/2026
+
+A etiqueta da coluna Status tem **sempre a altura de duas linhas**, a do maior rótulo do catálogo
+("Aguardando Feedback").
+
+A largura nunca variou — `w-full` a torna a da coluna. A **altura** sim: rótulos curtos como
+"Ajustes" cabem numa linha, os longos quebram em duas. Numa coluna congelada, que fica parada
+enquanto o resto da grade rola, a diferença aparece como um degrau subindo e descendo linha a linha
+— *"cada um de um tamanho fica feio ao movimentar"* (operação, 12/08/2026).
+
+```
+min-h-[calc(2.5em+0.5rem)]
+         │        └─ o py-1 do botão
+         └─ duas linhas de leading-tight (1.25 cada)
+```
+
+> **A medida está em `em`, e isso não é detalhe.** Ela acompanha a régua fluida da grade — em
+> pixel, descolaria dela na primeira tela de tamanho diferente, que foi a lição das rodadas de
+> tipografia (§1.2.5). Toda medida que convive com texto fluido se escreve na unidade do texto.
+
+Vale para a etiqueta do Backlog. A dos Contratos (13 status, rótulos de comprimento variado) tem o
+mesmo sintoma e **não foi alterada** — a mudança fica para quando a página for revista, como manda
+o trabalho por quadro.
 
 ### 1.2.8. Simetria em bloco de resumo — 12/08/2026
 
