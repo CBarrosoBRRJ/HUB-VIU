@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.6 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
+**Versão:** 8.7 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 

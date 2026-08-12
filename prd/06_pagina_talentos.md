@@ -1,5 +1,5 @@
 # PRD 06 — Página "Talentos"
-**Versão:** 3.7 | **Status:** Implementado (front-end, exportação nativa em Excel `.xlsx`, persistência local) | **Data:** 04/08/2026
+**Versão:** 3.8 | **Status:** Implementado (front-end, exportação nativa em Excel `.xlsx`, persistência local) | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Cadastro de talentos*
 

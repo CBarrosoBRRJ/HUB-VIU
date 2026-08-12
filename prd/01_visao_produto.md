@@ -1,6 +1,6 @@
 # PRD 01 — Visão do Produto
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 4.6 | **Status:** Vigente | **Última revisão:** 04/08/2026
+**Versão:** 4.6 | **Status:** Vigente | **Data:** 04/08/2026
 
 [← Índice da documentação](README.md) · *O produto e o problema que resolve*
 

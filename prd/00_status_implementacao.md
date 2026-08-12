@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 36 suítes · 1.544 verificações · **0 falhas** + 140 testes de UI com cliques reais (ver §5) |
+| Testes | ✅ 36 suítes · 1.544 verificações · **0 falhas** + 144 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/` | 140 testes de UI com cliques reais, em quatro arquivos | §5.3 |
+| `testes-ui/` | 144 testes de UI, em cinco arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.544 verificações em 36 suítes de regra, mais 140 testes de UI. 0 falhas.**
+**Estado atual: 1.544 verificações em 36 suítes de regra, mais 144 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,15 +332,21 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**140 testes** com **cliques reais** sobre a aplicação montada: `DadosProvider` verdadeiro,
-`BacklogTable` verdadeiro, nenhum mock. Vitest + jsdom + Testing Library. Em quatro arquivos:
+**144 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
+nenhum mock. Vitest + jsdom + Testing Library. Em cinco arquivos:
 
 | Arquivo | Testes | O que cobre |
 |---|---:|---|
 | `backlog.test.tsx` | 107 | a grade, o fluxo, as etiquetas, as colunas de pessoas |
 | `confirmacao-e-desfazer.test.tsx` | 19 | o diálogo do sistema e o Ctrl+Z (desde 11/08) |
-| `tipografia.test.tsx` | 9 | a escala, a raiz fluida e a régua da grade — **lê o código-fonte**, não a tela |
+| `tipografia.test.tsx` | 9 | a escala, a raiz fluida e a régua da grade |
 | `aparencia.test.tsx` | 5 | a régua pessoal de Meu Perfil |
+| `documentacao.test.tsx` | 4 | **o PRD contra o código** (desde 12/08) |
+
+> **Três desses arquivos não clicam em nada: eles leem o código-fonte.** `tipografia` procura
+> tamanho cravado em pixel e faz a conta das camadas da grade; `documentacao` confere o PRD contra
+> o repositório. São testes de **convenção**, e existem porque convenção quebrada não falha em
+> lugar nenhum — só engana quem chega depois.
 
 **Por que existem, se há 1.503 verificações de regra.** As suítes puras provam que a regra está
 certa; não provam que ela chegou à tela. Os defeitos que estes testes acharam são todos disso:
@@ -661,6 +667,7 @@ precisa da `border` mesmo sendo invisível, senão sai 2px mais baixo com o padd
 | **Corrigir a semente não corrige o que já foi gravado.** Defeito que escreveu dado precisa de reparo na leitura | o cargo "Dono do Sistema" |
 | **Teste que mira classe de cor está preso à decisão estética do dia** | a faixa de abas selecionada por `[class*="111a3a"]` |
 | **Paleta cheia não vira carnaval por ser cheia**, e sim por ter peso irregular | as cinco versões da paleta |
+| **Documentação errada não falha em lugar nenhum.** O que é mecanicamente verificável no PRD tem de ser verificado por teste — o resto envelhece em silêncio | a auditoria de sincronia do fim do dia |
 
 ### Os números
 
@@ -1696,7 +1703,7 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 36 suítes e os 140 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 4 | **Sem CI** | As 36 suítes e os 144 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
@@ -1715,6 +1722,7 @@ Ordenado por impacto real, não por facilidade.
 | Débito | Como foi fechado |
 |--------|------------------|
 | ~~Testes fora do repositório~~ | As 36 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
+| ~~PRD desatualizado sem ninguém notar~~ | Resolvido em 12/08/2026 por `documentacao.test.tsx`: link quebrado, variável CSS fantasma, símbolo sumido e documento sem versão passaram a **falhar a suíte**. O que o teste não cobre — se o texto está certo — segue sendo trabalho de quem escreve |
 | ~~Projeto não versionado em Git~~ | Resolvido em 12/08/2026: repositório publicado, histórico com mensagem por decisão. O que restou do débito — **nenhum gatilho automático** — é o item 4 |
 | ~~`strict` do TypeScript desligado~~ | Medido: 3 erros no projeto inteiro. Corrigidos, e `strict` + `noUnusedLocals` + `noUnusedParameters` entraram (§5.6) |
 
@@ -1930,7 +1938,7 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 140 testes de UI com cliques reais
+npm run test:ui                # 144 testes de UI
 cd testes-regras && bash rodar.sh   # 36 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
