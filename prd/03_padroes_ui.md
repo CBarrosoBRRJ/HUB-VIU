@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 4.2 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 5.0 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -33,93 +33,190 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 > parecer duas interfaces coladas. Verde ficou reservado ao gesto de "criar uma linha nova",
 > que já é sinalizado pelo botão de criação.
 
-### 1.1.0. A paleta de status — rampa fria e acentos — 12/08/2026
+### 1.0.1. O shell: dois planos — 12/08/2026
 
-Três versões no mesmo dia, e cada uma ensinou uma coisa:
+Até aqui o aplicativo era **uma superfície só**: sidebar branca, uma borda de 1px, e a área de
+trabalho do outro lado. A divisão existia porque havia um traço ali.
+
+A operação trouxe duas referências, e as duas diziam a mesma coisa — *"a sidebar parece que está em
+um plano abaixo da área de trabalho"*:
+
+```
++------------------------------------------+
+| plano escuro  +------------------------+ |  <- o vão deixa o plano aparecer
+|  +---------+  |                        | |
+|  | sidebar |  |  folha de trabalho     | |  <- canto arredondado + sombra
+|  | (no     |  |  (clara, por cima)     | |
+|  |  plano) |  |                        | |
+|  +---------+  +------------------------+ |
++------------------------------------------+
+```
+
+**A profundidade vem de três coisas juntas, e nenhuma delas sozinha:**
+
+| | Por quê |
+|---|---|
+| **contraste de tom** | o plano é `--color-plano` (slate profundo, croma 0,015 — família fria da paleta, não preto puro, que numa tela grande vira buraco) |
+| **o vão** | 8px de respiro em volta da folha. Sem ele a folha encosta na janela e volta a parecer uma coluna *ao lado* da sidebar, em vez de um objeto *em cima* dela |
+| **o canto e a sombra** | dizem que a folha tem borda própria — `rounded-xl`, anel branco a 6% (o brilho da quina) e sombra baixa (o peso) |
+
+A sidebar perdeu `bg-white` **e** `border-r`: ela não tem mais cor própria porque *é* o plano, e o
+traço separador virou desnecessário — a diferença de tom separa melhor do que 1px de cinza.
+
+`overflow-hidden` no `main` é estrutural, não estético: é ele que faz o conteúdo respeitar a curva.
+Sem isso a grade do Backlog passa reta por baixo do canto arredondado.
+
+> A barra de rolagem também tem plano: `custom-scrollbar-escura` para a sidebar, porque o trilho
+> claro do `custom-scrollbar` aparecia lá como um risco branco no meio do fundo.
+
+### 1.0.2. Botões de uma mesma barra compartilham a forma — 12/08/2026
+
+*"Olha que o Novo projeto está menor"* — e estava. Os três da barra de ações do Backlog nasceram um
+de cada vez, e cada um trouxe a sua medida:
+
+| Botão | Antes | |
+|---|---|---|
+| Exportar · Marcar Visíveis | `rounded-lg border px-2.5 py-1.5 text-xs` | |
+| Novo projeto | `rounded-md px-2.5 py-1 text-rotulo` | menor em raio, padding **e** corpo |
+
+A correção não foi igualar as três classes na mão — foi extrair `FORMA_BOTAO_BARRA`, porque **foi
+exatamente assim que eles divergiram**: cada edição mexeu num só. Constante compartilhada para a
+forma, cor em cada botão.
+
+> **A `border` entra na constante, inclusive no botão preenchido, onde ela é invisível.** Os
+> vazados têm 1px de borda; sem ela o preenchido sai 2px mais baixo com o padding idêntico. É o
+> detalhe que faz três botões "com o mesmo padding" ainda saírem desalinhados.
+
+`backlog.test.tsx` trava a **geometria**, não a cor — a cor é justamente o que deve diferir.
+
+### 1.1.0. A paleta de status — construída por regra, não escolhida a dedo — 12/08/2026
+
+Cinco versões no mesmo dia. Vale registrar todas, porque cada leitura da operação tirou um erro
+diferente — e o último só apareceu depois que os quatro primeiros saíram:
 
 | Versão | O que era | Por que caiu |
 |--------|-----------|--------------|
 | Original | uma cor por status, escolhidas uma a uma | *"muito carnaval"* — sete matizes de famílias conflitantes |
 | Semântica | quatro matizes por significado | perdeu a distinção entre etapas, e **pintou Entrada e Encerrado do mesmo cinza** |
-| **Rampa** | quatro vizinhas para o fluxo + três acentos | — |
+| Rampa suave | a rampa, em etiqueta clara com texto colorido | *"cores no quadro, e não na fonte, e menos pastéis"* |
+| Rampa preenchida | a rampa, com os tons `600` do Tailwind | genérica — o `600` é o **pico de croma** das rampas padrão |
+| **Rampa construída** | os tons gerados por regra em OKLCH | — |
 
-**O erro da primeira não era ter cor: era a paleta ser arbitrária.** O da segunda foi jogar fora a
-distinção junto com o excesso — a operação previu, corretamente, que a equipe preferiria com cores.
+- O erro da primeira **não era ter cor: era a paleta ser arbitrária.**
+- O da segunda foi jogar fora a distinção junto com o excesso — a operação previu, corretamente,
+  que a equipe preferiria com cores.
+- O da terceira foi acertar as cores e errar **onde elas moram**: num fundo de 5% de saturação, a
+  cor não é a etiqueta, é uma sugestão de cor atrás de um texto colorido.
+- O da quarta foi escolher os tons **a dedo**, das rampas prontas do Tailwind.
+
+#### Por que "a dedo" era o problema
+
+O tier `600` do Tailwind é o pico de croma das rampas dele — `blue-600` tem croma **0,245**. São
+cores de demonstração, feitas para chamar atenção sozinhas numa página, não para conviver quarenta
+vezes numa coluna. E o equilíbrio de peso batia por **conferência manual**: escolher um tom,
+calcular a luminância, torcer. Um matiz novo entrava e o equilíbrio saía.
+
+#### A regra
+
+Em OKLCH os três eixos são independentes, e cada um responde por uma coisa:
+
+| Eixo | Papel | Valor |
+|------|-------|-------|
+| **L** (claridade) | o **peso** — quanta atenção o bloco puxa | fixo em ~0,52 |
+| **C** (croma) | quanto a cor **grita** | 0,10 no fluxo · 0,13 nos acentos |
+| **H** (matiz) | **qual** é o estado | o único que varia |
+
+**L travado é o que impede o carnaval.** O que faz uma paleta cheia parecer aleatória não é ter
+cor: é um bloco quase preto ao lado de um amarelo luminoso, e o olho ir no amarelo por motivo
+nenhum. Com a claridade constante, a coluna varia em cor sem variar em **atenção** — e, de
+consequência, todos passam de 4,5:1 com texto branco (AA para texto pequeno) sem que ninguém
+precise conferir tom a tom.
+
+**O croma é a hierarquia.** O fluxo é o caso normal — 90% das linhas — e fica contido, na metade do
+croma das cores padrão. Os acentos marcam o que sai do curso e ganham mais: eles *devem* saltar.
 
 #### A rampa
 
 ```
-  ENTRADA   →   EM ELABORAÇÃO   →   EM REVISÃO   →   AGUARDANDO FEEDBACK
-   slate            sky                indigo             violet
-   └──────────── quatro vizinhas no espectro frio ────────────┘
+  ENTRADA   ->   EM ELABORAÇÃO   ->   EM REVISÃO   ->   AGUARDANDO FEEDBACK
+   H 250           H 248               H 278              H 308
+   C 0,03          C 0,10              C 0,11             C 0,11
+   +------------ quatro vizinhas no espectro frio, de 30 em 30° ------------+
 ```
 
-**Cores análogas lêem como uma família, não como cores brigando.** A diferença entre uma etapa e a
-seguinte é visível de perto; de longe, o conjunto continua sendo um bloco só. E a progressão não é
-decorativa: acompanha o avanço — o cinza neutro de quem acabou de chegar, esfriando para o azul
-conforme o projeto anda, até o violeta de quem está com o cliente.
+Vizinhas o bastante para lerem como **uma família** de longe, distantes o bastante para se
+separarem de perto. E a progressão não é decorativa: a Entrada é a cor da Elaboração **com o croma
+quase zerado** — nada foi decidido ainda —, a saturação entra quando o trabalho começa, e o matiz
+esfria até o violeta de quem está com o cliente.
 
 #### Os acentos, e por que são três
 
-| Cor | Onde | Por quê |
+| Tom | Onde | Por quê |
 |-----|------|---------|
-| **âmbar** | Ajustes · StandBy | a **única quente** da paleta, e significa *parou, depende de alguém* — o que precisa saltar numa coluna de quarenta linhas |
-| esmeralda | Negócio Fechado | acabou, e deu negócio |
-| rosa | Declinado | acabou sem negócio |
-
-Eles ficam **fora da rampa** de propósito: marcam o que sai do curso normal.
+| **`acento-acao`** | Ajustes · StandBy | a **única quente** da paleta, e significa *parou, depende de alguém* — o que precisa saltar numa coluna de quarenta linhas |
+| `acento-ganho` | Negócio Fechado | acabou, e deu negócio |
+| `acento-perda` | Declinado | acabou sem negócio |
 
 #### O Encerrado recua, em vez de ganhar cor
 
-Foi o defeito da versão anterior — mesmo cinza da Entrada, começo e fim do processo idênticos. Ele
-é agora o único da paleta com **texto apagado** (`slate-500` sobre `slate-200`): o arquivamento não
-disputa atenção com nada, e a diferença para a Entrada — texto forte sobre fundo claro — se lê sem
-comparar lado a lado.
+Foi o defeito da versão semântica — mesmo cinza da Entrada, começo e fim do processo idênticos. Ele
+é agora o **único vazado** da paleta, numa coluna de blocos cheios: o arquivamento não disputa
+atenção com nada, e a diferença para a Entrada — que é um bloco sólido — se lê sem comparar lado a
+lado.
 
 #### Onde a cor mora
 
-`PALETA_STATUS` em [`utils/oportunidades.ts`](../src/utils/oportunidades.ts), com `suave`
-(etiqueta), `barra` (cards do cabeçalho) e `dot` (pontos do painel). **Nenhuma classe de cor no
-catálogo de status** — foi assim que a paleta chegou a sete matizes arbitrários: um status novo,
-uma cor nova, sem ninguém olhar o conjunto. Aqui, um status novo escolhe um degrau da rampa ou um
-acento que já existe.
+Os **tons** em `@theme` ([`index.css`](../src/index.css)), porque é de lá que saem `bg-*` e
+`ring-*`. O **mapa status -> tom** em `PALETA_STATUS`
+([`utils/oportunidades.ts`](../src/utils/oportunidades.ts)), com `etiqueta`, `barra` (cards do
+cabeçalho) e `dot` (pontos do painel).
 
-`testeIngestao` trava a forma da paleta: a rampa na ordem do avanço, o âmbar como acento único de
-ação, e o arquivado como o único que recua no texto.
+**Nenhuma classe de cor no catálogo de status** — foi assim que a paleta chegou a sete matizes
+arbitrários: um status novo, uma cor nova, sem ninguém olhar o conjunto. Um status novo escolhe um
+degrau da rampa ou um acento que já existe; um degrau novo entra pela regra, não por gosto.
 
-### 1.1.1. Etiquetas: preenchida × suave
+`testeIngestao` trava a forma: a rampa na ordem do avanço, os acentos **fora** dela, e o arquivado
+como o único vazado.
+
+### 1.1.1. Etiquetas: preenchida x suave
 
 | Tipo | Estilo | Onde |
 |------|--------|------|
-| **Suave** (fundo tênue, texto forte, anel) | `bg-<cor>-50 text-<cor>-700 ring-1 ring-<cor>-200` | **O padrão** — status do registro, perfil, situação, papel na equipe |
-| **Pastel** (barra ou faixa) | `bg-<cor>-300` | Superfícies repetidas: as barras do cabeçalho (§1.2.9) |
-| **Preenchida** (fundo sólido, texto branco) | `bg-<cor>-500` | Contratos e Talentos, por ora — ver a nota abaixo |
+| **Suave** (fundo tênue, texto forte, anel) | `bg-<cor>-50 text-<cor>-700 ring-1 ring-<cor>-200` | **O padrão** — perfil, situação, papel na equipe, listas fechadas |
+| **Preenchida** (fundo sólido, texto branco) | um tom da paleta construída (§1.1.0) | Status do registro — o dado primário do quadro |
 
-> **Por quê:** com tudo preenchido, cinco cores saturadas competiam por atenção na mesma linha e
-> a grade virava um arco-íris. A etiqueta suave mantém o significado da cor sem disputar com o
-> conteúdo.
+> **Por que a suave é o padrão:** com tudo preenchido, cinco cores saturadas competiam por atenção
+> na mesma linha e a grade virava um arco-íris. A etiqueta suave mantém o significado da cor sem
+> disputar com o conteúdo.
 
-> #### A exceção do status caiu no Backlog — 12/08/2026
+> #### O status voltou para a preenchida — e o que a regra acima errava — 12/08/2026
 >
-> Este documento dizia, desde a primeira versão, que a preenchida valia **"apenas para o status do
-> registro — dado primário do quadro"**, e o argumento era bom: o status precisa ser o elemento
-> mais visível da linha.
+> Esta seção chegou a proibir a preenchida no status do Backlog, com um argumento razoável: a
+> coluna Status é **congelada** — as etiquetas ficam paradas e empilhadas enquanto a tabela corre
+> ao lado —, e nove fundos saturados um sob o outro produzem justamente o arco-íris que o parágrafo
+> acima condena.
 >
-> **O que mudou foi o contexto, não o argumento.** A regra nasceu quando a coluna Status rolava
-> junto com o resto da grade — uma etiqueta cheia por linha, entre colunas de texto. Depois disso a
-> coluna virou **congelada**: as etiquetas ficam paradas e empilhadas enquanto a tabela corre ao
-> lado, e nove fundos saturados um sob o outro produzem exatamente o arco-íris que o parágrafo
-> acima condena. *"As cores dos botões de status estão muito carnaval"* — operação, 12/08/2026.
+> A operação leu a versão suave e devolveu: *"cores no quadro, e não na fonte, e menos pastéis"*.
 >
-> O status continua sendo o elemento mais visível da linha; o destaque agora vem de **posição**
-> (segunda coluna, congelada), **forma** (caixa alta, `font-bold`) e **anel**, não de saturação.
+> **A regra estava certa sobre o risco e errada sobre a causa.** O que produz arco-íris não é
+> saturação: é **matiz arbitrário com peso irregular**. Cinco cores saturadas de famílias
+> diferentes, cada uma com a sua luminância, brigam. Sete tons vizinhos com a **mesma claridade**
+> não — a coluna varia em cor sem variar em atenção. Foi exatamente isso que a paleta construída
+> (§1.1.0) resolveu, e é o que devolveu o direito à etiqueta cheia.
 >
-> **Contratos e Talentos ainda usam a preenchida.** Não por decisão, e sim porque a leitura foi
-> feita no Backlog — a mudança fica para quando cada página for revista, como manda o trabalho por
-> quadro. Registrado aqui para que a diferença entre os quadros seja lida como pendência, e não
-> como padrão.
+> Num fundo de 5% de saturação, além disso, a cor **não é** a etiqueta: é uma sugestão de cor atrás
+> de um texto colorido, que fica pálida em monitor claro e some em projetor. Com fundo cheio, a cor
+> carrega o significado e o texto só precisa ser legível em cima dela.
+>
+> A caixa alta veio na versão suave, para devolver o destaque que a saturação dava. Ela **fica**:
+> com fundo cheio, é o que impede o rótulo curto de boiar dentro do bloco.
+>
+> **Contratos e Talentos ainda usam a preenchida antiga** (`bg-<cor>-500`, tons escolhidos a dedo).
+> Não por decisão, e sim porque a leitura foi feita no Backlog — a migração para a paleta
+> construída fica para quando cada página for revista, como manda o trabalho por quadro. Registrado
+> aqui para que a diferença entre os quadros seja lida como pendência, e não como padrão.
 
-> ⚠️ Classes do Tailwind 4 precisam existir **literais** no código. Nunca `bg-${cor}-500`.
+> ATENÇÃO: classes do Tailwind 4 precisam existir **literais** no código. Nunca interpoladas.
 
 ### 1.2. Tipografia
 

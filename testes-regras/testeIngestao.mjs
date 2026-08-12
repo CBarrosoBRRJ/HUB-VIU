@@ -97,35 +97,44 @@ check('três status encerram',
   A cor mora em `PALETA_STATUS`, não no catálogo de status — foi assim que ela chegou a sete matizes
   arbitrários: um status novo, uma cor nova, sem ninguém olhar o conjunto (12/08/2026).
 
-  O que se trava aqui é a **forma da paleta**: a rampa fria do fluxo (quatro vizinhas), os acentos
-  fora dela, e o arquivado que recua em vez de ganhar cor.
+  O que se trava aqui é a **forma da paleta**: a rampa fria do fluxo (quatro tons vizinhos), os
+  acentos fora dela, e o arquivado que recua em vez de ganhar cor. Os valores em si são gerados por
+  regra no `@theme` — claridade fixa, croma por papel, matiz como única variável.
 */
 check('todo status tem rótulo', STATUS_OPORTUNIDADE.every((s) => s.label), true);
 check('a paleta cobre os nove status',
-  STATUS_OPORTUNIDADE.every((s) => PALETA_STATUS[s.id]?.suave && PALETA_STATUS[s.id]?.barra
+  STATUS_OPORTUNIDADE.every((s) => PALETA_STATUS[s.id]?.etiqueta && PALETA_STATUS[s.id]?.barra
     && PALETA_STATUS[s.id]?.dot), true);
 
-const matiz = (classe) => /bg-([a-z]+)-\d+/.exec(classe)[1];
+const tom = (classe) => /bg-([a-z0-9-]+)/.exec(classe)[1];
 
-// A rampa: quatro matizes vizinhos, um por etapa do fluxo — distintos entre si.
+// A rampa: um tom por etapa do fluxo, na ordem do avanço — e distintos entre si.
 const doFluxo = ['entrada', 'elaboracao', 'revisao', 'aguardando_feedback']
-  .map((id) => matiz(PALETA_STATUS[id].barra));
-check('cada etapa do fluxo tem seu matiz', new Set(doFluxo).size, 4);
-check('e a rampa é a fria, na ordem do avanço', doFluxo, ['slate', 'sky', 'indigo', 'violet']);
-
-// O âmbar é a única cor quente, e marca os dois status que param e esperam alguém.
-check('Ajustes e StandBy dividem o acento de ação',
-  matiz(PALETA_STATUS.ajuste.barra) === matiz(PALETA_STATUS.standby.barra), true);
-check('o acento de ação é o âmbar', matiz(PALETA_STATUS.ajuste.barra), 'amber');
+  .map((id) => tom(PALETA_STATUS[id].barra));
+check('cada etapa do fluxo tem seu tom', new Set(doFluxo).size, 4);
+check('e a rampa está na ordem do avanço', doFluxo,
+  ['etapa-1', 'etapa-2', 'etapa-3', 'etapa-4']);
 
 /*
-  O defeito que a versão anterior tinha: Entrada e Encerrado no mesmo cinza — começo e fim do
-  processo idênticos. O arquivado se separa pelo **texto apagado**, não por outro matiz.
+  Os acentos marcam o que sai do curso normal — e por isso ficam **fora** da rampa. Se um deles
+  tomasse um degrau dela, a exceção viraria mais uma etapa.
+*/
+check('os acentos não usam degraus da rampa',
+  ['ajuste', 'standby', 'fechado', 'declinado'].every((id) => !tom(PALETA_STATUS[id].barra).startsWith('etapa-')),
+  true);
+check('Ajustes e StandBy dividem o acento de ação',
+  tom(PALETA_STATUS.ajuste.barra) === tom(PALETA_STATUS.standby.barra), true);
+check('o acento de ação é o único quente', tom(PALETA_STATUS.ajuste.barra), 'acento-acao');
+
+/*
+  O defeito que a versão semântica tinha: Entrada e Encerrado no mesmo cinza — começo e fim do
+  processo idênticos. O arquivado se separa por ser o **único vazado** numa coluna de blocos
+  cheios, não por mais um matiz.
 */
 check('Encerrado não se confunde com Entrada',
-  PALETA_STATUS.encerrado.suave === PALETA_STATUS.entrada.suave, false);
-check('e ele é o único que recua no texto',
-  STATUS_OPORTUNIDADE.filter((s) => PALETA_STATUS[s.id].suave.includes('text-slate-500'))
+  PALETA_STATUS.encerrado.etiqueta === PALETA_STATUS.entrada.etiqueta, false);
+check('e ele é o único vazado da paleta',
+  STATUS_OPORTUNIDADE.filter((s) => !PALETA_STATUS[s.id].etiqueta.includes('text-white'))
     .map((s) => s.id), ['encerrado']);
 
 check('status inválido cai em Entrada', getStatus('inventado').id, 'entrada');

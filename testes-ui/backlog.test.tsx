@@ -1600,19 +1600,19 @@ describe('correções da rodada de 11/08/2026', () => {
       fora dela. Cores análogas dão distinção entre etapas sem virar carnaval: elas lêem como uma
       família só de longe, e como quatro coisas diferentes de perto.
     */
-    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300')).toBeTruthy();
-    expect(cartaoDaEtapa('Em Elaboração').querySelector('.bg-sky-300')).toBeTruthy();
-    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-300')).toBeTruthy();
-    expect(cartaoDaEtapa('Aguardando Feedback').querySelector('.bg-violet-300')).toBeTruthy();
+    expect(cartaoDaEtapa('Entrada').querySelector('.bg-etapa-1')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Elaboração').querySelector('.bg-etapa-2')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-etapa-3')).toBeTruthy();
+    expect(cartaoDaEtapa('Aguardando Feedback').querySelector('.bg-etapa-4')).toBeTruthy();
 
     // O âmbar é a única cor quente, e marca o que parou esperando alguém.
-    expect(cartaoDaEtapa('Ajustes').querySelector('.bg-amber-400'), 'Ajustes pede ação')
+    expect(cartaoDaEtapa('Ajustes').querySelector('.bg-acento-acao'), 'Ajustes pede ação')
       .toBeTruthy();
 
     const cardDeclinado = screen.getByText('Declinado').closest('button')!;
-    expect(cardDeclinado.querySelector('.bg-rose-300'), 'declinado é rosa').toBeTruthy();
+    expect(cardDeclinado.querySelector('.bg-acento-perda'), 'declinado é a perda').toBeTruthy();
     expect(
-      screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-emerald-300'),
+      screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-acento-ganho'),
       'fechado é esmeralda',
     ).toBeTruthy();
 
@@ -1653,17 +1653,21 @@ describe('correções da rodada de 11/08/2026', () => {
       expect(etiqueta.className, 'e a largura é a da coluna').toContain('w-full');
 
       /*
-        **Suave e em caixa alta**, não preenchida — 12/08/2026.
+        **Preenchida e em caixa alta** — 12/08/2026.
 
-        A etiqueta era a única do produto com fundo `500` e texto branco. A regra que a mantinha
-        assim ([03 §1.1.1]) nasceu quando a coluna Status rolava junto com a grade; congelada, as
-        etiquetas ficam paradas e empilhadas, e nove fundos saturados viram o arco-íris que a
-        própria regra condena. A caixa alta devolve o destaque que a saturação dava.
+        Ela passou algumas horas suave (fundo `50`, texto colorido) porque nove fundos saturados
+        empilhados numa coluna congelada viram arco-íris. A operação leu e devolveu: *"cores no
+        quadro, e não na fonte"* — e a §1.1.1 estava certa sobre o risco, errada sobre a causa. O
+        que produz arco-íris é matiz arbitrário com peso irregular; a paleta gerada por regra
+        (claridade fixa, croma por papel) tirou as duas coisas.
+
+        A caixa alta veio antes, e fica: com fundo cheio, é o que impede o rótulo curto de boiar
+        dentro do bloco.
       */
-      expect(etiqueta.className, 'a etiqueta usa o par suave, com anel').toContain('ring-1');
+      expect(etiqueta.className, 'a cor está no quadro').toMatch(/bg-(etapa-\d|acento-\w+)/);
+      expect(etiqueta.className, 'e o texto só precisa ser legível em cima dela')
+        .toContain('text-white');
       expect(etiqueta.className, 'e caixa alta').toContain('uppercase');
-      expect(etiqueta.className, 'sem fundo saturado').not.toMatch(/bg-\w+-500/);
-      expect(etiqueta.className, 'e sem texto branco sobre cor cheia').not.toContain('text-white');
     }
   });
 
@@ -1732,6 +1736,29 @@ describe('correções da rodada de 11/08/2026', () => {
     expect(colunasDePessoas.length).toBeGreaterThan(0);
     const semArea = colunasDePessoas.filter((coluna) => !coluna.area).map((coluna) => coluna.id);
     expect(semArea, 'coluna de pessoas sem área não recebe os papéis').toEqual([]);
+  });
+
+  it('os três botões da barra de ações têm a mesma forma', () => {
+    /*
+      *"olha que o Novo projeto está menor"* — e estava: `rounded-md px-2.5 py-1 text-rotulo` contra
+      `rounded-lg px-2.5 py-1.5 text-xs` dos outros dois. Eles nasceram um de cada vez, e cada
+      edição mexeu num só.
+
+      O que se trava aqui é a **geometria**, não a cor: a cor é justamente o que deve diferir (o de
+      criar é preenchido, os outros dois são vazados). Inclusive a `border` — o botão preenchido
+      precisa dela mesmo sendo invisível, senão sai 2px mais baixo que os vazados com o mesmo
+      padding. Foi esse detalhe que fez "mesmo padding" ainda render tamanhos diferentes.
+    */
+    montar();
+    const forma = (nome: string) => {
+      const classes = screen.getByRole('button', { name: new RegExp(nome, 'i') }).className.split(/\s+/);
+      return classes.filter((c) => /^(rounded|border$|px-|py-|text-(xs|rotulo|selo|apoio|dado)|gap-|items-|flex$)/.test(c)).sort();
+    };
+
+    const exportar = forma('Exportar');
+    expect(exportar.length, 'a barra existe e o botão tem forma declarada').toBeGreaterThan(4);
+    expect(forma('Marcar Visíveis'), 'marcar tem a forma de exportar').toEqual(exportar);
+    expect(forma('Novo projeto'), 'e criar também — inclusive a borda').toEqual(exportar);
   });
 });
 

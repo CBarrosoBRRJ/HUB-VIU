@@ -64,6 +64,78 @@
   --text-apoio--line-height: 1.5;
   --text-dado: 0.8125rem;
   --text-dado--line-height: 1.5;
+
+  /*
+    ==============================================================================================
+    ## A paleta de status — gerada por regra, não escolhida a dedo — 12/08/2026
+    ==============================================================================================
+
+    Até aqui a paleta era montada com tons das rampas padrão do Tailwind (`blue-600`, `amber-700`,
+    `emerald-700`…). Funcionava, e ainda assim parecia genérica por dois motivos que só o OKLCH
+    deixa ver:
+
+    1. o tier `600` do Tailwind é o **pico de croma** das rampas dele — `blue-600` tem croma 0,245.
+       São cores de demonstração, feitas para chamar atenção sozinhas numa página. Sete delas numa
+       coluna de quarenta linhas é o "carnaval" que a operação vinha recusando desde o começo;
+    2. o peso batia por **conferência manual** — eu escolhia um tom, calculava a luminância e
+       torcia. Um matiz novo entrava e o equilíbrio saía.
+
+    Aqui elas são **construídas**, não escolhidas. Em OKLCH, os três eixos são independentes e cada
+    um responde por uma coisa:
+
+    | Eixo | Papel | Valor |
+    |------|-------|-------|
+    | **L** (claridade) | o **peso** — quanta atenção o bloco puxa | fixo em ~0,52 |
+    | **C** (croma) | quanto a cor **grita** | 0,10 no fluxo · 0,13 nos acentos |
+    | **H** (matiz) | **qual** é o estado | é o único que varia |
+
+    **L travado é o que impede o carnaval.** O que faz uma paleta cheia parecer aleatória não é ter
+    cor: é um bloco quase preto ao lado de um amarelo luminoso, e o olho ir no amarelo por motivo
+    nenhum. Com a claridade constante, nenhum status pesa mais que outro — a coluna varia em cor
+    sem variar em **atenção**. E como consequência, todos passam de 4,5:1 com texto branco (AA para
+    texto pequeno) sem que ninguém precise conferir tom a tom.
+
+    **O croma é a hierarquia.** O fluxo é o caso normal — 90% das linhas — e fica contido, em 0,10:
+    metade do croma das cores padrão. Os acentos marcam o que sai do curso e ganham 0,13: eles
+    *devem* saltar. É a diferença entre uma paleta calma com exceções e sete cores competindo.
+
+    A rampa fria do fluxo anda em matiz de 30 em 30 graus — vizinhas o bastante para lerem como uma
+    família só de longe, distantes o bastante para se separarem de perto. A Entrada é a mesma cor
+    da Elaboração com o croma quase zerado: nada foi decidido ainda, e a saturação entra quando o
+    trabalho começa.
+
+    O detalhe do fluxo mora em [`utils/oportunidades.ts`](./utils/oportunidades.ts); aqui ficam só
+    os tons, porque é `@theme` que os transforma em `bg-*` e `ring-*`.
+  */
+  --color-etapa-1: oklch(0.52 0.028 250); /* Entrada — a cor da Elaboração sem croma */
+  --color-etapa-2: oklch(0.52 0.100 248); /* Em Elaboração */
+  --color-etapa-3: oklch(0.52 0.108 278); /* Em Revisão */
+  --color-etapa-4: oklch(0.52 0.108 308); /* Aguardando Feedback */
+
+  /* Os acentos: fora da rampa, e com mais croma — eles marcam o que sai do curso normal. */
+  --color-acento-acao: oklch(0.55 0.130 62); /* Ajustes · StandBy — a única quente */
+  --color-acento-ganho: oklch(0.52 0.120 158); /* Negócio Fechado */
+  --color-acento-perda: oklch(0.53 0.145 20); /* Declinado */
+
+  /*
+    ==============================================================================================
+    ## O plano de fundo — a moldura em que a folha de trabalho flutua — 12/08/2026
+    ==============================================================================================
+
+    Até aqui o aplicativo era uma superfície só: sidebar branca, borda de 1px, e a área de trabalho
+    do outro lado. Tudo no mesmo plano, e a divisão existindo só porque havia um traço ali.
+
+    O pedido veio com duas referências, e as duas dizem a mesma coisa: **um plano escuro no fundo, e
+    a área de trabalho como uma folha clara apoiada em cima dele**. A sidebar não fica ao lado do
+    conteúdo — ela fica *no fundo*, e o conteúdo passa por cima. O que produz a profundidade é a
+    combinação de três coisas, e nenhuma delas sozinha: o contraste de tom entre o plano e a folha,
+    o **vão** que deixa o plano aparecer em volta, e o canto arredondado que diz que a folha tem
+    borda própria.
+
+    O tom é um slate profundo com um resto de azul (croma 0,015), não um preto neutro: ele fica na
+    mesma família fria da paleta de status, e preto puro numa tela grande vira um buraco.
+  */
+  --color-plano: oklch(0.24 0.015 260);
 }
 
 @layer base {
@@ -580,4 +652,26 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.6);
+}
+
+/*
+  A mesma barra, no plano escuro da sidebar. O trilho claro do `custom-scrollbar` aparecia ali como
+  um risco branco no meio do fundo — a barra de rolagem também tem plano.
+*/
+.custom-scrollbar-escura::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar-escura::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-escura::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar-escura::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
 }

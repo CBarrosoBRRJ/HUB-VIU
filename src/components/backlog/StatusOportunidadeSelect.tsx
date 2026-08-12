@@ -150,16 +150,19 @@ export function StatusOportunidadeSelect({
   );
 
   /*
-    A etiqueta é **suave e em caixa alta** desde 12/08/2026.
+    A etiqueta é **preenchida e em caixa alta** — 12/08/2026.
 
-    Era a única preenchida do produto — fundo `500` e texto branco —, e a regra que a mantinha assim
-    ([03 §1.1.1]) nasceu quando a coluna Status rolava junto com o resto da grade. Hoje ela é
-    **congelada**: as etiquetas ficam paradas e empilhadas enquanto a tabela corre ao lado, e nove
-    fundos saturados um sob o outro viram o arco-íris que a própria §1.1.1 condena.
+    Ela passou algumas horas suave (fundo `50`, texto colorido), porque a regra da §1.1.1 condena
+    fundo cheio em coluna longa: nove saturações empilhadas viram arco-íris. A operação leu e
+    devolveu: *"cores no quadro, e não na fonte, e menos pastéis"*.
 
-    A caixa alta é o que devolve o destaque que a saturação dava — pedido junto, e as duas coisas se
-    completam: o status continua sendo o elemento mais visível da linha, agora por **posição e
-    forma** em vez de cor cheia.
+    A §1.1.1 continua certa sobre o **risco**, e errada sobre a **causa**. O que produz arco-íris é
+    matiz arbitrário com peso irregular, não saturação — e a rampa já corrigiu as duas coisas
+    (`PALETA_STATUS`): quatro matizes vizinhos para o fluxo, e os sete tons na mesma faixa de
+    luminância, de modo que a coluna varia em cor sem variar em **atenção**.
+
+    A caixa alta veio antes, para devolver o destaque que a etiqueta suave tinha perdido. Ela fica:
+    com fundo cheio, é o que impede o rótulo curto de boiar dentro do bloco.
   */
   const conteudoSelo = (
     // Duas linhas em vez de corte: "AGUARDANDO FEEDBACK" não cabe em 110px numa linha só.
@@ -192,7 +195,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${cores.suave}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${cores.etiqueta}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -213,7 +216,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${cores.suave}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${cores.etiqueta}`}
       >
         {conteudoSelo}
         {seloBadge}

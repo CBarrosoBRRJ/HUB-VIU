@@ -159,17 +159,36 @@ function Workspace() {
       <AvisoHistorico />
       <BannerVisualizacao />
 
-      <div className="flex flex-1 overflow-hidden">
+      {/*
+        ============================================================================================
+        ## Dois planos: o fundo escuro, e a folha de trabalho apoiada nele — 12/08/2026
+        ============================================================================================
+
+        A sidebar não tem mais cor própria: ela é **o plano**, e por isso não precisa de borda para
+        se separar do conteúdo — a diferença de tom já faz isso, e faz melhor do que um traço de 1px
+        fazia.
+
+        A folha é o `main`: fundo claro, canto arredondado e um vão de 8px que deixa o plano
+        aparecer em volta. O vão é o detalhe que a referência tem e um layout comum não tem — sem
+        ele, a folha encosta na borda da janela e volta a parecer uma coluna ao lado da sidebar em
+        vez de um objeto em cima dela. O anel branco a 6% é o brilho da quina; a sombra, o peso.
+
+        `overflow-hidden` aqui é estrutural, não estético: é ele que faz o conteúdo respeitar o
+        canto arredondado — sem isso, a grade do Backlog passa reta por baixo da curva.
+      */}
+      <div className="flex flex-1 overflow-hidden bg-plano p-2 pl-0">
         <Sidebar activePage={paginaAtiva ?? activePage} onNavigate={setActivePage} />
-        {Pagina ? (
-          <Pagina />
-        ) : (
-          <div className="flex flex-1 items-center justify-center bg-[#f4f6fa] p-6 text-center">
-            <p className="max-w-sm text-sm text-slate-500">
-              Esta pessoa ainda não faz parte de nenhuma equipe com acesso a quadros.
-            </p>
-          </div>
-        )}
+        <main className="flex flex-1 flex-col overflow-hidden rounded-xl bg-[#f4f6fa] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/6">
+          {Pagina ? (
+            <Pagina />
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-6 text-center">
+              <p className="max-w-sm text-sm text-slate-500">
+                Esta pessoa ainda não faz parte de nenhuma equipe com acesso a quadros.
+              </p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );

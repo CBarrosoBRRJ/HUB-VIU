@@ -20,104 +20,128 @@ import { somarValores } from './moeda';
 
 /**
  * ================================================================================================
- * A PALETA DE STATUS — uma rampa fria para o fluxo, acentos para o que sai dele — 12/08/2026
+ * A PALETA DE STATUS — rampa fria, etiqueta preenchida, peso constante — 12/08/2026
  * ================================================================================================
  *
- * ## As duas tentativas anteriores, e o que cada uma ensinou
+ * ## As quatro tentativas anteriores, e o que cada uma ensinou
  *
  * | Versão | O que era | Por que caiu |
  * |--------|-----------|--------------|
- * | Original | uma cor por status, escolhidas uma a uma | "muito carnaval": sete matizes de famílias conflitantes — azul, roxo, âmbar, amarelo, verde, rosa |
- * | Semântica | quatro matizes por significado | perdeu a distinção entre etapas, e **pintou Entrada e Encerrado do mesmo cinza** — o começo e o fim do processo iguais |
+ * | Original | uma cor por status, escolhidas uma a uma | "muito carnaval": sete matizes de famílias conflitantes |
+ * | Semântica | quatro matizes por significado | perdeu a distinção entre etapas, e pintou Entrada e Encerrado do mesmo cinza |
+ * | Rampa suave | a rampa, em etiqueta clara com **texto colorido** | *"cores no quadro, e não na fonte, e menos pastéis"* |
+ * | Rampa preenchida | a rampa, com os tons `600` do Tailwind | genérica: o `600` é o **pico de croma** das rampas padrão |
  *
- * O erro da primeira não era *ter cor*: era a paleta ser **arbitrária**. O da segunda foi jogar
- * fora a distinção junto com o excesso.
+ * Cada leitura da operação tirou um erro diferente. O da primeira não era *ter cor*: era a paleta
+ * ser **arbitrária**. O da segunda foi jogar fora a distinção junto com o excesso. O da terceira,
+ * acertar as cores e errar **onde elas moram** — num fundo de 5% de saturação, a cor não é a
+ * etiqueta, é uma sugestão de cor atrás de um texto colorido. E o da quarta foi escolher os tons
+ * **a dedo**, um por um, das rampas prontas: cores de demonstração, feitas para chamar atenção
+ * sozinhas numa página, não para conviver quarenta vezes numa coluna.
+ *
+ * ## A paleta é construída, não escolhida
+ *
+ * Os tons vivem em `@theme` ([`index.css`](../index.css)) e são gerados por uma regra em OKLCH:
+ * **claridade fixa** (o peso), **croma por papel** (0,10 no fluxo, 0,13 nos acentos), e o **matiz**
+ * como única variável. Claridade constante é o que impede o carnaval — nenhum status puxa mais
+ * atenção que outro —, e de quebra entrega os 4,5:1 da WCAG AA em todos eles sem conferência tom a
+ * tom. O raciocínio inteiro está lá; aqui fica só o mapa status → tom.
+ *
+ * ## A cor mora no quadro
+ *
+ * A etiqueta é **preenchida**: fundo saturado, texto branco. É a cor que carrega o significado, e
+ * o texto só precisa ser legível em cima dela — não precisa ser mais um portador de informação.
  *
  * ## A rampa
  *
- * O fluxo usa **quatro matizes vizinhos no espectro frio** — slate → sky → indigo → violet. Cores
- * análogas lêem como *uma família*, não como sete cores brigando: a diferença entre uma etapa e a
- * seguinte é visível, e o conjunto continua sendo um bloco só para quem olha de longe.
+ * O fluxo usa **quatro matizes vizinhos no espectro frio**, de 30 em 30 graus. Cores análogas lêem
+ * como *uma família*, não como cores brigando: a diferença entre uma etapa e a seguinte é visível
+ * de perto, e de longe o conjunto continua sendo um bloco só.
  *
- * A progressão não é decorativa. Ela **acompanha o avanço**: o cinza neutro de quem acabou de
- * chegar, esfriando para o azul conforme o projeto anda, até o violeta de quem está com o cliente.
+ * A progressão acompanha o avanço: a Entrada é a cor da Elaboração **com o croma quase zerado** —
+ * nada foi decidido ainda —, a saturação entra quando o trabalho começa, e o matiz esfria até o
+ * violeta de quem está com o cliente.
  *
  * ```
  *   ENTRADA  →  EM ELABORAÇÃO  →  EM REVISÃO  →  AGUARDANDO FEEDBACK
- *   slate         sky               indigo         violet
+ *    H 250        H 248             H 278           H 308
+ *    C 0,03       C 0,10            C 0,11          C 0,11
  *   └──────────── a rampa fria: quatro vizinhas ────────────┘
  * ```
  *
  * ## Os acentos, e por que são só três
  *
- * | Cor | Onde | Por quê |
+ * | Tom | Onde | Por quê |
  * |-----|------|---------|
- * | **âmbar** | Ajustes · StandBy | a **única quente** da paleta, e ela significa *parou, depende de alguém* — é o que precisa saltar numa coluna de quarenta linhas |
- * | esmeralda | Negócio Fechado | acabou, e deu negócio |
- * | rosa | Declinado | acabou sem negócio |
+ * | **`acento-acao`** | Ajustes · StandBy | a **única quente** da paleta, e significa *parou, depende de alguém* — é o que precisa saltar numa coluna de quarenta linhas |
+ * | `acento-ganho` | Negócio Fechado | acabou, e deu negócio |
+ * | `acento-perda` | Declinado | acabou sem negócio |
+ *
+ * Eles ficam **fora da rampa** de propósito, e com croma maior: a rampa é o caso normal e fica
+ * contida; o acento é a exceção, e exceção deve saltar.
  *
  * ## O Encerrado **recua** em vez de ganhar cor
  *
- * Ele foi o defeito da versão anterior: usava o mesmo cinza da Entrada, e começo e fim do processo
- * ficavam idênticos. Agora ele é o único da paleta com **texto apagado** (`slate-500` sobre
- * `slate-200`) — o arquivamento não disputa atenção com nada, e a diferença para a Entrada, que
- * tem texto forte sobre fundo claro, se lê sem comparar lado a lado.
+ * Ele foi o defeito da versão semântica: usava o mesmo cinza da Entrada, e começo e fim do
+ * processo ficavam idênticos. É agora o **único vazado** da paleta — chip cinza claro, texto
+ * apagado, numa coluna de blocos sólidos. O arquivamento não disputa atenção com nada, e a
+ * diferença para a Entrada, que é um bloco cheio, se lê sem comparar lado a lado.
  */
 const RAMPA = {
-  /* A rampa fria do fluxo — quatro vizinhas, do neutro ao violeta. */
-  slate: {
-    suave: 'bg-slate-100 text-slate-700 ring-slate-300',
-    barra: 'bg-slate-300',
-    dot: 'bg-slate-400',
+  /* A rampa fria do fluxo — quatro vizinhas, do quase-neutro ao violeta, todas no mesmo peso. */
+  etapa1: {
+    etiqueta: 'bg-etapa-1 text-white ring-etapa-1',
+    barra: 'bg-etapa-1',
+    dot: 'bg-etapa-1',
   },
-  sky: {
-    suave: 'bg-sky-50 text-sky-700 ring-sky-200',
-    barra: 'bg-sky-300',
-    dot: 'bg-sky-400',
+  etapa2: {
+    etiqueta: 'bg-etapa-2 text-white ring-etapa-2',
+    barra: 'bg-etapa-2',
+    dot: 'bg-etapa-2',
   },
-  indigo: {
-    suave: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
-    barra: 'bg-indigo-300',
-    dot: 'bg-indigo-400',
+  etapa3: {
+    etiqueta: 'bg-etapa-3 text-white ring-etapa-3',
+    barra: 'bg-etapa-3',
+    dot: 'bg-etapa-3',
   },
-  violet: {
-    suave: 'bg-violet-50 text-violet-700 ring-violet-200',
-    barra: 'bg-violet-300',
-    dot: 'bg-violet-400',
+  etapa4: {
+    etiqueta: 'bg-etapa-4 text-white ring-etapa-4',
+    barra: 'bg-etapa-4',
+    dot: 'bg-etapa-4',
   },
   /* Os acentos — fora da rampa de propósito: eles marcam o que **sai** do curso normal. */
-  ambar: {
-    suave: 'bg-amber-50 text-amber-800 ring-amber-300',
-    barra: 'bg-amber-400',
-    dot: 'bg-amber-500',
+  acao: {
+    etiqueta: 'bg-acento-acao text-white ring-acento-acao',
+    barra: 'bg-acento-acao',
+    dot: 'bg-acento-acao',
   },
-  esmeralda: {
-    suave: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    barra: 'bg-emerald-300',
-    dot: 'bg-emerald-500',
+  ganho: {
+    etiqueta: 'bg-acento-ganho text-white ring-acento-ganho',
+    barra: 'bg-acento-ganho',
+    dot: 'bg-acento-ganho',
   },
-  rosa: {
-    suave: 'bg-rose-50 text-rose-700 ring-rose-200',
-    barra: 'bg-rose-300',
-    dot: 'bg-rose-400',
+  perda: {
+    etiqueta: 'bg-acento-perda text-white ring-acento-perda',
+    barra: 'bg-acento-perda',
+    dot: 'bg-acento-perda',
   },
-  /* O arquivado: o único com texto apagado. Ele recua, e é isso que o separa da Entrada. */
+  /* O arquivado: o único vazado. Ele recua, e é isso que o separa da Entrada. */
   arquivado: {
-    suave: 'bg-slate-200 text-slate-500 ring-slate-300',
-    barra: 'bg-slate-400',
-    dot: 'bg-slate-400',
+    etiqueta: 'bg-slate-100 text-slate-500 ring-slate-300',
+    barra: 'bg-slate-300',
+    dot: 'bg-slate-300',
   },
 } as const;
 
 export const PALETA_STATUS: Record<StatusOportunidade, (typeof RAMPA)[keyof typeof RAMPA]> = {
-  entrada: RAMPA.slate,
-  elaboracao: RAMPA.sky,
-  revisao: RAMPA.indigo,
-  aguardando_feedback: RAMPA.violet,
-  ajuste: RAMPA.ambar,
-  standby: RAMPA.ambar,
-  fechado: RAMPA.esmeralda,
-  declinado: RAMPA.rosa,
+  entrada: RAMPA.etapa1,
+  elaboracao: RAMPA.etapa2,
+  revisao: RAMPA.etapa3,
+  aguardando_feedback: RAMPA.etapa4,
+  ajuste: RAMPA.acao,
+  standby: RAMPA.acao,
+  fechado: RAMPA.ganho,
+  declinado: RAMPA.perda,
   encerrado: RAMPA.arquivado,
 };
 
@@ -148,7 +172,7 @@ export const STATUS_OPORTUNIDADE: {
  * status novo escolhe um degrau da rampa ou um acento que já existe.
  */
 export function coresDoStatus(id: StatusOportunidade) {
-  return PALETA_STATUS[id] ?? RAMPA.slate;
+  return PALETA_STATUS[id] ?? RAMPA.etapa1;
 }
 
 export function getStatus(id: StatusOportunidade) {

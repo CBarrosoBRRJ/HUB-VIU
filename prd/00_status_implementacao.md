@@ -603,17 +603,29 @@ nove fundos saturados um sob o outro são o arco-íris que a própria regra cond
 Passou ao par suave (`bg-50` · `text-700` · anel) com **caixa alta**, que devolve por forma o
 destaque que a saturação dava. Contratos e Talentos seguem com a preenchida até serem revistos.
 
-E o tom não bastava. A paleta passou por **três versões no mesmo dia** antes de assentar:
+E o tom não bastava. A paleta passou por **cinco versões no mesmo dia** antes de assentar:
 
 1. **original** — uma cor por status, escolhidas uma a uma: sete matizes de famílias conflitantes;
 2. **semântica** — quatro matizes por significado: perdeu a distinção entre etapas e, pior, pintou
    **Entrada e Encerrado do mesmo cinza**, deixando começo e fim do processo idênticos;
-3. **rampa** — quatro vizinhas no espectro frio para o fluxo (slate → sky → indigo → violet), mais
-   três acentos fora dela (âmbar para o que pede ação, esmeralda para o ganho, rosa para a perda).
+3. **rampa suave** — a rampa certa, mas em etiqueta clara com texto colorido: *"cores no quadro, e
+   não na fonte, e menos pastéis"*;
+4. **rampa preenchida** — a rampa com os tons `600` do Tailwind, que é o **pico de croma** das
+   rampas dele: cores de demonstração, genéricas;
+5. **rampa construída** — os tons **gerados por regra** em OKLCH.
 
-O erro da primeira não era *ter cor*: era a paleta ser **arbitrária**. Cores análogas dão distinção
-entre etapas sem virar carnaval — lêem como uma família de longe e como quatro coisas de perto.
-Detalhe em [03 §1.1.0](03_padroes_ui.md); nenhuma classe de cor mora no catálogo de status.
+O erro da primeira não era *ter cor*: era a paleta ser **arbitrária**. E o da quarta foi continuar
+escolhendo tom a tom, mesmo com a rampa certa. Agora a claridade é fixa (o peso — nenhum status
+puxa mais atenção que outro, e todos passam de 4,5:1 com texto branco), o croma diz o papel (0,10
+no fluxo, 0,13 nos acentos) e o **matiz é a única variável**. Um degrau novo entra pela regra, não
+por gosto. Detalhe em [03 §1.1.0](03_padroes_ui.md); nenhuma classe de cor mora no catálogo de
+status, e os tons moram no `@theme`.
+
+Junto veio o **shell em dois planos** — pedido com duas referências, *"a sidebar parece que está em
+um plano abaixo da área de trabalho"*. A sidebar perdeu `bg-white` e `border-r` porque ela **é** o
+plano; a área de trabalho virou uma folha clara com canto arredondado, sombra e um vão de 8px que
+deixa o plano aparecer em volta. O vão é o detalhe que faz a diferença entre "um objeto em cima" e
+"uma coluna ao lado" — [03 §1.0.1](03_padroes_ui.md).
 
 ### Os números
 

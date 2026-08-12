@@ -108,6 +108,22 @@ export type CampoOportunidade =
   | 'tipoContratacao' | 'numeroContrato'
   | 'contatoCliente';
 
+/**
+ * A **forma** dos três botões da barra de ações — 12/08/2026.
+ *
+ * Eles nasceram um de cada vez, e cada um trouxe a sua medida: "Novo projeto" ficou com `rounded-md
+ * px-2.5 py-1 text-rotulo` e os outros dois com `rounded-lg px-2.5 py-1.5 text-xs`. Lado a lado,
+ * o verde era visivelmente menor — *"olha que o Novo projeto está menor"*.
+ *
+ * A `border` entra aqui mesmo no botão preenchido, onde ela é invisível: os outros dois têm borda
+ * de 1px, e sem ela o verde sairia 2px mais baixo com o padding idêntico. É o detalhe que faz três
+ * botões "com o mesmo padding" ainda saírem desalinhados.
+ *
+ * Constante em vez de repetida nos três porque foi exatamente assim que eles divergiram — cada
+ * edição mexeu num só. Aqui, quem muda a forma muda a dos três; as classes de cor ficam em cada um.
+ */
+const FORMA_BOTAO_BARRA = 'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors';
+
 const ICONES: Record<string, typeof Layers> = {
   'backlog:demanda': Inbox,
   'backlog:escopo': Layers,
@@ -1949,7 +1965,7 @@ export function BacklogTable({
             data-dica="Exportar para Excel"
             data-dica-sub="Baixa as linhas e colunas visíveis em arquivo Excel (.xlsx)"
             data-dica-sempre
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 disabled:cursor-not-allowed disabled:text-slate-300"
+            className={`${FORMA_BOTAO_BARRA} border-slate-200 text-slate-600 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 disabled:cursor-not-allowed disabled:text-slate-300`}
           >
             <FileSpreadsheet className="size-3" />
             Exportar
@@ -1961,7 +1977,7 @@ export function BacklogTable({
             disabled={oportunidades.length === 0}
             whileHover={oportunidades.length > 0 ? { y: -1 } : undefined}
             whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
+            className={`${FORMA_BOTAO_BARRA} border-slate-200 text-slate-600 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300`}
           >
             <CheckSquare className="size-3" />
             {selecao.length === oportunidades.length && oportunidades.length > 0
@@ -1986,7 +2002,7 @@ export function BacklogTable({
               data-dica="Novo projeto"
               data-dica-sub="Insere uma linha no topo, com o nome pronto para digitar"
               data-dica-sempre
-              className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-2.5 py-1 text-rotulo font-semibold text-white transition-colors hover:bg-emerald-600"
+              className={`${FORMA_BOTAO_BARRA} border-emerald-600 bg-emerald-600 font-semibold text-white hover:border-emerald-700 hover:bg-emerald-700`}
             >
               <Plus className="size-3" />
               Novo projeto

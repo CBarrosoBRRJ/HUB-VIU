@@ -67,13 +67,13 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const perfilStyle = usuario ? PERFIL_STYLE[usuario.perfil] : null;
 
   return (
-    <nav className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="border-b border-slate-100 px-5 py-4">
-        <p className="font-display text-sm font-bold text-slate-900">VIU Agenciamento</p>
-        <p className="text-apoio text-slate-500">Gestão de talentos</p>
+    <nav className="flex w-64 shrink-0 flex-col">
+      <div className="border-b border-white/10 px-5 py-4">
+        <p className="font-display text-sm font-bold text-white">VIU Agenciamento</p>
+        <p className="text-apoio text-slate-400">Gestão de talentos</p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3 custom-scrollbar">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3 custom-scrollbar-escura">
         {SECOES.map((secao) => {
           /**
            * Quadros sem acesso continuam **visíveis, com cadeado**.
@@ -113,31 +113,31 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                       }
                       className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-dado whitespace-nowrap transition-colors ${
                         bloqueado
-                          ? 'cursor-not-allowed text-slate-300'
+                          ? 'cursor-not-allowed text-slate-600'
                           : isActive
-                            ? 'bg-indigo-50 font-semibold text-indigo-700'
-                            : 'text-slate-600 hover:bg-slate-50'
+                            ? 'bg-white/10 font-semibold text-white'
+                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
                       }`}
                     >
                       {isActive && (
                         <motion.span
                           layoutId="indicador-pagina"
                           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                          className="absolute left-0 h-5 w-1 rounded-r-full bg-indigo-500"
+                          className="absolute left-0 h-5 w-1 rounded-r-full bg-indigo-400"
                         />
                       )}
                       <Icon
                         className={`size-4 shrink-0 ${
-                          bloqueado ? 'text-slate-300' : isActive ? 'text-indigo-600' : 'text-slate-400'
+                          bloqueado ? 'text-slate-600' : isActive ? 'text-indigo-300' : 'text-slate-500'
                         }`}
                       />
                       <span className="min-w-0 flex-1 truncate">{item.label}</span>
 
-                      {bloqueado && <Lock className="size-3 shrink-0 text-slate-300" />}
+                      {bloqueado && <Lock className="size-3 shrink-0 text-slate-600" />}
                       {item.nivel === 'nomeado' && (
                         <span
                           title="Você vê apenas os registros em que foi nomeado"
-                          className="shrink-0 rounded bg-slate-100 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-500"
+                          className="shrink-0 rounded bg-white/10 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-400"
                         >
                           Meus
                         </span>
@@ -153,7 +153,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
       {/* Sessão — provisório até existir login de verdade. */}
       {usuario && (
-        <div className="border-t border-slate-100 p-3">
+        <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-1">
             {/* O bloco leva ao próprio cadastro; o chevron troca a sessão (demo). */}
             <button
@@ -161,12 +161,12 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               onClick={() => onNavigate('perfil')}
               title="Abrir meu perfil"
               className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-left transition ${
-                activePage === 'perfil' ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                activePage === 'perfil' ? 'bg-white/10' : 'hover:bg-white/5'
               }`}
             >
               <Avatar usuario={usuario} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-dado font-medium text-slate-700">
+                <span className="block truncate text-dado font-medium text-slate-200">
                   {usuario.nome}
                 </span>
                 <span
@@ -188,7 +188,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                   ? 'Saia da visualização para trocar de sessão'
                   : 'Trocar de sessão (modo demonstração)'
               }
-              className="shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="shrink-0 rounded-lg p-2 text-slate-500 transition hover:bg-white/10 hover:text-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ChevronsUpDown className="size-3.5" />
             </button>
