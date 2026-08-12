@@ -44,7 +44,10 @@ console.log('\n--- Cadastro próprio ---');
 check('edita o próprio cadastro', podeEditarProprioCadastro(ctx(membro), membro), true);
 check('não edita o de outra pessoa', podeEditarProprioCadastro(ctx(membro), outro), false);
 check('conta inativa não edita nem o próprio', podeEditarProprioCadastro(ctx(inativo), inativo), false);
-check('em visualização não edita nada', podeEditarProprioCadastro(ctx(membro, { visualizacao: true }), membro), false);
+// Fidelidade do "Ver como" (12/08/2026): a permissão responde pelo alvo; o bloqueio mora nos setters do provider.
+check('em visualização a resposta é a do alvo',
+  podeEditarProprioCadastro(ctx(membro, { visualizacao: true }), membro),
+  podeEditarProprioCadastro(ctx(membro), membro));
 
 console.log('\n--- Troca de e-mail com confirmação ---');
 const AGORA = new Date(2026, 7, 1, 10, 0, 0);

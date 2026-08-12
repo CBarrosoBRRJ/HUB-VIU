@@ -12,6 +12,7 @@ import { Oportunidade } from '../../types';
 import { useDados } from '../../context/DadosProvider';
 import { contratosDoTalento, getTipo } from '../../utils/talentos';
 import {
+  TITULO_PROVISORIO,
   getInput,
   compararPorCampo, getStatus, INPUTS, ORIGENS_COMERCIAIS,
   apoiosDaAreaNaOportunidade, DESFECHOS_TERMINAIS, IMPACTOS, exclusividadeDe, precisaRevisao,
@@ -1674,7 +1675,14 @@ export function BacklogTable({
               {podeEditar ? (
                 <EditableCell
                   value={op.titulo}
-                  onCommit={(valor) => valor.trim() && onUpdateCampo(op.id, 'titulo', valor.trim())}
+                  /*
+                    Apagar o nome **funciona** — 12/08/2026. O commit rejeitava vazio (`valor.trim() &&`)
+                    e o texto antigo voltava sozinho: *"quero apagar e deixar em branco, ele não
+                    deixa"*. Só que o nome é a chave da linha e não pode ser vazio de verdade —
+                    então apagar devolve a linha ao `TITULO_PROVISORIO`, o mesmo estado de uma
+                    linha recém-criada. O gesto passa a fazer o que parece fazer.
+                  */
+                  onCommit={(valor) => onUpdateCampo(op.id, 'titulo', valor.trim() || TITULO_PROVISORIO)}
                   align="left"
                   /*
                     A linha recém-criada já nasce com o cursor no nome, e o texto provisório

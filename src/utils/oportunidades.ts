@@ -175,6 +175,16 @@ export function coresDoStatus(id: StatusOportunidade) {
   return PALETA_STATUS[id] ?? RAMPA.etapa1;
 }
 
+/**
+ * O nome de uma linha que ainda não foi nomeada.
+ *
+ * É **texto de verdade**, não placeholder: o nome é a chave da linha (busca, ordenação,
+ * identificação), então ele nunca fica vazio — quem apaga o título devolve a linha a este estado,
+ * o mesmo de uma linha recém-criada. Morava na página do Backlog; virou regra de domínio quando o
+ * apagar passou a usá-lo também (12/08/2026).
+ */
+export const TITULO_PROVISORIO = 'Sem título';
+
 export function getStatus(id: StatusOportunidade) {
   return STATUS_OPORTUNIDADE.find((status) => status.id === id) ?? STATUS_OPORTUNIDADE[0];
 }

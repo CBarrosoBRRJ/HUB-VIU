@@ -28,15 +28,22 @@ export interface Contexto {
   /**
    * Sessão em modo "Ver como": a tela é renderizada com os olhos de outra pessoa.
    *
-   * Leitura funciona normalmente; **toda escrita fica bloqueada**. Agir no lugar de alguém
-   * produziria alterações sem rastro de quem realmente as fez.
+   * **Este campo não muda nenhuma resposta deste módulo — e isso é a correção de 12/08/2026.**
+   *
+   * Antes, toda função de escrita respondia "não" durante a visualização (`escritaBloqueada`), e
+   * a simulação mentia: o gestor abria a visão de alguém para auditar o acesso e via uma tela
+   * **sem** os botões que a pessoa tem — *"algumas funções não aparecem, como criar novo
+   * projeto"*. Uma auditoria que não mostra o que a pessoa vê não audita.
+   *
+   * As permissões respondem sempre pela pessoa do contexto — o **alvo**, durante a visualização.
+   * A garantia de que nada é gravado mudou de camada: mora nos setters de coleção do
+   * `DadosProvider`, que é o único caminho até o dado. A tela fica fiel; a escrita morre na raiz,
+   * uma vez, em vez de em dezesseis funções que precisavam lembrar de perguntar.
+   *
+   * O campo continua existindo para os poucos lugares que precisam saber do modo em si — o
+   * bloqueio do desfazer, por exemplo.
    */
   visualizacao?: boolean;
-}
-
-/** Atalho: nenhuma ação de escrita passa enquanto a sessão está em visualização. */
-function escritaBloqueada(contexto: Contexto): boolean {
-  return contexto.visualizacao === true;
 }
 
 /* ------------------------------------------------------------------ *
@@ -75,9 +82,6 @@ export function concessaoAtiva(concessao: Concessao, agora = new Date()): boolea
 export function podeAcao(contexto: Contexto, acao: AcaoConcedivel, agora = new Date()): boolean {
   const { usuario, concessoes = [] } = contexto;
   if (!contaAtiva(usuario)) return false;
-  // Ver a página de Usuários e a aba de Acessos é leitura; o resto some em visualização.
-  const somenteLeitura: AcaoConcedivel[] = ['gerenciar_usuarios', 'gerenciar_acessos'];
-  if (escritaBloqueada(contexto) && !somenteLeitura.includes(acao)) return false;
   if (ehDono(usuario)) return true;
 
   if (ACOES_BASE[usuario.perfil].includes(acao)) return true;
@@ -251,7 +255,6 @@ function ehResponsavelDeAlguma({ usuario, equipes }: Contexto): boolean {
  * O **e-mail fica de fora**: é a identidade de acesso e só muda pelo fluxo de confirmação.
  */
 export function podeEditarProprioCadastro(contexto: Contexto, alvo: Usuario): boolean {
-  if (escritaBloqueada(contexto)) return false;
   return contexto.usuario.id === alvo.id && contaAtiva(contexto.usuario);
 }
 
@@ -280,7 +283,6 @@ export function podeGerenciarEquipe(
   equipe: Equipe,
   agora = new Date(),
 ): boolean {
-  if (escritaBloqueada(contexto)) return false;
   if (ehDono(contexto.usuario)) return true;
   if (contexto.usuario.perfil === 'admin') return true;
   if (contexto.usuario.perfil !== 'responsavel') return false;
@@ -300,7 +302,6 @@ export function podeExcluirEquipe(
   equipe: Equipe,
   agora = new Date(),
 ): boolean {
-  if (escritaBloqueada(contexto)) return false;
   return contexto.usuario.perfil === 'admin' || podeGerenciarEquipe(contexto, equipe, agora);
 }
 
@@ -316,7 +317,6 @@ export function podeDefinirAcessoDaEquipe(contexto: Contexto): boolean {
 
 /** Cadastrar pessoas: admin em qualquer lugar; responsável dentro da equipe que administra. */
 export function podeCriarUsuario(contexto: Contexto, equipe?: Equipe): boolean {
-  if (escritaBloqueada(contexto)) return false;
   if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin') return true;
   return Boolean(equipe && podeGerenciarEquipe(contexto, equipe));
 }
@@ -344,7 +344,6 @@ export function podeDefinirPerfil(
   alvo: Usuario,
   alvoPerfil: PerfilSistema,
 ): boolean {
-  if (escritaBloqueada(contexto)) return false;
   // O dono nunca é rebaixado — nem por ele mesmo, nem por quem recebeu a concessão.
   if (ehDono(alvo)) return false;
   if (ehDono(contexto.usuario)) return true;
@@ -354,7 +353,6 @@ export function podeDefinirPerfil(
 }
 
 export function podeExcluirUsuario(contexto: Contexto, alvo: Usuario): boolean {
-  if (escritaBloqueada(contexto)) return false;
   if (ehDono(alvo) || alvo.id === contexto.usuario.id) return false;
   return podeAcao(contexto, 'excluir_usuarios');
 }
@@ -371,7 +369,6 @@ export function podeDefinirSituacao(
   situacao: SituacaoUsuario,
   equipe?: Equipe,
 ): boolean {
-  if (escritaBloqueada(contexto)) return false;
   if (ehDono(alvo)) return false;
   if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin') return true;
   if (situacao === 'desligado') return false;
@@ -390,12 +387,11 @@ export function podeGerenciarDominios(contexto: Contexto): boolean {
  * um par, o par concede de volta — e o teto do dono deixaria de existir.
  */
 export function podeGerenciarConcessoes(contexto: Contexto): boolean {
-  return !escritaBloqueada(contexto) && ehDono(contexto.usuario);
+  return ehDono(contexto.usuario);
 }
 
 /** Só o dono tem mais de um e-mail de acesso, e só ele mesmo os administra. */
 export function podeGerenciarEmailsDeAcesso(contexto: Contexto, alvo: Usuario): boolean {
-  if (escritaBloqueada(contexto)) return false;
   return ehDono(contexto.usuario) && contexto.usuario.id === alvo.id;
 }
 
@@ -434,7 +430,7 @@ export function estaNomeado(contrato: TalentContract, usuarioId: string): boolea
  * aquela linha, e nada além — abrir uma nova seria alargar sozinho o próprio alcance.
  */
 export function podeCriarRegistro(contexto: Contexto, pagina: AppPage): boolean {
-  return !escritaBloqueada(contexto) && nivelDeAcesso(contexto, pagina, false) !== 'nenhum';
+  return nivelDeAcesso(contexto, pagina, false) !== 'nenhum';
 }
 
 /**
@@ -449,7 +445,6 @@ export function podeEditarRegistro(
   pagina: AppPage,
   contrato: TalentContract,
 ): boolean {
-  if (escritaBloqueada(contexto)) return false;
   /*
     Escrita não tem atalho de perfil — 12/08/2026.
 
@@ -494,7 +489,6 @@ export function podeExcluirRegistro(
  * nomeação é ser o responsável de alguma das áreas da ficha.
  */
 export function podeEditarTalento(contexto: Contexto, talento: Talento): boolean {
-  if (escritaBloqueada(contexto)) return false;
   /*
     Escrita não tem atalho de perfil — 12/08/2026.
 
@@ -526,7 +520,6 @@ export function nomeadosDoBacklog(oportunidade: Oportunidade): string[] {
  * seu. Derivar do nível em vez de repetir a checagem de perfil mantém leitura e escrita coerentes.
  */
 export function podeEditarOportunidade(contexto: Contexto, oportunidade: Oportunidade): boolean {
-  if (escritaBloqueada(contexto)) return false;
   /*
     Escrita não tem atalho de perfil — 12/08/2026.
 
@@ -558,7 +551,7 @@ export function podeExcluirOportunidade(contexto: Contexto, oportunidade: Oportu
 
 /** Quem não pode se conceder acesso pede — o admin não precisa pedir nada. */
 export function podeSolicitarAcesso(contexto: Contexto): boolean {
-  return !escritaBloqueada(contexto) && !ehDono(contexto.usuario) && contexto.usuario.perfil !== 'admin';
+  return !ehDono(contexto.usuario) && contexto.usuario.perfil !== 'admin';
 }
 
 export function podeDecidirSolicitacao(contexto: Contexto): boolean {

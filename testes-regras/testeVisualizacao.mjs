@@ -1,15 +1,27 @@
 /**
- * Modo "Ver como": leitura pelos olhos de outra pessoa, escrita bloqueada.
+ * Modo "Ver como": a permissão responde pela pessoa observada — SEMPRE — 12/08/2026.
  *
- * O risco que estes casos cobrem é o pior possível: o admin abrir a visão de alguém e, sem
- * perceber, continuar podendo agir — gerando alterações sem rastro de quem as fez.
+ * ## A semântica virou
+ *
+ * Esta suíte nasceu afirmando o contrário: toda função de escrita respondia `false` durante a
+ * visualização, e os casos daqui garantiam isso. O efeito colateral só apareceu quando a operação
+ * usou o modo para o que ele serve — auditar acesso — e a tela escondeu dela os botões que a
+ * pessoa simulada tem: *"algumas funções não aparecem, como criar novo projeto"*.
+ *
+ * **Uma auditoria que não mostra o que a pessoa vê não audita.** Foi olhando por esses olhos que a
+ * própria operação encontrou o furo do admin, horas antes.
+ *
+ * A garantia de que nada é gravado não sumiu: **mudou de camada**. Mora nos setters de coleção do
+ * `DadosProvider` — o único caminho até o dado — e é verificada pelo teste de UI `verComo.test`,
+ * que clica de verdade. Aqui fica o outro lado do contrato: nenhuma função de permissão pode
+ * voltar a mentir para a simulação.
  */
 import {
-  podeVerPagina, equipesVisiveis, podeGerenciarAcessos, podeGerenciarEquipe, podeCriarEquipe,
+  podeVerPagina, equipesVisiveis, podeGerenciarEquipe, podeCriarEquipe,
   podeExcluirEquipe, podeDefinirAcessoDaEquipe, podeCriarUsuario, podeDefinirPerfil,
   podeDefinirSituacao, podeExcluirUsuario, podeGerenciarConcessoes, podeGerenciarDominios,
   podeGerenciarEmailsDeAcesso, podeCriarRegistro, podeEditarRegistro, podeExcluirRegistro,
-  podeConvidar, podeSolicitarAcesso, podeDecidirSolicitacao, podeAcao,
+  podeConvidar, podeSolicitarAcesso, podeAcao,
 } from './utils/permissoes.js';
 
 let falhas = 0;
@@ -24,12 +36,15 @@ const user = (id, perfil, over = {}) => ({
   cargo: '', telefone: '', local: '', nascimento: '', ...over,
 });
 
-const dono = user('u0', 'admin', { ehDono: true });
 const membro = user('u3', 'membro');
+const responsavel = user('u4', 'responsavel');
 
 const equipes = [{
   id: 'eq1', nome: 'Gestão de Contratos', paginasPermitidas: ['contratos'], criadaEm: '',
-  membros: [{ usuarioId: 'u3', papel: 'membro' }],
+  membros: [
+    { usuarioId: 'u3', papel: 'membro' },
+    { usuarioId: 'u4', papel: 'responsavel' },
+  ],
 }];
 
 const contrato = {
@@ -37,72 +52,56 @@ const contrato = {
   responsaveisIds: ['u3'], parceirosIds: [], criadoEm: '',
 };
 
-// O dono navegando normalmente.
-const normal = { usuario: dono, equipes, concessoes: [] };
-// O dono vendo com os olhos do membro: contexto passa a ser do membro + visualizacao.
-const vendo = { usuario: membro, equipes, concessoes: [], visualizacao: true };
-// Referência: o membro de verdade, sem visualização.
-const membroReal = { usuario: membro, equipes, concessoes: [] };
+/** O mesmo contexto, com e sem o modo — a dupla que todo caso compara. */
+const real = (u) => ({ usuario: u, equipes, concessoes: [] });
+const vendo = (u) => ({ usuario: u, equipes, concessoes: [], visualizacao: true });
 
 console.log('--- Leitura reflete a pessoa observada ---');
-check('vê o quadro da equipe dela', podeVerPagina(vendo, 'contratos'), true);
-check('não vê o quadro que ela não tem', podeVerPagina(vendo, 'backlog'), false);
-check('reflete a administração que ela vê: Equipes sim, Usuários não', [
-  podeVerPagina(vendo, 'usuarios'), podeVerPagina(vendo, 'equipes'),
-], [false, true]);
-check('mesma visão de quadros que a pessoa real', [
-  podeVerPagina(vendo, 'contratos'), podeVerPagina(membroReal, 'contratos'),
-], [true, true]);
-check('equipes visíveis são as dela', equipesVisiveis(vendo).map((e) => e.id), ['eq1']);
+check('vê o quadro da equipe dela', podeVerPagina(vendo(membro), 'contratos'), true);
+check('não vê o quadro que ela não tem', podeVerPagina(vendo(membro), 'backlog'), false);
+check('equipes visíveis são as dela', equipesVisiveis(vendo(membro)).map((e) => e.id), ['eq1']);
 
-console.log('\n--- Escrita bloqueada, mesmo sendo o dono por trás ---');
-check('não edita registro que ela editaria', [
-  podeEditarRegistro(membroReal, 'contratos', contrato),
-  podeEditarRegistro(vendo, 'contratos', contrato),
-], [true, false]);
-check('não cria registro', podeCriarRegistro(vendo, 'contratos'), false);
-check('não exclui registro', podeExcluirRegistro(vendo, 'contratos', contrato), false);
-check('não gerencia equipe', podeGerenciarEquipe(vendo, equipes[0]), false);
-check('não cria nem exclui equipe', [podeCriarEquipe(vendo), podeExcluirEquipe(vendo, equipes[0])], [false, false]);
-check('não concede quadros', podeDefinirAcessoDaEquipe(vendo), false);
-check('não cadastra pessoa', podeCriarUsuario(vendo, equipes[0]), false);
-check('não muda perfil', podeDefinirPerfil(vendo, membro, 'responsavel'), false);
-check('não muda situação', podeDefinirSituacao(vendo, membro, 'ferias', equipes[0]), false);
-check('não exclui pessoa', podeExcluirUsuario(vendo, membro), false);
-check('não concede capacidades', podeGerenciarConcessoes(vendo), false);
-check('não mexe em domínios', podeGerenciarDominios(vendo), false);
-check('não mexe em e-mails de acesso', podeGerenciarEmailsDeAcesso(vendo, membro), false);
-check('não convida', podeConvidar(vendo, equipes[0]), false);
-check('não solicita acesso em nome de outro', podeSolicitarAcesso(vendo), false);
-check('não decide solicitações', podeDecidirSolicitacao(vendo), false);
+/*
+  O coração da suíte: para TODA função de permissão, `visualizacao: true` não muda a resposta.
+  A lista cobre as mesmas dezesseis funções que o desenho antigo bloqueava, uma a uma — se alguém
+  reintroduzir um `if (visualizacao) return false` em qualquer delas, o par diverge e o caso cai.
+*/
+console.log('\n--- Escrita: a simulação responde exatamente o que a pessoa real recebe ---');
+const CASOS = [
+  ['podeEditarRegistro', (c) => podeEditarRegistro(c, 'contratos', contrato)],
+  ['podeCriarRegistro', (c) => podeCriarRegistro(c, 'contratos')],
+  ['podeExcluirRegistro', (c) => podeExcluirRegistro(c, 'contratos', contrato)],
+  ['podeGerenciarEquipe', (c) => podeGerenciarEquipe(c, equipes[0])],
+  ['podeCriarEquipe', (c) => podeCriarEquipe(c)],
+  ['podeExcluirEquipe', (c) => podeExcluirEquipe(c, equipes[0])],
+  ['podeDefinirAcessoDaEquipe', (c) => podeDefinirAcessoDaEquipe(c)],
+  ['podeCriarUsuario', (c) => podeCriarUsuario(c, equipes[0])],
+  ['podeDefinirPerfil', (c) => podeDefinirPerfil(c, membro, 'responsavel')],
+  ['podeDefinirSituacao', (c) => podeDefinirSituacao(c, membro, 'ferias', equipes[0])],
+  ['podeExcluirUsuario', (c) => podeExcluirUsuario(c, membro)],
+  ['podeGerenciarConcessoes', (c) => podeGerenciarConcessoes(c)],
+  ['podeGerenciarDominios', (c) => podeGerenciarDominios(c)],
+  ['podeGerenciarEmailsDeAcesso', (c) => podeGerenciarEmailsDeAcesso(c, membro)],
+  ['podeConvidar', (c) => podeConvidar(c, equipes[0])],
+  ['podeSolicitarAcesso', (c) => podeSolicitarAcesso(c)],
+  ['podeAcao(gerenciar_usuarios)', (c) => podeAcao(c, 'gerenciar_usuarios')],
+];
 
-console.log('\n--- Visualizando um admin: continua sem escrever ---');
-const admin = user('u1', 'admin');
-const vendoAdmin = { usuario: admin, equipes, concessoes: [], visualizacao: true };
-check('vê a página de Usuários (leitura)', podeVerPagina(vendoAdmin, 'usuarios'), true);
-check('mas não decide solicitações', podeDecidirSolicitacao(vendoAdmin), false);
-check('nem exclui ninguém', podeExcluirUsuario(vendoAdmin, membro), false);
+for (const alvo of [membro, responsavel]) {
+  for (const [nome, fn] of CASOS) {
+    check(`${alvo.id}: ${nome} igual com e sem visualização`, fn(vendo(alvo)), fn(real(alvo)));
+  }
+}
 
-console.log('\n--- Visualizando o dono: nem assim libera escrita ---');
-const vendoDono = { usuario: dono, equipes, concessoes: [], visualizacao: true };
-check('dono observado enxerga tudo', [
-  podeVerPagina(vendoDono, 'contratos'), podeVerPagina(vendoDono, 'usuarios'),
-], [true, true]);
-check('mas nenhuma escrita passa', [
-  podeCriarEquipe(vendoDono),
-  podeDefinirPerfil(vendoDono, membro, 'admin'),
-  podeExcluirUsuario(vendoDono, membro),
-  podeGerenciarConcessoes(vendoDono),
-], [false, false, false, false]);
-
-console.log('\n--- Sessão normal segue intacta ---');
-check('dono fora da visualização faz tudo', [
-  podeCriarEquipe(normal),
-  podeDefinirPerfil(normal, membro, 'admin'),
-  podeGerenciarConcessoes(normal),
-  podeAcao(normal, 'gerenciar_acessos'),
-], [true, true, true, true]);
-check('aba de Acessos é leitura e aparece na visualização', podeGerenciarAcessos(vendoAdmin), false);
+/*
+  E o caso concreto do reporte: o responsável (que pode criar) continua podendo criar na
+  simulação — é o botão "Novo projeto" que tinha sumido da tela.
+*/
+console.log('\n--- O caso do reporte ---');
+check('responsável simulado ainda "pode criar" — o botão aparece',
+  podeCriarRegistro(vendo(responsavel), 'contratos'), true);
+check('membro simulado edita o que é dele — a célula abre',
+  podeEditarRegistro(vendo(membro), 'contratos', contrato), true);
 
 console.log(falhas === 0 ? '\nTodos os casos passaram.' : `\n${falhas} caso(s) falharam.`);
 process.exit(falhas === 0 ? 0 : 1);

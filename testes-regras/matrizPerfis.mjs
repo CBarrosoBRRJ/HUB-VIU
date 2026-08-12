@@ -328,11 +328,17 @@ for (const usuario of USUARIOS_SEED) {
     nivelDeAcesso(vendo, 'talentos', nomeadoEm(usuario, 'talentos'));
 
   ok(`${usuario.nome}: visualização não muda a leitura`, leituraIgual);
-  ok(`${usuario.nome}: visualização bloqueia criar`, !podeCriarRegistro(vendo, 'talentos'));
-  ok(`${usuario.nome}: visualização bloqueia editar ficha`,
-    talentos.every((t) => !podeEditarTalento(vendo, t)));
-  ok(`${usuario.nome}: visualização bloqueia editar contrato`,
-    contratos.every((c) => !podeEditarRegistro(vendo, 'contratos', c)));
+  /*
+    A semântica virou em 12/08/2026: a visualização não muda NENHUMA resposta — a tela precisa
+    mostrar o que a pessoa simulada tem ("algumas funções não aparecem, como criar novo projeto").
+    O bloqueio de escrita mudou de camada: mora nos setters do provider, provado por verComo.test.
+  */
+  ok(`${usuario.nome}: visualização não muda o criar`,
+    podeCriarRegistro(vendo, 'talentos') === podeCriarRegistro(normal, 'talentos'));
+  ok(`${usuario.nome}: visualização não muda o editar ficha`,
+    talentos.every((t) => podeEditarTalento(vendo, t) === podeEditarTalento(normal, t)));
+  ok(`${usuario.nome}: visualização não muda o editar contrato`,
+    contratos.every((c) => podeEditarRegistro(vendo, 'contratos', c) === podeEditarRegistro(normal, 'contratos', c)));
 }
 console.log('   verificado para as 6 pessoas do seed');
 

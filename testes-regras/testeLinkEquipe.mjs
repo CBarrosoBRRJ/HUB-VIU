@@ -103,7 +103,10 @@ check('admin convidado vê', podeGerenciarEquipe(ctxLink(pessoa('u1', 'admin')),
 check('responsável da equipe vê', podeGerenciarEquipe(ctxLink(pessoa('u2', 'responsavel')), eqComTime), true);
 check('membro NÃO vê', podeGerenciarEquipe(ctxLink(pessoa('u3', 'membro')), eqComTime), false);
 check('responsável de outra equipe NÃO vê', podeGerenciarEquipe(ctxLink(pessoa('u8', 'responsavel')), eqComTime), false);
-check('em "Ver como" ninguém vê', podeGerenciarEquipe({ ...ctxLink(pessoa('u2', 'responsavel')), visualizacao: true }, eqComTime), false);
+// Fidelidade do "Ver como" (12/08/2026): a permissão responde pelo alvo; o bloqueio mora nos setters do provider.
+check('em "Ver como" a resposta é a do alvo — o link aparece se ele o veria',
+  podeGerenciarEquipe({ ...ctxLink(pessoa('u2', 'responsavel')), visualizacao: true }, eqComTime),
+  podeGerenciarEquipe(ctxLink(pessoa('u2', 'responsavel')), eqComTime));
 
 console.log(falhas === 0 ? '\nTodos os casos passaram.' : `\n${falhas} caso(s) falharam.`);
 process.exit(falhas === 0 ? 0 : 1);

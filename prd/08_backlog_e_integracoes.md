@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.7 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
+**Versão:** 8.8 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -845,6 +845,18 @@ perdido — guardar um dado que a tela afirma não existir é o estado impossív
 procura (`comValorSemTique`), e o Power BI leria o valor órfão sem saber que foi renegado. Sem o
 tique, a célula da Produção aparece **travada, com o ícone de bloqueio (`Ban`)** e a explicação na
 dica: "este projeto não tem isso" é resposta diferente de "ninguém preencheu ainda".
+
+> #### Apagar o nome funciona — e devolve o "Sem título" — 12/08/2026
+>
+> Reporte da operação: *"quando escrevo um nome do projeto, mas quero depois apagar e deixar em
+> branco, ele não deixa — fica o que escrevi"*. O commit do título rejeitava vazio
+> (`valor.trim() &&`), e apagar era um gesto que silenciosamente não acontecia: a pessoa apagava,
+> confirmava, e o texto antigo voltava.
+>
+> O invariante continua de pé — **o nome é a chave da linha** (busca, ordenação, identificação) e
+> não fica vazio de verdade. Apagar devolve a linha ao `TITULO_PROVISORIO` ("Sem título"), o mesmo
+> estado de uma linha recém-criada. O gesto passa a fazer o que parece fazer, e a constante virou
+> regra de domínio (`utils/oportunidades.ts`) porque agora dois caminhos a usam: criar e apagar.
 
 > #### O defeito que impedia desmarcar — corrigido em 12/08/2026
 >

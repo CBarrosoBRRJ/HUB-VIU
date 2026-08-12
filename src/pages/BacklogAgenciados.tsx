@@ -6,6 +6,7 @@ import { BacklogTable } from '../components/backlog/BacklogTable';
 import { FluxoDoProcesso } from '../components/backlog/FluxoDoProcesso';
 import { ehDono, nomeadosDoBacklog, registrosVisiveis } from '../utils/permissoes';
 import {
+  TITULO_PROVISORIO,
   emAndamento, finalizadaRecentemente, getAlcanceAudiencia, getCaptacaoProducao,
   getFormatoConteudo, getImpacto, getInput,
   getOrigemComercial, getStatus, getTipoEdicao, getTipoOutput, getTipoProjeto, rotuloDoStatus,
@@ -25,7 +26,7 @@ import { carregar, salvar } from '../utils/persistencia';
  * célula abre em edição com o texto selecionado, então digitar substitui; quem sair sem preencher
  * vê "Sem título" na lista, o que é honesto: a linha existe e falta nomear.
  */
-export const TITULO_PROVISORIO = 'Sem título';
+export { TITULO_PROVISORIO };
 
 /**
  * Backlog de Agenciados — as oportunidades antes de virarem contrato.

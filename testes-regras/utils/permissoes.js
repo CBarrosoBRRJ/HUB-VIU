@@ -14,10 +14,6 @@
 import { getPapelNaEquipe } from './equipes.js';
 import { nomeadosDoTalento } from './talentos.js';
 import { nomeadosDaOportunidade } from './oportunidades.js';
-/** Atalho: nenhuma ação de escrita passa enquanto a sessão está em visualização. */
-function escritaBloqueada(contexto) {
-    return contexto.visualizacao === true;
-}
 /* ------------------------------------------------------------------ *
  * Capacidades administrativas
  * ------------------------------------------------------------------ */
@@ -51,10 +47,6 @@ export function concessaoAtiva(concessao, agora = new Date()) {
 export function podeAcao(contexto, acao, agora = new Date()) {
     const { usuario, concessoes = [] } = contexto;
     if (!contaAtiva(usuario))
-        return false;
-    // Ver a página de Usuários e a aba de Acessos é leitura; o resto some em visualização.
-    const somenteLeitura = ['gerenciar_usuarios', 'gerenciar_acessos'];
-    if (escritaBloqueada(contexto) && !somenteLeitura.includes(acao))
         return false;
     if (ehDono(usuario))
         return true;
@@ -181,8 +173,6 @@ function ehResponsavelDeAlguma({ usuario, equipes }) {
  * O **e-mail fica de fora**: é a identidade de acesso e só muda pelo fluxo de confirmação.
  */
 export function podeEditarProprioCadastro(contexto, alvo) {
-    if (escritaBloqueada(contexto))
-        return false;
     return contexto.usuario.id === alvo.id && contaAtiva(contexto.usuario);
 }
 /** A aba de Acessos: gestão fina de capacidades e equipes de cada pessoa. */
@@ -205,8 +195,6 @@ export function podeGerenciarAcessos(contexto) {
   ([03 §9](../../prd/03_padroes_ui.md)) —, e esta era a exceção que faltava alinhar.
 */
 export function podeGerenciarEquipe(contexto, equipe, agora = new Date()) {
-    if (escritaBloqueada(contexto))
-        return false;
     if (ehDono(contexto.usuario))
         return true;
     if (contexto.usuario.perfil === 'admin')
@@ -222,8 +210,6 @@ export function podeCriarEquipe(contexto) {
     return podeAcao(contexto, 'criar_equipe');
 }
 export function podeExcluirEquipe(contexto, equipe, agora = new Date()) {
-    if (escritaBloqueada(contexto))
-        return false;
     return contexto.usuario.perfil === 'admin' || podeGerenciarEquipe(contexto, equipe, agora);
 }
 /**
@@ -237,8 +223,6 @@ export function podeDefinirAcessoDaEquipe(contexto) {
 }
 /** Cadastrar pessoas: admin em qualquer lugar; responsável dentro da equipe que administra. */
 export function podeCriarUsuario(contexto, equipe) {
-    if (escritaBloqueada(contexto))
-        return false;
     if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin')
         return true;
     return Boolean(equipe && podeGerenciarEquipe(contexto, equipe));
@@ -260,8 +244,6 @@ export function ehDono(usuario) {
  * senão qualquer admin poderia multiplicar o próprio nível e o dono perderia o controle.
  */
 export function podeDefinirPerfil(contexto, alvo, alvoPerfil) {
-    if (escritaBloqueada(contexto))
-        return false;
     // O dono nunca é rebaixado — nem por ele mesmo, nem por quem recebeu a concessão.
     if (ehDono(alvo))
         return false;
@@ -273,8 +255,6 @@ export function podeDefinirPerfil(contexto, alvo, alvoPerfil) {
     return alvoPerfil !== 'admin' && alvo.perfil !== 'admin';
 }
 export function podeExcluirUsuario(contexto, alvo) {
-    if (escritaBloqueada(contexto))
-        return false;
     if (ehDono(alvo) || alvo.id === contexto.usuario.id)
         return false;
     return podeAcao(contexto, 'excluir_usuarios');
@@ -286,8 +266,6 @@ export function podeExcluirUsuario(contexto, alvo) {
  * nunca em `desligado` — desligar é ato de RH, fica com o admin.
  */
 export function podeDefinirSituacao(contexto, alvo, situacao, equipe) {
-    if (escritaBloqueada(contexto))
-        return false;
     if (ehDono(alvo))
         return false;
     if (ehDono(contexto.usuario) || contexto.usuario.perfil === 'admin')
@@ -307,12 +285,10 @@ export function podeGerenciarDominios(contexto) {
  * um par, o par concede de volta — e o teto do dono deixaria de existir.
  */
 export function podeGerenciarConcessoes(contexto) {
-    return !escritaBloqueada(contexto) && ehDono(contexto.usuario);
+    return ehDono(contexto.usuario);
 }
 /** Só o dono tem mais de um e-mail de acesso, e só ele mesmo os administra. */
 export function podeGerenciarEmailsDeAcesso(contexto, alvo) {
-    if (escritaBloqueada(contexto))
-        return false;
     return ehDono(contexto.usuario) && contexto.usuario.id === alvo.id;
 }
 /* ------------------------------------------------------------------ *
@@ -345,7 +321,7 @@ export function estaNomeado(contrato, usuarioId) {
  * aquela linha, e nada além — abrir uma nova seria alargar sozinho o próprio alcance.
  */
 export function podeCriarRegistro(contexto, pagina) {
-    return !escritaBloqueada(contexto) && nivelDeAcesso(contexto, pagina, false) !== 'nenhum';
+    return nivelDeAcesso(contexto, pagina, false) !== 'nenhum';
 }
 /**
  * Edição de uma linha do quadro.
@@ -355,8 +331,6 @@ export function podeCriarRegistro(contexto, pagina) {
  * - **membro**: apenas nas linhas em que está nomeado
  */
 export function podeEditarRegistro(contexto, pagina, contrato) {
-    if (escritaBloqueada(contexto))
-        return false;
     /*
       Escrita não tem atalho de perfil — 12/08/2026.
   
@@ -396,8 +370,6 @@ export function podeExcluirRegistro(contexto, pagina, contrato) {
  * nomeação é ser o responsável de alguma das áreas da ficha.
  */
 export function podeEditarTalento(contexto, talento) {
-    if (escritaBloqueada(contexto))
-        return false;
     /*
       Escrita não tem atalho de perfil — 12/08/2026.
   
@@ -427,8 +399,6 @@ export function nomeadosDoBacklog(oportunidade) {
  * seu. Derivar do nível em vez de repetir a checagem de perfil mantém leitura e escrita coerentes.
  */
 export function podeEditarOportunidade(contexto, oportunidade) {
-    if (escritaBloqueada(contexto))
-        return false;
     /*
       Escrita não tem atalho de perfil — 12/08/2026.
   
@@ -458,7 +428,7 @@ export function podeExcluirOportunidade(contexto, oportunidade) {
  * ------------------------------------------------------------------ */
 /** Quem não pode se conceder acesso pede — o admin não precisa pedir nada. */
 export function podeSolicitarAcesso(contexto) {
-    return !escritaBloqueada(contexto) && !ehDono(contexto.usuario) && contexto.usuario.perfil !== 'admin';
+    return !ehDono(contexto.usuario) && contexto.usuario.perfil !== 'admin';
 }
 export function podeDecidirSolicitacao(contexto) {
     return podeAcao(contexto, 'decidir_solicitacoes');

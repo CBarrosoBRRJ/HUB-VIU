@@ -1,5 +1,5 @@
 # PRD 05 — Perfis, Permissões e Isolamento de Dados
-**Versão:** 6.3 | **Status:** Implementado no front-end | **Data:** 12/08/2026
+**Versão:** 6.4 | **Status:** Implementado no front-end | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Perfis, permissões e onboarding*
 
@@ -210,6 +210,56 @@ verifica a **regra**. Para um admin sem equipe, toda camada de dado responde "n�
 A `matrizPerfis` ganhou o contrapositivo: **aba sensível não abre sem liberação da equipe, seja
 qual for o perfil.** Sem ele, a correção poderia ser desfeita por um atalho em camada nova e o
 teste continuaria verde.
+
+## 2.10. "Ver como" é fiel na tela e inerte na escrita — 12/08/2026
+
+Reporte da operação, usando o modo para o que ele serve: *"quando coloco na visão de algum outro
+usuário, algumas funções não aparecem, como criar novo projeto"*.
+
+E era o desenho antigo: **toda** função de escrita respondia "não" durante a visualização
+(`escritaBloqueada`, dentro de dezesseis funções de permissão). A intenção era boa — nada pode ser
+gravado no lugar de outra pessoa — mas o efeito colateral quebrava o propósito do modo: a tela
+escondia da simulação os botões que a pessoa simulada tem.
+
+> **Uma auditoria de acesso que não mostra o que a pessoa vê não audita.** Foi olhando por esses
+> olhos que a própria operação encontrou o furo do admin, horas antes (§2.9).
+
+### A garantia mudou de camada
+
+| | Antes | Agora |
+|---|---|---|
+| **permissões** (`pode*`) | respondiam "não" em visualização | respondem **pela pessoa simulada**, sempre |
+| **escrita** | bloqueada em 16 funções, uma a uma | morre nos **setters de coleção** do `DadosProvider` — o único caminho até o dado |
+| **aviso** | nenhum (o botão nem aparecia) | a faixa âmbar **treme e explica**: "Nada foi alterado — em visualização a escrita fica bloqueada" |
+
+Uma guarda no gargalo, em vez de dezesseis que precisavam lembrar de perguntar. `recomecarDoZero`
+é a única exceção — não passa por setter (limpa o `localStorage` direto) e ganhou a guarda
+explícita.
+
+O aviso mora no banner de propósito: é o elemento que já explica o modo, e um alerta novo seria
+mais um componente para a pessoa aprender.
+
+### Os dois lados do contrato, cada um testado onde vive
+
+- **fiel** — `testeVisualizacao` compara, para dezessete funções × dois perfis, a resposta com e
+  sem `visualizacao: true`. Divergiu, caiu. (A suíte nasceu afirmando o contrário — ela garantia o
+  desenho antigo. A regra mudou; o teste não estava errado.)
+- **inerte** — `verComo.test` clica de verdade: entra na visão de alguém, encontra o botão
+  "Novo projeto" **presente**, clica, e verifica que nenhuma linha nasceu e que o banner reagiu.
+  Só um teste que atravessa o provider prova a guarda.
+
+### A porta da nomeação, validada no mesmo reporte
+
+*"Mesmo que a equipe só veja Backlog, ela está conseguindo ver a página de Talentos."* Conferido:
+não é furo — é a **porta da nomeação** (§3), decidida em 01/08/2026. A pessoa estava nomeada como
+responsável de área em fichas do seed, e quem é nomeado numa linha precisa poder abrir a própria
+linha; ela vê **só essas** (selo "Meus"). Sem a porta, nomear alguém de outra área produziria um
+responsável que não consegue abrir o próprio registro.
+
+O que faltava era **legibilidade**: o selo "Meus" agora explica de onde veio o acesso — *"acesso
+por nomeação: você vê apenas os registros em que é responsável ou apoio — este quadro não veio da
+sua equipe"*. Para cortar o acesso de alguém, o gesto é tirar a nomeação do registro, não mexer na
+equipe.
 
 ## 3. Matriz de permissões
 

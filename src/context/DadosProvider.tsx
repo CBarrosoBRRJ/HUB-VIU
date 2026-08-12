@@ -1,6 +1,6 @@
 import {
-  createContext, ReactNode, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef,
-  useState,
+  createContext, Dispatch, ReactNode, SetStateAction, useCallback, useContext, useEffect,
+  useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import {
   AcaoConcedivel, AppPage, Concessao, Convite, Equipe, PapelEquipe, PerfilSistema, SituacaoUsuario,
@@ -62,6 +62,14 @@ import {
  * A página de Equipes escreve aqui; a de Contratos lê daqui. Sem isso, um usuário
  * criado na administração não apareceria no seletor de responsáveis dos contratos.
  */
+/**
+ * Disparado quando um gesto de escrita bate na guarda do "Ver como".
+ *
+ * O `BannerVisualizacao` escuta e reage — o aviso mora no elemento que já explica o modo,
+ * em vez de um alerta novo que a pessoa precisa aprender.
+ */
+export const EVENTO_ESCRITA_EM_VISUALIZACAO = 'viu:escrita-em-visualizacao';
+
 interface DadosContextValue {
   usuarios: Usuario[];
   equipes: Equipe[];
@@ -385,9 +393,9 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     Não é o banco: é o que evita que um F5 durante a apresentação apague tudo o que foi
     cadastrado. Detalhes e limites em `utils/persistencia.ts`.
   */
-  const [usuarios, setUsuarios] = useState<Usuario[]>(() => sanearCargos(carregar('usuarios', USUARIOS_SEED)));
-  const [equipes, setEquipes] = useState<Equipe[]>(() => carregar('equipes', EQUIPES_SEED));
-  const [concessoes, setConcessoes] = useState<Concessao[]>(() => carregar('concessoes', []));
+  const [usuarios, setUsuariosDireto] = useState<Usuario[]>(() => sanearCargos(carregar('usuarios', USUARIOS_SEED)));
+  const [equipes, setEquipesDireto] = useState<Equipe[]>(() => carregar('equipes', EQUIPES_SEED));
+  const [concessoes, setConcessoesDireto] = useState<Concessao[]>(() => carregar('concessoes', []));
   /*
     Os quatro abaixo são os que **chegam de volta por link** — e por isso precisam sobreviver ao
     recarregamento tanto quanto os demais.
@@ -401,21 +409,68 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     Nenhuma suíte pegava porque as regras (`convites.ts`, `linkEquipe.ts`, `trocaEmail.ts`) estavam
     certas: elas recebem a lista pronta. O que faltava era a lista chegar até elas.
   */
-  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoAcesso[]>(
+  const [solicitacoes, setSolicitacoesDireto] = useState<SolicitacaoAcesso[]>(
     () => carregar('solicitacoes', []),
   );
-  const [convites, setConvites] = useState<Convite[]>(() => carregar('convites', []));
-  const [trocasEmail, setTrocasEmail] = useState<TrocaEmail[]>(() => carregar('trocasEmail', []));
-  const [contratos, setContratos] = useState<TalentContract[]>(() => carregar('contratos', []));
-  const [linksEquipe, setLinksEquipe] = useState<LinkEquipe[]>(() => carregar('linksEquipe', []));
-  const [talentos, setTalentos] = useState<Talento[]>(() => carregar('talentos', TALENTOS_SEED));
-  const [marcas, setMarcas] = useState<Marca[]>(() => carregar('marcas', MARCAS_SEED));
-  const [oportunidades, setOportunidades] = useState<Oportunidade[]>(
+  const [convites, setConvitesDireto] = useState<Convite[]>(() => carregar('convites', []));
+  const [trocasEmail, setTrocasEmailDireto] = useState<TrocaEmail[]>(() => carregar('trocasEmail', []));
+  const [contratos, setContratosDireto] = useState<TalentContract[]>(() => carregar('contratos', []));
+  const [linksEquipe, setLinksEquipeDireto] = useState<LinkEquipe[]>(() => carregar('linksEquipe', []));
+  const [talentos, setTalentosDireto] = useState<Talento[]>(() => carregar('talentos', TALENTOS_SEED));
+  const [marcas, setMarcasDireto] = useState<Marca[]>(() => carregar('marcas', MARCAS_SEED));
+  const [oportunidades, setOportunidadesDireto] = useState<Oportunidade[]>(
     () => carregar('oportunidades', OPORTUNIDADES_SEED),
   );
-  const [dominios, setDominios] = useState<string[]>(() => carregar('dominios', DOMINIOS_PADRAO));
+  const [dominios, setDominiosDireto] = useState<string[]>(() => carregar('dominios', DOMINIOS_PADRAO));
   const [usuarioAtualId, setUsuarioAtualId] = useState(USUARIO_ATUAL_ID);
   const [visualizandoComoId, setVisualizandoComoId] = useState<string | null>(null);
+
+  /*
+    ==============================================================================================
+    ## "Ver como" é fiel na tela e inerte na escrita — 12/08/2026
+    ==============================================================================================
+
+    O reporte da operação: *"quando coloco na visão de algum outro usuário, algumas funções não
+    aparecem, como criar novo projeto"*. E era o desenho antigo: cada função de permissão
+    respondia "não" durante a visualização, então a tela escondia da simulação o que a pessoa
+    simulada tem. **Uma auditoria de acesso que não mostra o que a pessoa vê não audita** — foi
+    olhando por esses olhos que a própria operação achou o furo do admin, horas antes.
+
+    A garantia mudou de camada. As permissões respondem pela pessoa simulada (a tela fica fiel);
+    e a escrita morre **aqui**, nos setters de coleção — o único caminho até o dado. Uma guarda,
+    no gargalo, em vez de dezesseis funções que precisavam lembrar de perguntar.
+
+    Quem tentar (clicar em criar, editar uma célula) não grava nada e o banner âmbar reage — o
+    aviso é visual, no elemento que já explica o modo.
+  */
+  const visualizandoRef = useRef(false);
+  visualizandoRef.current = visualizandoComoId !== null;
+
+  function bloqueadoEmVisualizacao<T>(setter: Dispatch<SetStateAction<T>>): Dispatch<SetStateAction<T>> {
+    return (acao) => {
+      if (visualizandoRef.current) {
+        window.dispatchEvent(new CustomEvent(EVENTO_ESCRITA_EM_VISUALIZACAO));
+        return;
+      }
+      setter(acao);
+    };
+  }
+
+  /* eslint-disable react-hooks/exhaustive-deps -- setters do React e o wrapper são estáveis */
+  const setUsuarios = useMemo(() => bloqueadoEmVisualizacao(setUsuariosDireto), []);
+  const setEquipes = useMemo(() => bloqueadoEmVisualizacao(setEquipesDireto), []);
+  const setConcessoes = useMemo(() => bloqueadoEmVisualizacao(setConcessoesDireto), []);
+  const setSolicitacoes = useMemo(() => bloqueadoEmVisualizacao(setSolicitacoesDireto), []);
+  const setConvites = useMemo(() => bloqueadoEmVisualizacao(setConvitesDireto), []);
+  const setTrocasEmail = useMemo(() => bloqueadoEmVisualizacao(setTrocasEmailDireto), []);
+  const setContratos = useMemo(() => bloqueadoEmVisualizacao(setContratosDireto), []);
+  const setLinksEquipe = useMemo(() => bloqueadoEmVisualizacao(setLinksEquipeDireto), []);
+  const setTalentos = useMemo(() => bloqueadoEmVisualizacao(setTalentosDireto), []);
+  const setMarcas = useMemo(() => bloqueadoEmVisualizacao(setMarcasDireto), []);
+  const setOportunidades = useMemo(() => bloqueadoEmVisualizacao(setOportunidadesDireto), []);
+  const setDominios = useMemo(() => bloqueadoEmVisualizacao(setDominiosDireto), []);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
   /** Sequências próprias: derivar do tamanho da lista repetiria ids após exclusões. */
   /*
     Os contadores derivam do que está **carregado**, não do seed nem de uma constante.
@@ -833,6 +888,11 @@ export function DadosProvider({ children }: { children: ReactNode }) {
 
   /** Volta ao estado de fábrica — útil para reapresentar a demonstração do começo. */
   const recomecarDoZero = useCallback(() => {
+    // Não passa por setter nenhum — a guarda da visualização precisa ser explícita aqui.
+    if (visualizandoRef.current) {
+      window.dispatchEvent(new CustomEvent(EVENTO_ESCRITA_EM_VISUALIZACAO));
+      return;
+    }
     limparTudo();
     window.location.reload();
   }, []);

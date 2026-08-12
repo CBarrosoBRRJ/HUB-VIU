@@ -1799,6 +1799,29 @@ describe('editar uma linha não vaza para as outras', () => {
     expect(linhas().filter((l) => l.textContent?.includes('R$ 999.999,00'))).toHaveLength(1);
   });
 
+  it('apagar o nome devolve a linha a "Sem título" — e não ressuscita o texto antigo', () => {
+    /*
+      Reporte da operação (12/08/2026): *"quando escrevo um nome do projeto, mas quero depois
+      apagar e deixar em branco, ele não deixa — fica o que escrevi"*. O commit rejeitava vazio
+      (`valor.trim() &&`), então apagar era um gesto que silenciosamente não acontecia.
+
+      O nome continua sendo a chave da linha — não fica vazio de verdade: apagar devolve ao
+      `TITULO_PROVISORIO`, o mesmo estado de uma linha recém-criada. O gesto faz o que parece.
+    */
+    montar();
+    const eAlvo = (l: HTMLElement) => l.textContent?.includes('Natura Dia das Mães');
+    const alvo = linhas().find(eAlvo)!;
+
+    fireEvent.click(within(alvo).getByText(/Natura Dia das Mães/));
+    const campo = within(alvo).getByDisplayValue(/Natura Dia das Mães/);
+    fireEvent.change(campo, { target: { value: '   ' } });
+    fireEvent.keyDown(campo, { key: 'Enter' });
+
+    // O nome antigo se foi — inclusive do texto da linha — e o provisório assumiu.
+    expect(screen.queryByText(/Natura Dia das Mães/)).toBeNull();
+    expect(linhas().filter((l) => l.textContent?.includes('Sem título'))).toHaveLength(1);
+  });
+
   it('a cópia é independente: editar a duplicada não toca a origem', async () => {
     montar();
     /*

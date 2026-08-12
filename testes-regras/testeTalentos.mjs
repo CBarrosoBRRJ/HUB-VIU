@@ -197,7 +197,10 @@ check('responsável sem equipe NÃO edita', podeEditarTalento(ctx(user('u8', 're
 check('membro nomeado numa área edita', podeEditarTalento(ctx(user('u2', 'membro')), marina), true);
 check('membro da equipe mas não nomeado NÃO edita', podeEditarTalento(ctx(membroDaArea), marina), false);
 check('ficha sem responsável trava todo membro', podeEditarTalento(ctx(membroDaArea), vazio), false);
-check('visualização bloqueia até o dono', podeEditarTalento(ctx(dono, { visualizacao: true }), marina), false);
+// Fidelidade do "Ver como" (12/08/2026): a permissão responde pelo alvo; o bloqueio mora nos setters do provider.
+check('em visualização a resposta é a do alvo — até para o dono',
+  podeEditarTalento(ctx(dono, { visualizacao: true }), marina),
+  podeEditarTalento(ctx(dono), marina));
 check('conta inativa não edita', podeEditarTalento(ctx(user('u8', 'responsavel', { situacao: 'inativo' })), marina), false);
 
 console.log('\n--- Criar exige a porta da equipe ---');
