@@ -1581,36 +1581,57 @@ describe('correções da rodada de 11/08/2026', () => {
     }
   });
 
-  it('o fluxo lê como um caminho: cor da etapa e conector entre elas', () => {
+  it('cada card do cabeçalho carrega a cor do próprio status', () => {
     /*
-      O mapa era cinco caixas brancas idênticas — correto e mudo. Duas adições dão a ele o que o
-      bloco existe para mostrar:
+      O bloco era todo branco: a única pista de qual card era qual estava no texto e no ícone. A
+      barra na borda esquerda usa `status.solid` — **a mesma classe da etiqueta na linha da
+      tabela** —, então o azul do "Em Revisão" aqui é o azul do "Em Revisão" lá embaixo. É a
+      ligação entre mapa e grade sem depender de leitura.
 
-      1. a **cor da etapa** na borda esquerda, a mesma da etiqueta de status na linha da tabela —
-         é o que liga o mapa à grade sem depender de ler o texto;
-      2. o **conector** no vão entre os cartões, que transforma cinco caixas numa sequência.
-
-      A última etapa não tem conector (não há para onde apontar), e o Loop aponta **para trás**:
-      Ajustes devolve para a Revisão em vez de avançar.
+      > Conectores `›` entre as etapas viveram uma tarde e saíram: a operação não gostou, e o
+      > argumento se sustenta — a legenda diz "fluxo sequencial" e os cartões são numerados. A seta
+      > repetia em desenho o que o número e o texto já afirmavam.
     */
     montar();
     const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
 
-    // A cor vem do catálogo de status — a mesma classe que a etiqueta da linha usa.
-    const entrada = cartaoDaEtapa('Entrada');
-    expect(entrada.querySelector('.bg-slate-500'), 'a barra da Entrada usa a cor do status')
+    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300'), 'a cor vem do catálogo')
       .toBeTruthy();
-    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-500')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-300')).toBeTruthy();
+
+    // Os desfechos receberam o mesmo tratamento — verde no fechado, rosa no declinado.
+    const cardDeclinado = screen.getByText('Declinado').closest('button')!;
+    expect(cardDeclinado.querySelector('.bg-rose-300')).toBeTruthy();
+    expect(screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-emerald-300'))
+      .toBeTruthy();
 
     /*
-      Quatro conectores para cinco etapas: a última não aponta para lugar nenhum.
+      **O tom é o pastel (`barra`), nunca o cheio (`solid`).**
 
-      A leitura é por `getAttribute('class')`, e não por `.className`: os ícones do lucide são
-      `<svg>`, e ali `className` é um `SVGAnimatedString` — objeto, não texto.
+      Nove barras no tom 500 ao mesmo tempo viraram carnaval na tela da operação (12/08/2026) — a
+      mesma lição que as etiquetas já tinham aprendido em [03 §1.1.1]. A cor identifica; ela não
+      precisa competir com o conteúdo do cartão.
     */
-    const conectores = [...document.querySelectorAll('[aria-hidden]')]
+    for (const cheio of ['bg-slate-500', 'bg-indigo-500', 'bg-rose-500', 'bg-emerald-500']) {
+      const barrasCheias = [...document.querySelectorAll(`.w-1.${cheio}`)];
+      expect(barrasCheias, `barra em ${cheio} volta a saturar o bloco`).toHaveLength(0);
+    }
+
+    // E as setas não voltaram.
+    const setas = [...document.querySelectorAll('[aria-hidden]')]
       .filter((no) => (no.getAttribute('class') ?? '').includes('-right-4'));
-    expect(conectores).toHaveLength(4);
+    expect(setas, 'os conectores foram removidos a pedido da operação').toHaveLength(0);
+  });
+
+  it('cada etapa mostra quanto há nela, não só quantos', () => {
+    /*
+      Os cards de Finalização sempre mostraram o valor; os do fluxo, só a contagem — a mesma
+      pergunta respondida pela metade em cada lado do bloco. "Dois em elaboração" não diz se são
+      dois projetos de mil ou de duzentos mil.
+    */
+    montar();
+    const emElaboracao = screen.getByTitle(/em Em Elaboração$/);
+    expect(emElaboracao.textContent, 'o valor da etapa aparece no cartão').toMatch(/R\$/);
   });
 
   it('desmarcar um tique com valor preenchido funciona — e pergunta antes', async () => {

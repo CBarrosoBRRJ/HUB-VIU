@@ -24,20 +24,33 @@ export const STATUS_OPORTUNIDADE: {
   /** Classes literais — exigência do JIT do Tailwind. */
   solid: string;
   dot: string;
+  /**
+   * O tom **pastel** da cor, para superfícies grandes ou repetidas.
+   *
+   * `solid` é a etiqueta: uma por linha, sobre a qual o texto branco precisa de contraste. Quando a
+   * mesma cor se repete em nove elementos ao mesmo tempo — as barras do cabeçalho —, o mesmo tom
+   * vira carnaval: *"as cores estão muito carnaval"* (operação, 12/08/2026). O produto já sabia
+   * disso e tinha escrito a regra para as etiquetas ([03 §1.1.1](../../prd/03_padroes_ui.md)); só
+   * faltava o tom claro existir no catálogo para poder ser reutilizado.
+   *
+   * **Um degrau de 500 para 300** basta: a cor continua identificando o status — que é o papel
+   * dela ali — e para de disputar com o conteúdo do cartão.
+   */
+  barra: string;
   /** O SLA de triagem corre neste status? */
   emTriagem?: boolean;
   /** Fim de linha: não há mais o que acompanhar. */
   encerra?: boolean;
 }[] = [
-  { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', emTriagem: true },
-  { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500' },
-  { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500' },
-  { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500' },
-  { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500' },
-  { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500' },
-  { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', encerra: true },
-  { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', encerra: true },
-  { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', encerra: true },
+  { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', barra: 'bg-slate-300', emTriagem: true },
+  { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500', barra: 'bg-sky-300' },
+  { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500', barra: 'bg-indigo-300' },
+  { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500', barra: 'bg-violet-300' },
+  { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500', barra: 'bg-amber-300' },
+  { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500', barra: 'bg-yellow-300' },
+  { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', barra: 'bg-emerald-300', encerra: true },
+  { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', barra: 'bg-rose-300', encerra: true },
+  { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', barra: 'bg-slate-200', encerra: true },
 ];
 
 export function getStatus(id: StatusOportunidade) {

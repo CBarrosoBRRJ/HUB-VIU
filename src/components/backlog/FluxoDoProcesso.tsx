@@ -1,7 +1,6 @@
 import { motion } from 'motion/react';
 import {
-  Archive, CheckCircle2, ChevronDown, ChevronRight, ChevronUp, CircleSlash, PauseCircle,
-  RotateCcw, Zap,
+  Archive, CheckCircle2, ChevronDown, ChevronUp, CircleSlash, PauseCircle, RotateCcw, Zap,
 } from 'lucide-react';
 import { Oportunidade, StatusOportunidade } from '../../types';
 import {
@@ -171,18 +170,18 @@ export function FluxoDoProcesso({
         */}
         <div
           /*
-            `gap-4` em vez de `gap-2`: o vão entre as etapas deixou de ser respiro e passou a ser
-            **onde o conector mora** (12/08/2026). Ele é desenhado por cada cartão, no próprio vão à
-            direita — assim as colunas do grid seguem intactas e a simetria de §1.2.8 continua de pé.
+            Conectores `›` entre as etapas viveram aqui por uma tarde e saíram (12/08/2026): a
+            operação não gostou, e o argumento se sustenta — a legenda logo abaixo já diz "fluxo
+            sequencial do projeto" e os cartões são numerados (1, 2, 3, 4). A seta repetia em
+            desenho o que o número e o texto já afirmavam, e num bloco pequeno repetição é ruído.
           */
-          className="grid gap-4"
+          className="grid gap-3"
           style={{ gridTemplateColumns: `repeat(${ETAPAS_FLUXO.length}, minmax(min-content, 1fr))` }}
         >
-          {ETAPAS_FLUXO.map((etapa, indice) => {
+          {ETAPAS_FLUXO.map((etapa) => {
             const status = getStatus(etapa.status);
             const resumo = resumirPorStatus(oportunidades, etapa.status);
             const ativa = etapaAtiva === etapa.status;
-            const ultima = indice === ETAPAS_FLUXO.length - 1;
             const vazia = resumo.quantidade === 0;
 
             return (
@@ -221,7 +220,7 @@ export function FluxoDoProcesso({
                   Na borda esquerda porque é onde o produto já marca estado de linha — o farol de
                   SLA usa a mesma posição ([03 §3.3.1]). O `pl-4` do cartão abre o lugar dela.
                 */}
-                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.solid}`} />
+                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.barra}`} />
                 <span
                   className={`flex items-center gap-1 text-selo font-bold uppercase tracking-wider ${
                     etapa.loop ? 'text-amber-600' : 'text-slate-500'
@@ -262,29 +261,28 @@ export function FluxoDoProcesso({
                 </span>
 
                 {/*
-                  O conector — o que faz cinco caixas lerem como **um caminho**.
+                  **Quanto** há em cada etapa, e não só quantos — 12/08/2026.
 
-                  Ele mora no vão à direita do próprio cartão (`-right-4`, a medida do `gap-4`), e
-                  não numa coluna do grid: assim as colunas seguem iguais e a simetria de §1.2.8
-                  continua valendo. `overflow-visible` no botão seria necessário — por isso ele fica
-                  fora do `overflow-hidden`, ancorado no contêiner da etapa.
+                  Os cards de Finalização sempre mostraram o valor; os do fluxo, só a contagem. Era
+                  a mesma pergunta respondida pela metade em cada lado do bloco: "dois em
+                  elaboração" não diz se são dois projetos de mil ou de duzentos mil.
 
-                  **A seta do Loop aponta para trás.** Ajustes não avança o processo: devolve para a
-                  Revisão. Uma seta para a frente ali afirmaria uma sequência que o fluxo não tem —
-                  e o bloco existe justamente para ensinar essa forma.
+                  `resumirPorStatus` já devolvia o valor — ninguém o exibia. O `+N?` acompanha, como
+                  nos desfechos: valor é texto livre, e um total que engole o que não entendeu
+                  parece completo sem ser ([09 §2]).
                 */}
-                {!ultima && (
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute top-1/2 -right-4 flex w-4 -translate-y-1/2 items-center justify-center"
-                  >
-                    {etapa.loop ? (
-                      <RotateCcw className="size-3 text-amber-400" />
-                    ) : (
-                      <ChevronRight className="size-3.5 text-slate-300" />
-                    )}
-                  </span>
-                )}
+                <span className="mt-1 block text-xs font-semibold text-slate-700">
+                  {formatarMoeda(resumo.valor)}
+                  {resumo.ilegiveis > 0 && (
+                    <span
+                      title={`${resumo.ilegiveis} registro(s) com valor não numérico ficaram fora da soma`}
+                      className="ml-1 text-rotulo font-normal text-amber-600"
+                    >
+                      +{resumo.ilegiveis}?
+                    </span>
+                  )}
+                </span>
+
               </motion.button>
             );
           })}
@@ -341,10 +339,18 @@ export function FluxoDoProcesso({
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.14 }}
-                className={`rounded-xl border px-3 py-2 text-left transition ${
+                className={`relative rounded-xl border py-2 pr-3 pl-4 text-left transition hover:shadow-md ${
                   ativa ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
+                {/*
+                  A cor do desfecho na borda esquerda — o mesmo tratamento das etapas.
+
+                  Verde para fechado, âmbar para a pausa, rosa para declinado, cinza para encerrado:
+                  é a cor que a etiqueta de status usa na linha da tabela. O bloco inteiro era
+                  branco, e a única pista de qual card era qual estava no ícone e no texto.
+                */}
+                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.barra}`} />
                 <span className="flex items-center justify-between gap-2">
                   <span className={`flex items-center gap-1.5 text-xs font-medium ${COR_DESFECHO[desfecho]}`}>
                     <Icone className="size-3.5 shrink-0" />

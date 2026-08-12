@@ -10,15 +10,15 @@ import { somarValores } from './moeda.js';
  * Status
  * ------------------------------------------------------------------ */
 export const STATUS_OPORTUNIDADE = [
-    { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', emTriagem: true },
-    { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500' },
-    { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500' },
-    { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500' },
-    { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500' },
-    { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500' },
-    { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', encerra: true },
-    { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', encerra: true },
-    { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', encerra: true },
+    { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', barra: 'bg-slate-300', emTriagem: true },
+    { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500', barra: 'bg-sky-300' },
+    { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500', barra: 'bg-indigo-300' },
+    { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500', barra: 'bg-violet-300' },
+    { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500', barra: 'bg-amber-300' },
+    { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500', barra: 'bg-yellow-300' },
+    { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', barra: 'bg-emerald-300', encerra: true },
+    { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', barra: 'bg-rose-300', encerra: true },
+    { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', barra: 'bg-slate-200', encerra: true },
 ];
 export function getStatus(id) {
     return STATUS_OPORTUNIDADE.find((status) => status.id === id) ?? STATUS_OPORTUNIDADE[0];
