@@ -1,5 +1,5 @@
 # PRD 05 — Perfis, Permissões e Isolamento de Dados
-**Versão:** 6.5 | **Status:** Implementado no front-end | **Data:** 12/08/2026
+**Versão:** 6.6 | **Status:** Implementado no front-end | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Perfis, permissões e onboarding*
 
@@ -238,6 +238,34 @@ explícita.
 
 O aviso mora no banner de propósito: é o elemento que já explica o modo, e um alerta novo seria
 mais um componente para a pessoa aprender.
+
+### O dono age durante a simulação — e assina
+
+Pedido da operação, no mesmo dia: *"quando eu tiver simulando um usuário, pode permitir apenas eu
+que sou o dono criar e usar as coisas como ele, mas registre como eu, porque preciso testar o que o
+usuário está conseguindo fazer"*.
+
+**A objeção original ao gesto era rastro, não permissão** — agir no lugar de alguém produziria
+alterações sem saber quem as fez. Ela cai por construção, e por um acidente feliz do desenho: os
+quatro campos de autoria do sistema (`criadoPorId`, `solicitanteId`, `concedidaPorId`,
+`decididaPorId`) já gravam o **id da sessão real**, nunca o do simulado. Quem simula escreve com a
+própria assinatura, e sempre escreveu.
+
+Então a trava ficou só onde ainda protege algo: **quem não é dono não age simulando.** Um admin que
+abre a visão de outra pessoa segue em leitura pura — ele tem poder de administrar, não de assumir a
+identidade alheia.
+
+| Quem simula | Tela | Escrita | Faixa diz |
+|---|---|---|---|
+| **dono** | a da pessoa simulada | **passa**, assinada por ele | "você pode agir, e tudo fica registrado como *Fulano*" |
+| admin | a da pessoa simulada | bloqueada no setter | "somente leitura · você continua conectado como *Fulano*" |
+
+O `Ctrl+Z` acompanha a escrita: fechá-lo para o dono seria pior que abri-lo — ele poderia criar e
+não poderia desfazer o que criou.
+
+> **Um detalhe que o teste revelou e vale saber:** o dono cria durante a simulação e a linha **pode
+> não aparecer na tela**, porque a grade está mostrando a visão da pessoa simulada, que não está
+> nomeada no registro novo. Não é defeito — é a própria resposta que ele foi buscar ali.
 
 ### Os dois lados do contrato, cada um testado onde vive
 

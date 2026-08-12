@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Eye, Lock, X } from 'lucide-react';
 import { EVENTO_ESCRITA_EM_VISUALIZACAO, useDados } from '../../context/DadosProvider';
-import { rotuloDeNivel } from '../../utils/permissoes';
+import { ehDono, rotuloDeNivel } from '../../utils/permissoes';
 
 /**
  * Faixa fixa durante o modo "Ver como".
@@ -21,6 +21,11 @@ import { rotuloDeNivel } from '../../utils/permissoes';
 export function BannerVisualizacao() {
   const { visualizandoComo, usuarioReal, sairDaVisualizacao } = useDados();
   const [tentativas, setTentativas] = useState(0);
+  /*
+    O dono age durante a simulação; os demais seguem em leitura. A faixa precisa dizer **qual dos
+    dois modos está valendo**, porque a diferença é grande demais para ficar implícita.
+  */
+  const podeAgir = Boolean(usuarioReal && ehDono(usuarioReal));
 
   useEffect(() => {
     function aoTentarEscrever() {
@@ -64,8 +69,14 @@ export function BannerVisualizacao() {
           </span>
         ) : (
           <span className="text-amber-900">
-            {rotuloDeNivel(visualizandoComo)} · somente leitura · você continua conectado como{' '}
-            {usuarioReal?.nome}
+            {rotuloDeNivel(visualizandoComo)} ·{' '}
+            {podeAgir ? (
+              <strong className="font-semibold">
+                você pode agir, e tudo fica registrado como {usuarioReal?.nome}
+              </strong>
+            ) : (
+              <>somente leitura · você continua conectado como {usuarioReal?.nome}</>
+            )}
           </span>
         )}
       </motion.span>

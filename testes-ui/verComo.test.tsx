@@ -1,16 +1,19 @@
 /**
- * "Ver como": fiel na tela, inerte na escrita — 12/08/2026.
+ * "Ver como": fiel na tela, e quem age é só o dono — 12/08/2026.
  *
- * As duas metades do contrato, cada uma testada onde vive:
+ * ## As três partes do contrato
  *
- * - **fiel** — `testeVisualizacao.mjs` garante que nenhuma função de permissão muda de resposta
- *   sob `visualizacao: true`;
- * - **inerte** — é ESTA suíte: clica de verdade nos botões que a simulação agora mostra e
- *   verifica que nada foi gravado. A guarda mora nos setters de coleção do `DadosProvider`, e só
- *   um teste que atravessa o provider consegue prová-la.
+ * 1. **fiel** — `testeVisualizacao.mjs` garante que nenhuma função de permissão muda de resposta
+ *    sob `visualizacao: true`. A simulação mostra o que a pessoa simulada tem, inclusive os botões
+ *    de escrita: *"algumas funções não aparecem, como criar novo projeto"*;
+ * 2. **o dono age** — pedido da operação: *"pode permitir apenas eu que sou o dono criar e usar as
+ *    coisas como ele, mas registre como eu, porque preciso testar o que o usuário está conseguindo
+ *    fazer"*. A objeção original era **rastro**, não permissão — e o rastro já sai certo, porque os
+ *    campos de autoria gravam o id da sessão real, nunca o do simulado;
+ * 3. **os demais não** — um admin que abre a visão de alguém segue em leitura pura. Ele tem poder
+ *    de administrar, não de assumir a identidade alheia.
  *
- * O reporte que originou tudo: *"quando coloco na visão de algum outro usuário, algumas funções
- * não aparecem, como criar novo projeto"*. O caso daqui é exatamente esse gesto.
+ * Esta suíte cobre 2 e 3, que só se provam atravessando o provider de verdade.
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
@@ -20,32 +23,40 @@ import { DialogoProvider } from '../src/components/ui/Dialogo';
 import { BacklogAgenciados } from '../src/pages/BacklogAgenciados';
 import { BannerVisualizacao } from '../src/components/usuarios/BannerVisualizacao';
 
+afterEach(cleanup);
+
 /**
- * Ponte de teste: entra no modo "Ver como" sem atravessar a página de Usuários.
+ * Ponte de teste: troca a sessão real e entra na simulação sem atravessar a página de Usuários.
  *
  * O caminho real (Usuários → Acessos → "Ver como") já é coberto pelos testes da administração; o
- * assunto aqui é o que acontece DEPOIS de entrar, e a ponte corta o trajeto que não está em teste.
+ * assunto aqui é o que acontece **depois** de entrar.
  */
-/** Linhas com dados — mesmo recorte que os testes do Backlog usam. */
-function linhasDeDados() {
-  return screen.getAllByRole('row').filter((linha) => linha.querySelector('td')).length;
-}
-
-function Ponte({ alvoId }: { alvoId: string }) {
-  const { verComo, visualizandoComo } = useDados();
+function Ponte({ alvoId, sessaoId }: { alvoId: string; sessaoId?: string }) {
+  const { verComo, entrarComo, visualizandoComo, usuarioReal, oportunidades } = useDados();
   return (
-    <button type="button" onClick={() => verComo(alvoId)}>
-      {visualizandoComo ? '__vendo__' : '__entrar_como__'}
-    </button>
+    <div>
+      {sessaoId && (
+        <button type="button" onClick={() => entrarComo(sessaoId)}>__trocar_sessao__</button>
+      )}
+      <button type="button" onClick={() => verComo(alvoId)}>
+        {visualizandoComo ? '__vendo__' : '__entrar_como__'}
+      </button>
+      <span data-testid="sessao-real">{usuarioReal?.nome ?? ''}</span>
+      {/*
+        A régua da criação é o **dado**, não a tela: durante a simulação a grade mostra a visão da
+        pessoa simulada, e ela pode legitimamente não enxergar a linha que acabou de nascer (não
+        está nomeada nela). Contar aqui separa "criou" de "apareceu para ela".
+      */}
+      <span data-testid="total">{oportunidades.length}</span>
+    </div>
   );
 }
 
-function montar(alvoId: string) {
+function montar(alvoId: string, sessaoId?: string) {
   return render(
     <DialogoProvider>
       <DadosProvider>
-        <Ponte alvoId={alvoId} />
-        {/* O banner mora no App, acima da página — aqui ele entra porque o aviso é dele. */}
+        <Ponte alvoId={alvoId} sessaoId={sessaoId} />
         <BannerVisualizacao />
         <BacklogAgenciados />
       </DadosProvider>
@@ -53,54 +64,61 @@ function montar(alvoId: string) {
   );
 }
 
-// `globals: false` no vitest — o cleanup automático não roda; sem isto o segundo teste vê dois banners.
-afterEach(cleanup);
-
-describe('ver como — fiel na tela, inerte na escrita', () => {
-  it('mostra o botão de criar que a pessoa tem, e o clique não grava nada', async () => {
+describe('ver como', () => {
+  it('o dono simula e AGE — a linha nasce, e a faixa diz em nome de quem', async () => {
     const usuario = userEvent.setup();
-    // Ana (u1) é responsável na Gestão de Produção, que abre o Backlog: ela pode criar.
+    // A sessão de fábrica é o dono; a Ana (u1) é o alvo da simulação.
     montar('u1');
 
     await usuario.click(screen.getByText('__entrar_como__'));
+    const antes = Number(screen.getByTestId('total').textContent);
 
-    /*
-      A metade "fiel": o botão está na tela. No desenho antigo ele sumia — a permissão respondia
-      "não" pela visualização, e a auditoria via uma tela mentirosa.
-    */
+    // A parte "fiel": o botão aparece porque a pessoa simulada o tem.
     const botao = await screen.findByRole('button', { name: /novo projeto/i });
-    expect(botao, 'a simulação mostra o que a pessoa tem').toBeTruthy();
-
-    // A régua é a visão DELA: entrar no modo muda a lista (Ana vê só as linhas em que é nomeada).
-    const antes = linhasDeDados();
-
-    /*
-      A metade "inerte": o gesto morre na guarda do provider. Nenhuma linha nova — nem otimista,
-      nem persistida — e o banner explica em vez de deixar o clique cair no silêncio.
-    */
     await usuario.click(botao);
 
-    expect(linhasDeDados(), 'nenhuma linha foi criada').toBe(antes);
-    // A linha nova abriria em edição, com "Sem título" selecionado — não há textarea nenhum.
-    expect(screen.queryByDisplayValue('Sem título'), 'nem em edição').toBeNull();
-    expect(await screen.findByTestId('aviso-escrita'), 'o banner reagiu à tentativa').toBeTruthy();
+    // A parte "o dono age": a linha nasceu de verdade, no dado.
+    expect(Number(screen.getByTestId('total').textContent), 'o dono cria durante a simulação')
+      .toBe(antes + 1);
+
+    /*
+      E a faixa precisa dizer **em nome de quem**: a diferença entre "leitura" e "escrita com a
+      minha assinatura" é grande demais para ficar implícita na tela.
+    */
+    expect(screen.getByText(/tudo fica registrado como/i).textContent)
+      .toContain('Caio Cesar Moura Barroso');
   });
 
-  it('sair da visualização devolve a escrita', async () => {
+  it('um admin simulando NÃO age — nada grava, e a faixa explica', async () => {
+    const usuario = userEvent.setup();
+    // Troca a sessão real para a Ana (admin, não dona) e daí simula outra pessoa.
+    montar('u3', 'u1');
+
+    await usuario.click(screen.getByText('__trocar_sessao__'));
+    expect(screen.getByTestId('sessao-real').textContent, 'a sessão real deixou de ser o dono')
+      .toBe('Ana Martins');
+
+    await usuario.click(screen.getByText('__entrar_como__'));
+
+    const antes = Number(screen.getByTestId('total').textContent);
+    const botao = screen.queryByRole('button', { name: /novo projeto/i });
+    if (botao) await usuario.click(botao);
+
+    expect(Number(screen.getByTestId('total').textContent), 'nenhuma linha nasceu').toBe(antes);
+    if (botao) {
+      expect(await screen.findByTestId('aviso-escrita'), 'a faixa reagiu à tentativa').toBeTruthy();
+    }
+  });
+
+  it('sair da visualização tira a faixa e devolve a sessão', async () => {
     const usuario = userEvent.setup();
     montar('u1');
 
     await usuario.click(screen.getByText('__entrar_como__'));
     await usuario.click(await screen.findByRole('button', { name: /sair da visualização/i }));
 
+    expect(screen.queryByText(/vendo como/i), 'a faixa saiu da tela').toBeNull();
     await usuario.click(await screen.findByRole('button', { name: /novo projeto/i }));
-
-    /*
-      A criação foca a etapa Entrada para mostrar a linha nova, então contagem de linhas não é
-      régua aqui. A prova de que criou é a própria linha: ela nasce em edição, com o título
-      provisório pronto para substituir.
-    */
-    expect(await screen.findByDisplayValue('Sem título'), 'fora da visualização, criar volta a criar')
-      .toBeTruthy();
+    expect(await screen.findByDisplayValue('Sem título')).toBeTruthy();
   });
 });

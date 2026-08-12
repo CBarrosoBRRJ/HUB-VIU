@@ -20,6 +20,7 @@ import { OPORTUNIDADES_SEED } from '../data/oportunidades';
 import {
   semVinculosOrfaos, alternarPagina, definirMembro, getPapelNaEquipe, removerMembro } from '../utils/equipes';
 import {
+  ehDono,
   Contexto, podeCriarEquipe, podeDefinirAcessoDaEquipe, podeDefinirPerfil, podeDefinirSituacao,
   podeExcluirUsuario, podeGerenciarConcessoes, podeGerenciarDominios, podeGerenciarEmailsDeAcesso,
   podeEditarProprioCadastro, podeAcao, podeConvidar, nivelDeAcesso, NivelAcesso,
@@ -449,13 +450,37 @@ export function DadosProvider({ children }: { children: ReactNode }) {
 
     Quem tentar (clicar em criar, editar uma célula) não grava nada e o banner âmbar reage — o
     aviso é visual, no elemento que já explica o modo.
+
+    ## O dono age durante a simulação, e o registro sai no nome dele — 12/08/2026
+
+    Pedido da operação: *"quando eu tiver simulando um usuário, pode permitir apenas eu que sou o
+    dono criar e usar as coisas como ele, mas registre como eu — porque preciso testar o que o
+    usuário está conseguindo fazer"*.
+
+    A objeção original ao gesto era **rastro**, não permissão: agir no lugar de alguém produziria
+    alterações sem saber quem as fez. Ela cai por construção aqui, e por um acidente feliz do
+    desenho: os quatro campos de autoria do sistema (`criadoPorId`, `solicitanteId`,
+    `concedidaPorId`, `decididaPorId`) já gravam `usuarioAtualId` — o **id da sessão real**, nunca o
+    do simulado. Quem simula escreve com a própria assinatura.
+
+    Então a trava fica só onde ela ainda protege algo: **quem não é dono não age simulando.** Um
+    admin que abre a visão de outra pessoa continua em leitura pura — ele tem poder de administrar,
+    não de assumir a identidade alheia.
   */
   const visualizandoRef = useRef(false);
   visualizandoRef.current = visualizandoComoId !== null;
 
+  /**
+   * Só o dono age durante a simulação — e o que ele faz é registrado como ele.
+   *
+   * Lê o **usuário real**, nunca o simulado: a pergunta é "quem está por trás desta sessão?", e
+   * o simulado é justamente o disfarce.
+   */
+  const donoSimulandoRef = useRef(false);
+
   function bloqueadoEmVisualizacao<T>(setter: Dispatch<SetStateAction<T>>): Dispatch<SetStateAction<T>> {
     return (acao) => {
-      if (visualizandoRef.current) {
+      if (visualizandoRef.current && !donoSimulandoRef.current) {
         window.dispatchEvent(new CustomEvent(EVENTO_ESCRITA_EM_VISUALIZACAO));
         return;
       }
@@ -514,8 +539,11 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     [usuarios, visualizandoComoId],
   );
 
-  /** Em visualização, as regras passam a receber o outro usuário — em modo leitura. */
+  /** Em visualização, as regras passam a receber o outro usuário — a tela fica fiel a ele. */
   const usuarioAtual = visualizandoComo ?? usuarioReal;
+
+  // Quem está por trás do disfarce pode agir? Só se for o dono — ver `bloqueadoEmVisualizacao`.
+  donoSimulandoRef.current = ehDono(usuarioReal);
 
   /**
    * Espelho da sessão para as mutações.
@@ -645,13 +673,13 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   const navegarNoHistorico = useCallback(
     (sentido: 'desfazer' | 'refazer') => {
       /*
-        Em "Ver como", nada anda — nem para trás.
+        O desfazer acompanha a escrita — 12/08/2026.
 
-        A sessão simulada é leitura: se a escrita está bloqueada, desfazer também está. Sem isto,
-        o `Ctrl+Z` viraria a porta dos fundos para alterar dado no lugar de outra pessoa, e sem
-        rastro de quem realmente o fez.
+        Enquanto a simulação era leitura pura, `Ctrl+Z` era a porta dos fundos e ficava fechado.
+        Agora que o dono age simulando, fechá-lo seria pior: ele poderia criar e não poderia
+        desfazer o que criou. Para quem não é dono, a regra não mudou.
       */
-      if (sessaoRef.current.visualizacao) return;
+      if (visualizandoRef.current && !donoSimulandoRef.current) return;
 
       const passo = sentido === 'desfazer' ? desfazerNoHistorico : refazerNoHistorico;
       const resultado = passo(passadoRef.current, futuroRef.current, instantaneoRef.current);

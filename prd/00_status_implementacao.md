@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 149 testes de UI (ver §5) |
+| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 150 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/` | 149 testes de UI, em sete arquivos | §5.3 |
+| `testes-ui/` | 150 testes de UI, em sete arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.613 verificações em 38 suítes de regra, mais 149 testes de UI. 0 falhas.**
+**Estado atual: 1.613 verificações em 38 suítes de regra, mais 150 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,7 +332,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**149 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
+**150 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
 nenhum mock. Vitest + jsdom + Testing Library. Em sete arquivos:
 
 | Arquivo | Testes | O que cobre |
@@ -342,7 +342,7 @@ nenhum mock. Vitest + jsdom + Testing Library. Em sete arquivos:
 | `tipografia.test.tsx` | 9 | a escala, a raiz fluida e a régua da grade |
 | `aparencia.test.tsx` | 5 | a régua pessoal de Meu Perfil |
 | `documentacao.test.tsx` | 4 | **o PRD contra o código** (desde 12/08) |
-| `verComo.test.tsx` | 2 | o "Ver como" fiel e inerte — clica no botão que a simulação mostra e prova que nada grava |
+| `verComo.test.tsx` | 3 | o "Ver como": fiel na tela, o dono age e assina, o admin não age |
 | `reproducao.test.tsx` | 2 | o cenário exato da produção da operação — vínculo órfão e exclusão em cascata |
 
 > **Três desses arquivos não clicam em nada: eles leem o código-fonte.** `tipografia` procura
@@ -573,6 +573,15 @@ repetida — é a informação de que a resposta não serviu. Explicar é respos
 `membros.length`, a tabela junta com a base de usuários, e ids órfãos separam os dois. Terceiro
 reparo de leitura da mesma família — `semVinculosOrfaos`, ao lado de `semIdsRepetidos` e
 `sanearCargos` ([05 §2.11](05_perfis_usuarios.md)).
+
+### A simulação ganhou escrita, para o dono
+
+Pedido no fim da rodada: *"pode permitir apenas eu que sou o dono criar e usar as coisas como ele,
+mas registre como eu — porque preciso testar o que o usuário está conseguindo fazer"*.
+
+A objeção original era **rastro**, não permissão, e ela caiu por construção: os quatro campos de
+autoria já gravavam o id da **sessão real**, nunca o do simulado. A trava ficou só onde protege —
+quem não é dono segue em leitura pura ([05 §2.10](05_perfis_usuarios.md)).
 
 ### E uma hipótese minha que o teste derrubou
 
@@ -1902,7 +1911,7 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 38 suítes e os 149 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 4 | **Sem CI** | As 38 suítes e os 150 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
@@ -2137,7 +2146,7 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 149 testes de UI
+npm run test:ui                # 150 testes de UI
 cd testes-regras && bash rodar.sh   # 38 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
