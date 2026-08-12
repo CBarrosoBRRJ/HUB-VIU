@@ -49,7 +49,7 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 
 | Código | Documento |
 |--------|-----------|
-| `utils/permissoes.ts` | [05 §3](05_perfis_usuarios.md), [05 §3.4](05_perfis_usuarios.md); **o perfil `admin` não é credencial de dado**: [05 §2.9](05_perfis_usuarios.md) |
+| `utils/permissoes.ts` | [05 §3](05_perfis_usuarios.md), [05 §3.4](05_perfis_usuarios.md); **o perfil `admin` não é credencial de dado**: [05 §2.9](05_perfis_usuarios.md); a porta única e o "Ver como": [05 §2.10](05_perfis_usuarios.md). Invariantes varridos por `testeAcessoIntegro` |
 | `utils/visoes.ts` · `utils/colunas.ts` | [07 §1–6](07_visoes_e_relacoes.md), interruptor por aba: [07 §1.9](07_visoes_e_relacoes.md); larguras em px e grade contínua: [08 §6](08_backlog_e_integracoes.md), [00 §5.12](00_status_implementacao.md), [09 §8](09_fundacoes_tecnicas.md) |
 | `utils/referencias.ts` | [07 §10](07_visoes_e_relacoes.md) |
 | `utils/fluxoStatus.ts` | [08 §3](08_backlog_e_integracoes.md), [08 §3.3](08_backlog_e_integracoes.md) |
@@ -63,7 +63,7 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 | `utils/navegacao.ts` · `App.tsx` | [09 §8](09_fundacoes_tecnicas.md); o shell de dois planos: [03 §1.0.0–1.0.1](03_padroes_ui.md) |
 | `index.css` · `components/Sidebar.tsx` | [03 §1.0.0](03_padroes_ui.md) — **shell congelado**; tipografia: [03 §1.2](03_padroes_ui.md), régua da grade: [03 §1.2.6](03_padroes_ui.md) |
 | `utils/vigencia.ts` · `utils/talentosStatus.ts` | [02 §5–6](02_quadro_talentos.md) |
-| `utils/equipes.ts` · `utils/saida.ts` | [04 §4](04_pagina_equipes.md), [04 §7](04_pagina_equipes.md) |
+| `utils/equipes.ts` · `utils/saida.ts` | [04 §4](04_pagina_equipes.md), [04 §7](04_pagina_equipes.md); `semVinculosOrfaos`: [05 §2.11](05_perfis_usuarios.md) |
 | `utils/convites.ts` · `utils/linkEquipe.ts` · `utils/trocaEmail.ts` | [05 §4.1](05_perfis_usuarios.md) |
 | `utils/identidade.ts` | [05 §4.1](05_perfis_usuarios.md) — e-mail como chave; `nomeCurto` e `sanearCargos`: [03 §1.0.3](03_padroes_ui.md), [09 §5](09_fundacoes_tecnicas.md) |
 | `utils/talentos.ts` · `utils/busca.ts` | [06](06_pagina_talentos.md) |
@@ -152,6 +152,10 @@ por reler o registro correspondente.
 | Pesos de coluna somam um total fixo por aba | [03 §3](03_padroes_ui.md), [07 §6](07_visoes_e_relacoes.md) |
 | **Shell e tipografia estão congelados** — só mudam a pedido da operação | [03 §1.0.0](03_padroes_ui.md), [03 §1.2](03_padroes_ui.md) |
 | **Só o dono está acima do modelo de acesso** — `admin` administra, mas lê e escreve pelo que as equipes dele dão | [05 §2.9](05_perfis_usuarios.md) |
+| **A equipe é a única porta do quadro.** A nomeação decide *quais linhas* dentro dele; não abre quadro | [05 §2.10](05_perfis_usuarios.md) |
+| Escrita nunca alcança o que a leitura não alcança — as duas derivam do mesmo nível | [05 §2.9](05_perfis_usuarios.md) |
+| Em "Ver como", a tela é fiel à pessoa simulada; só o **dono** age, e o registro sai no nome dele | [05 §2.10](05_perfis_usuarios.md) |
+| Defeito que **escreveu dado** se repara na **leitura**, não com virada de versão | [09 §5](09_fundacoes_tecnicas.md) |
 
 ### Segurança
 
