@@ -603,6 +603,13 @@ nove fundos saturados um sob o outro são o arco-íris que a própria regra cond
 Passou ao par suave (`bg-50` · `text-700` · anel) com **caixa alta**, que devolve por forma o
 destaque que a saturação dava. Contratos e Talentos seguem com a preenchida até serem revistos.
 
+E o tom não bastava: a segunda leitura mostrou que o problema era a **quantidade de matizes** —
+sete cores para nove estados, cor por etapa, convenção que ninguém decora. A paleta foi reagrupada
+em **quatro matizes com significado** (`andamento` · `acao` · `ganho` · `perda` · `fim`), e a cor
+passou a responder "o que preciso olhar?" em vez de "em que etapa está?", que o texto já diz —
+[03 §1.1.0](03_padroes_ui.md). Nenhuma classe de cor mora mais no catálogo de status: ele declara
+a família, e a paleta faz o resto.
+
 ### Os números
 
 | Medida | Antes | Depois |

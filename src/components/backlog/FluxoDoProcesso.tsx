@@ -4,7 +4,8 @@ import {
 } from 'lucide-react';
 import { Oportunidade, StatusOportunidade } from '../../types';
 import {
-  DESFECHOS, DIAS_FINALIZADOS_VISIVEIS, ETAPAS_FLUXO, finalizadasAntigas, getStatus,
+  coresDoStatus, DESFECHOS, DIAS_FINALIZADOS_VISIVEIS, ETAPAS_FLUXO, finalizadasAntigas,
+  getStatus,
   resumirDeclinios, resumirPorStatus,
 } from '../../utils/oportunidades';
 import { formatarMoeda } from '../../utils/moeda';
@@ -212,7 +213,7 @@ export function FluxoDoProcesso({
                 {/*
                   A **cor da etapa**, numa barra na borda esquerda.
 
-                  É a mesma cor que a etiqueta de status usa na linha da tabela (`status.solid`), e
+                  É a mesma família de cor que a etiqueta usa na linha da tabela (`PALETA_STATUS`), e
                   é isso que o cartão ganha de informação: o azul do "Em Revisão" aqui é o azul do
                   "Em Revisão" lá embaixo. Antes os cinco eram brancos e idênticos, e a ligação
                   entre mapa e grade existia só no texto.
@@ -220,7 +221,7 @@ export function FluxoDoProcesso({
                   Na borda esquerda porque é onde o produto já marca estado de linha — o farol de
                   SLA usa a mesma posição ([03 §3.3.1]). O `pl-4` do cartão abre o lugar dela.
                 */}
-                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.barra}`} />
+                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${coresDoStatus(etapa.status).barra}`} />
                 <span
                   className={`flex items-center gap-1 text-selo font-bold uppercase tracking-wider ${
                     etapa.loop ? 'text-amber-600' : 'text-slate-500'
@@ -350,7 +351,7 @@ export function FluxoDoProcesso({
                   é a cor que a etiqueta de status usa na linha da tabela. O bloco inteiro era
                   branco, e a única pista de qual card era qual estava no ícone e no texto.
                 */}
-                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${status.barra}`} />
+                <span className={`absolute inset-y-0 left-0 w-1 rounded-l-xl ${coresDoStatus(desfecho).barra}`} />
                 <span className="flex items-center justify-between gap-2">
                   <span className={`flex items-center gap-1.5 text-xs font-medium ${COR_DESFECHO[desfecho]}`}>
                     <Icone className="size-3.5 shrink-0" />

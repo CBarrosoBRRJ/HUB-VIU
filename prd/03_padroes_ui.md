@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 4.0 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
+**Versão:** 4.1 | **Status:** Vigente · **tipografia congelada** | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -32,6 +32,40 @@ Gradiente de identidade (cabeçalhos de perfil, equipe e convite):
 > **Uma cor de ação só.** Verde e indigo disputando o papel de botão primário faziam a tela
 > parecer duas interfaces coladas. Verde ficou reservado ao gesto de "criar uma linha nova",
 > que já é sinalizado pelo botão de criação.
+
+### 1.1.0. A paleta de status — a cor diz **o que a linha exige** — 12/08/2026
+
+Cada status tinha a sua cor: slate, sky, indigo, violet, amber, yellow, emerald, rose. **Sete
+matizes para nove estados** — e o problema é anterior ao tom, que já tinha sido suavizado uma vez
+sem resolver: *cor por etapa é uma convenção que ninguém decora*.
+
+Quem olha a coluna Status não pergunta "em que etapa está?" — o texto responde isso, em caixa alta.
+Pergunta **"o que preciso olhar?"**. A paleta passou a responder essa:
+
+| Família | Cor | O que diz | Status |
+|---------|-----|-----------|--------|
+| `andamento` | cinza-azulado | segue seu curso, nada a fazer agora | Entrada · Em Elaboração · Em Revisão · Aguardando Feedback |
+| `acao` | **âmbar** | **parou, e depende de alguém** | Ajustes · StandBy |
+| `ganho` | esmeralda | acabou, e deu negócio | Negócio Fechado |
+| `perda` | rosa | acabou sem negócio | Declinado |
+| `fim` | cinza mais fechado | acabou sem decisão — o arquivamento | Encerrado |
+
+**Quatro matizes** (cinza, âmbar, esmeralda, rosa) em cinco famílias — `fim` é um segundo tom do
+mesmo cinza, e dois tons de um matiz lêem como uma cor só.
+
+> **O âmbar é quem mais ganha.** Ele deixa de ser "a cor do Ajustes" e passa a significar *pede
+> ação* — a única coisa que alguém precisa achar de relance numa coluna de quarenta linhas. Com
+> sete cores, nada saltava; com uma cor para um significado, o que importa salta sozinho.
+
+A distinção entre as quatro etapas de andamento não se perdeu: ela está **escrita**, e a caixa alta
+a torna legível de relance. Cor é para o que o texto não diz.
+
+**Onde vive:** `PALETA_STATUS` em [`utils/oportunidades.ts`](../src/utils/oportunidades.ts), com
+`suave` (etiqueta), `barra` (cards do cabeçalho) e `dot` (pontos do painel). O status declara só a
+**família**; nenhuma classe de cor mora no catálogo de status, e é isso que impede a paleta de
+voltar a crescer um matiz por vez.
+
+`testeIngestao` trava a contagem de matizes.
 
 ### 1.1.1. Etiquetas: preenchida × suave
 

@@ -1595,15 +1595,23 @@ describe('correções da rodada de 11/08/2026', () => {
     montar();
     const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
 
-    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300'), 'a cor vem do catálogo')
+    /*
+      A cor vem da **família**, não do status: `andamento` é cinza, `acao` âmbar, `ganho`
+      esmeralda, `perda` rosa. Quatro matizes em vez de sete, e cada um diz o que a linha exige.
+    */
+    expect(cartaoDaEtapa('Entrada').querySelector('.bg-slate-300'), 'andamento é cinza')
       .toBeTruthy();
-    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-indigo-300')).toBeTruthy();
+    expect(cartaoDaEtapa('Em Revisão').querySelector('.bg-slate-300'), 'Revisão também é andamento')
+      .toBeTruthy();
+    expect(cartaoDaEtapa('Ajustes').querySelector('.bg-amber-300'), 'Ajustes pede ação')
+      .toBeTruthy();
 
-    // Os desfechos receberam o mesmo tratamento — verde no fechado, rosa no declinado.
     const cardDeclinado = screen.getByText('Declinado').closest('button')!;
-    expect(cardDeclinado.querySelector('.bg-rose-300')).toBeTruthy();
-    expect(screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-emerald-300'))
-      .toBeTruthy();
+    expect(cardDeclinado.querySelector('.bg-rose-300'), 'perda é rosa').toBeTruthy();
+    expect(
+      screen.getByText('Negócio Fechado').closest('button')!.querySelector('.bg-emerald-300'),
+      'ganho é esmeralda',
+    ).toBeTruthy();
 
     /*
       **O tom é o pastel (`barra`), nunca o cheio (`solid`).**

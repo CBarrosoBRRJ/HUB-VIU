@@ -9,6 +9,7 @@ import {
   ENTRADAS_POR, getEntradaPor, INPUTS, ORIGENS_COMERCIAIS, TIPOS_PROJETO, getInput,
   getOrigemComercial, getTipoProjeto, precisaRevisao, nomeadosDaOportunidade,
   alternarResponsavelNaOportunidade, totaisDoRodape, resumirPorStatus, ETAPAS_FLUXO, DESFECHOS,
+  PALETA_STATUS,
   matchesFiltroOportunidade, contarOportunidades,
 } from './utils/oportunidades.js';
 
@@ -92,7 +93,26 @@ check('só Entrada corre o SLA',
   STATUS_OPORTUNIDADE.filter((s) => s.emTriagem).map((s) => s.id), ['entrada']);
 check('três status encerram',
   STATUS_OPORTUNIDADE.filter((s) => s.encerra).map((s) => s.id), ['fechado', 'declinado', 'encerrado']);
-check('todo status tem cor', STATUS_OPORTUNIDADE.every((s) => s.solid && s.dot && s.label), true);
+/*
+  A cor deixou de morar no status e passou a morar na **família** (12/08/2026): sete matizes viraram
+  quatro, e cada um passou a dizer o que a linha exige em vez de nomear a etapa. O teste acompanha —
+  o que precisa existir agora é a família, e a paleta precisa atender todas elas.
+*/
+check('todo status declara família e rótulo',
+  STATUS_OPORTUNIDADE.every((s) => s.familia && s.label), true);
+check('a paleta atende todas as famílias em uso',
+  [...new Set(STATUS_OPORTUNIDADE.map((s) => s.familia))]
+    .every((familia) => PALETA_STATUS[familia]?.suave && PALETA_STATUS[familia]?.barra
+      && PALETA_STATUS[familia]?.dot), true);
+/*
+  O que se conta é **matiz**, não classe: `fim` usa um cinza mais fechado que `andamento`, então há
+  cinco famílias em quatro cores. É o matiz que produz — ou não — o efeito carnaval; dois tons do
+  mesmo cinza lêem como uma cor só.
+*/
+check('quatro matizes, não sete',
+  new Set(
+    Object.values(PALETA_STATUS).map((c) => /bg-([a-z]+)-\d+/.exec(c.barra)[1]),
+  ).size, 4);
 check('status inválido cai em Entrada', getStatus('inventado').id, 'entrada');
 check('em Entrada não saiu da triagem', saiuDaTriagem(op({ status: 'entrada' })), false);
 check('em Elaboração já saiu', saiuDaTriagem(op({ status: 'elaboracao' })), true);

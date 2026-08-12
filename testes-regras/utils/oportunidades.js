@@ -6,20 +6,59 @@
  */
 import { getSlaInfo } from './sla.js';
 import { somarValores } from './moeda.js';
-/* ------------------------------------------------------------------ *
- * Status
- * ------------------------------------------------------------------ */
+/**
+ * As classes de cada família — **literais**, exigência do JIT do Tailwind ([09 §7]).
+ *
+ * | Campo | Onde |
+ * |-------|------|
+ * | `suave` | a etiqueta da grade: fundo tênue, texto forte, anel ([03 §1.1.1]) |
+ * | `barra` | a borda colorida dos cards do cabeçalho ([03 §1.2.9]) |
+ * | `dot` | o ponto das opções, dentro do painel de status |
+ */
+export const PALETA_STATUS = {
+    andamento: {
+        suave: 'bg-slate-100 text-slate-700 ring-slate-300',
+        barra: 'bg-slate-300',
+        dot: 'bg-slate-400',
+    },
+    acao: {
+        suave: 'bg-amber-50 text-amber-800 ring-amber-300',
+        barra: 'bg-amber-300',
+        dot: 'bg-amber-500',
+    },
+    ganho: {
+        suave: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+        barra: 'bg-emerald-300',
+        dot: 'bg-emerald-500',
+    },
+    perda: {
+        suave: 'bg-rose-50 text-rose-700 ring-rose-200',
+        barra: 'bg-rose-300',
+        dot: 'bg-rose-400',
+    },
+    /* Um degrau mais fechado que `andamento`: o arquivado recua, mas continua legível. */
+    fim: {
+        suave: 'bg-slate-200 text-slate-600 ring-slate-300',
+        barra: 'bg-slate-400',
+        dot: 'bg-slate-400',
+    },
+};
 export const STATUS_OPORTUNIDADE = [
-    { id: 'entrada', label: 'Entrada', solid: 'bg-slate-500', dot: 'bg-slate-500', barra: 'bg-slate-300', suave: 'bg-slate-100 text-slate-700 ring-slate-300', emTriagem: true },
-    { id: 'elaboracao', label: 'Em Elaboração', solid: 'bg-sky-500', dot: 'bg-sky-500', barra: 'bg-sky-300', suave: 'bg-sky-50 text-sky-700 ring-sky-200' },
-    { id: 'revisao', label: 'Em Revisão', solid: 'bg-indigo-500', dot: 'bg-indigo-500', barra: 'bg-indigo-300', suave: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
-    { id: 'aguardando_feedback', label: 'Aguardando Feedback', solid: 'bg-violet-500', dot: 'bg-violet-500', barra: 'bg-violet-300', suave: 'bg-violet-50 text-violet-700 ring-violet-200' },
-    { id: 'ajuste', label: 'Ajustes', solid: 'bg-amber-500', dot: 'bg-amber-500', barra: 'bg-amber-300', suave: 'bg-amber-50 text-amber-700 ring-amber-200' },
-    { id: 'standby', label: 'StandBy', solid: 'bg-yellow-500', dot: 'bg-yellow-500', barra: 'bg-yellow-300', suave: 'bg-yellow-50 text-yellow-700 ring-yellow-200' },
-    { id: 'fechado', label: 'Negócio Fechado', solid: 'bg-emerald-500', dot: 'bg-emerald-500', barra: 'bg-emerald-300', suave: 'bg-emerald-50 text-emerald-700 ring-emerald-200', encerra: true },
-    { id: 'declinado', label: 'Declinado', solid: 'bg-rose-500', dot: 'bg-rose-500', barra: 'bg-rose-300', suave: 'bg-rose-50 text-rose-700 ring-rose-200', encerra: true },
-    { id: 'encerrado', label: 'Encerrado', solid: 'bg-slate-400', dot: 'bg-slate-400', barra: 'bg-slate-200', suave: 'bg-slate-100 text-slate-600 ring-slate-300', encerra: true },
+    { id: 'entrada', label: 'Entrada', familia: 'andamento', emTriagem: true },
+    { id: 'elaboracao', label: 'Em Elaboração', familia: 'andamento' },
+    { id: 'revisao', label: 'Em Revisão', familia: 'andamento' },
+    { id: 'aguardando_feedback', label: 'Aguardando Feedback', familia: 'andamento' },
+    /* Ajustes e StandBy são os dois pontos em que o projeto **para e espera alguém**. */
+    { id: 'ajuste', label: 'Ajustes', familia: 'acao' },
+    { id: 'standby', label: 'StandBy', familia: 'acao' },
+    { id: 'fechado', label: 'Negócio Fechado', familia: 'ganho', encerra: true },
+    { id: 'declinado', label: 'Declinado', familia: 'perda', encerra: true },
+    { id: 'encerrado', label: 'Encerrado', familia: 'fim', encerra: true },
 ];
+/** As classes de cor de um status — o atalho que evita `PALETA_STATUS[getStatus(id).familia]`. */
+export function coresDoStatus(id) {
+    return PALETA_STATUS[getStatus(id).familia];
+}
 export function getStatus(id) {
     return STATUS_OPORTUNIDADE.find((status) => status.id === id) ?? STATUS_OPORTUNIDADE[0];
 }

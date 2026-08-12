@@ -4,7 +4,8 @@ import { ArrowRight, Lock } from 'lucide-react';
 import { MotivoDeclinio, Pendencia, StatusOportunidade, TipoPendencia } from '../../types';
 import {
   bloqueadaPorPendencias, descricaoDasEsperas, diasDeEspera, getMotivoDeclinio, getStatus,
-  getTipoPendencia, MOTIVOS_DECLINIO, pendenciasDoStatus, rotuloDoStatus, STATUS_OPORTUNIDADE,
+  coresDoStatus, getTipoPendencia, MOTIVOS_DECLINIO, pendenciasDoStatus, rotuloDoStatus,
+  STATUS_OPORTUNIDADE,
 } from '../../utils/oportunidades';
 import {
   destinosPermitidos, ehEstadoFinal, motivosPermitidosDoDeclinio,
@@ -63,6 +64,7 @@ export function StatusOportunidadeSelect({
   const painelRef = useRef<HTMLDivElement>(null);
 
   const status = getStatus(valor);
+  const cores = coresDoStatus(valor);
   const destinos = destinosPermitidos(valor);
   const final = ehEstadoFinal(valor);
 
@@ -190,7 +192,7 @@ export function StatusOportunidadeSelect({
             }`
             : descricaoEsperas ? `Esperando: ${descricaoEsperas}` : undefined
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${status.suave}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 ${alturaFixa} ${cores.suave}`}
       >
         {conteudoSelo}
         {final && onChange && <Lock className="size-2.5 shrink-0 opacity-70" />}
@@ -211,7 +213,7 @@ export function StatusOportunidadeSelect({
         data-dica-sub={
           descricaoEsperas ? `Esperando: ${descricaoEsperas}` : 'Clique para avançar no fluxo'
         }
-        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${status.suave}`}
+        className={`relative flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-apoio font-bold tracking-wide uppercase leading-tight ring-1 transition hover:brightness-95 ${alturaFixa} ${cores.suave}`}
       >
         {conteudoSelo}
         {seloBadge}
@@ -278,7 +280,7 @@ export function StatusOportunidadeSelect({
                       onClick={() => pedirAvanco('declinado', opcao.id)}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-slate-50"
                     >
-                      <span className={`size-2 shrink-0 rounded-full ${alvo.dot}`} />
+                      <span className={`size-2 shrink-0 rounded-full ${coresDoStatus(destino).dot}`} />
                       <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
                         {opcao.label}
                       </span>
@@ -309,7 +311,7 @@ export function StatusOportunidadeSelect({
                       data-dica-sempre
                       className="flex w-full cursor-not-allowed items-center gap-2 px-3 py-2 text-left opacity-50"
                     >
-                      <span className={`size-2 shrink-0 rounded-full ${alvo.dot}`} />
+                      <span className={`size-2 shrink-0 rounded-full ${coresDoStatus(destino).dot}`} />
                       <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
                         {alvo.label}
                       </span>
@@ -325,7 +327,7 @@ export function StatusOportunidadeSelect({
                     onClick={() => pedirAvanco(destino)}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-slate-50"
                   >
-                    <span className={`size-2 shrink-0 rounded-full ${alvo.dot}`} />
+                    <span className={`size-2 shrink-0 rounded-full ${coresDoStatus(destino).dot}`} />
                     <span className="min-w-0 flex-1 truncate text-xs text-slate-700">
                       {alvo.label}
                     </span>
