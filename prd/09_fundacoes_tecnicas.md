@@ -453,7 +453,9 @@ apagaria os dados de todo mundo. Uma correção de conteúdo não cabe num mecan
 incompatibilidade de forma.
 
 > **A regra:** defeito que **escreveu dado** precisa de reparo na **leitura**, não de bump de
-> versão. O reparo é seguro porque corrige apenas valores que **ninguém digitaria** — ninguém
+> versão. São **três** na família: `semIdsRepetidos` (§3), `sanearCargos` e `semVinculosOrfaos`
+> ([`utils/equipes.ts`](../src/utils/equipes.ts), que descarta membro apontando para pessoa
+> inexistente — o defeito do contador que discordava da lista, [05 §2.11](05_perfis_usuarios.md)). O reparo é seguro porque corrige apenas valores que **ninguém digitaria** — ninguém
 > escolhe "Dono do Sistema" como cargo, do mesmo jeito que ninguém cria dois registros com o mesmo
 > id de propósito. E, sem nada a corrigir, ele devolve a **mesma lista por identidade**, o que
 > permite chamá-lo em toda leitura sem criar referência nova a cada render.

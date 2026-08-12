@@ -122,6 +122,7 @@ describe('o PRD aponta para código que existe', () => {
       'CI', 'PPI', 'OKLCH', 'AA', 'WCAG', 'PDF', 'CGA', 'GP', 'TV', 'VIU', 'JIT', 'DOM', 'React',
       'Date', 'Set', 'Map', 'Math', 'Object', 'Array', 'Promise', 'Intl', 'window', 'document',
       'process', 'ExcelJS', 'Prisma', 'Vitest', 'TypeScript', 'JavaScript', 'PostgreSQL', 'Excel',
+      'setState', 'useSyncExternalStore', 'StrictMode',
     ]);
 
     /*

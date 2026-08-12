@@ -69,17 +69,30 @@ export function contaAtiva(usuario) {
 /**
  * Quanto a pessoa enxerga de um quadro.
  *
- * Duas portas de entrada, e a nomeação é uma delas:
+ * **Uma porta só: a equipe.** — 12/08/2026
  *
- * 1. **Pela equipe** — a equipe tem o quadro liberado. Responsável vê tudo; **membro vê só o que
- *    é dele**, porque dentro da equipe o membro não tem alcance sobre o trabalho dos colegas.
- * 2. **Pela nomeação** — mesmo fora da equipe do quadro, quem foi nomeado em alguma linha entra
- *    para ver aquelas linhas. Sem isso, nomear alguém de outra área produziria um responsável
- *    que não consegue abrir o próprio registro.
+ * Havia duas. A segunda era a *nomeação*: quem fosse nomeado numa linha entrava no quadro para
+ * ver aquelas linhas, mesmo que nenhuma equipe dele o liberasse. O argumento era bom — nomear
+ * alguém de outra área produziria um responsável incapaz de abrir o próprio registro.
  *
- * `nomeadoEmAlgum` é calculado por quem chama, com os registros do quadro em mãos.
+ * A operação recusou o efeito, e a recusa é o que manda: *"mesmo que a equipe só veja Backlog,
+ * ela está conseguindo ver a página de Talentos"*. **Uma tela de configuração que promete o
+ * controle do acesso e é contornada por um caminho lateral não configura nada** — e não havia
+ * gesto na tela para fechar a porta lateral, o que tornava o furo impossível de corrigir por quem
+ * administra.
+ *
+ * O que a nomeação faz agora fica **dentro** do quadro que a equipe abriu: é ela que decide
+ * *quais linhas* o membro vê. O que ela não faz mais é **abrir quadro**.
+ *
+ * > **A consequência, dita sem meio-termo:** nomear alguém num registro de um quadro que a equipe
+ * > dela não libera passa a não dar acesso nenhum — a pessoa não vê aquela linha. O caminho é
+ * > liberar o quadro para a equipe, que é exatamente o controle que a operação pediu para valer.
+ *
+ * O parâmetro `nomeadoEmAlgum` **deixou de existir**, e isso é a prova de que a porta era mesmo
+ * única: sem a entrada lateral, ele não mudava mais nenhuma resposta. Assinatura que ainda pede um
+ * dado morto é convite para alguém religá-lo.
  */
-export function nivelDeAcesso(contexto, pagina, nomeadoEmAlgum = false) {
+export function nivelDeAcesso(contexto, pagina) {
     const { usuario, equipes } = contexto;
     // Conta inativa ou desligada não entra em lugar nenhum, seja qual for o perfil.
     if (!contaAtiva(usuario))
@@ -130,11 +143,15 @@ export function nivelDeAcesso(contexto, pagina, nomeadoEmAlgum = false) {
         */
         return ehResponsavelDeAlguma({ ...contexto, equipes: equipesQueLiberam }) ? 'total' : 'nomeado';
     }
-    return nomeadoEmAlgum ? 'nomeado' : 'nenhum';
+    /*
+      Nenhuma equipe libera o quadro: ele **não abre**, ainda que a pessoa esteja nomeada em alguma
+      linha dele. Era aqui que a porta lateral ficava (`nomeadoEmAlgum ? 'nomeado' : 'nenhum'`).
+    */
+    return 'nenhum';
 }
 /** Quadros do Workspace que a pessoa enxerga — por equipe ou por nomeação. */
-export function podeVerPagina(contexto, pagina, nomeadoEmAlgum = false) {
-    return nivelDeAcesso(contexto, pagina, nomeadoEmAlgum) !== 'nenhum';
+export function podeVerPagina(contexto, pagina) {
+    return nivelDeAcesso(contexto, pagina) !== 'nenhum';
 }
 /* ------------------------------------------------------------------ *
  * Filtro de linhas (RLS de leitura)
@@ -147,7 +164,8 @@ export function podeVerPagina(contexto, pagina, nomeadoEmAlgum = false) {
  */
 export function registrosVisiveis(contexto, pagina, registros, nomeadosDe) {
     const meus = registros.filter((registro) => nomeadosDe(registro).includes(contexto.usuario.id));
-    const nivel = nivelDeAcesso(contexto, pagina, meus.length > 0);
+    // A nomeação decide **quais linhas**, não se o quadro abre — ver `nivelDeAcesso`.
+    const nivel = nivelDeAcesso(contexto, pagina);
     if (nivel === 'nenhum')
         return [];
     if (nivel === 'nomeado')
@@ -321,7 +339,7 @@ export function estaNomeado(contrato, usuarioId) {
  * aquela linha, e nada além — abrir uma nova seria alargar sozinho o próprio alcance.
  */
 export function podeCriarRegistro(contexto, pagina) {
-    return nivelDeAcesso(contexto, pagina, false) !== 'nenhum';
+    return nivelDeAcesso(contexto, pagina) !== 'nenhum';
 }
 /**
  * Edição de uma linha do quadro.
@@ -352,7 +370,7 @@ export function podeEditarRegistro(contexto, pagina, contrato) {
       coerentes por construção.
     */
     const nomeado = estaNomeado(contrato, contexto.usuario.id);
-    const nivel = nivelDeAcesso(contexto, pagina, nomeado);
+    const nivel = nivelDeAcesso(contexto, pagina);
     if (nivel === 'nenhum')
         return false;
     return nivel === 'total' || nomeado;
@@ -383,7 +401,7 @@ export function podeEditarTalento(contexto, talento) {
     if (ehDono(contexto.usuario))
         return true;
     const nomeado = nomeadosDoTalento(talento).includes(contexto.usuario.id);
-    const nivel = nivelDeAcesso(contexto, 'talentos', nomeado);
+    const nivel = nivelDeAcesso(contexto, 'talentos');
     if (nivel === 'nenhum')
         return false;
     return nivel === 'total' || nomeado;
@@ -412,7 +430,7 @@ export function podeEditarOportunidade(contexto, oportunidade) {
     if (ehDono(contexto.usuario))
         return true;
     const nomeado = nomeadosDaOportunidade(oportunidade).includes(contexto.usuario.id);
-    const nivel = nivelDeAcesso(contexto, 'backlog', nomeado);
+    const nivel = nivelDeAcesso(contexto, 'backlog');
     if (nivel === 'nenhum')
         return false;
     return nivel === 'total' || nomeado;

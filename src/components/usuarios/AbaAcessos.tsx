@@ -3,13 +3,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   Check, Clock, Crown, Eye, LayoutGrid, Lock, Search, ShieldCheck, UserCheck, Users, X,
 } from 'lucide-react';
-import { AcaoConcedivel, AppPage, PAGINAS_WORKSPACE, PapelEquipe, Usuario } from '../../types';
+import { AcaoConcedivel, PAGINAS_WORKSPACE, PapelEquipe, Usuario } from '../../types';
 import { useDados } from '../../context/DadosProvider';
 import { getPapelNaEquipe } from '../../utils/equipes';
-import { nomeadosDoTalento } from '../../utils/talentos';
 import {
   ACAO_LABEL, ACOES_BASE, concessoesAtivasDe, contaAtiva, ehDono, nivelDeAcesso,
-  nomeadosDoContrato, podeGerenciarConcessoes, rotuloDeNivel, SITUACAO_LABEL,
+  podeGerenciarConcessoes, rotuloDeNivel, SITUACAO_LABEL,
 } from '../../utils/permissoes';
 import { Floating } from '../ui/Floating';
 import { Avatar } from './Avatar';
@@ -68,19 +67,11 @@ export function AbaAcessos() {
     if (!alvo) return null;
     const contexto = { usuario: alvo, equipes, concessoes };
 
-    // A nomeação é uma das portas de entrada do quadro: sem consultar os registros, a simulação
-    // diria "sem acesso" a quem na prática entra para ver as próprias linhas.
-    const nomeadoEm = (pagina: AppPage) =>
-      pagina === 'contratos'
-        ? contratos.some((contrato) => nomeadosDoContrato(contrato).includes(alvo.id))
-        : pagina === 'talentos'
-          ? talentos.some((talento) => nomeadosDoTalento(talento).includes(alvo.id))
-          : false;
-
+    // O nível é resposta de equipe — a nomeação decide linhas, não abre quadro (ver `nivelDeAcesso`).
     return {
       quadros: PAGINAS_WORKSPACE.map((pagina) => ({
         label: pagina.label,
-        nivel: nivelDeAcesso(contexto, pagina.id, nomeadoEm(pagina.id)),
+        nivel: nivelDeAcesso(contexto, pagina.id),
       })),
       ativas: concessoesAtivasDe(concessoes, alvo.id),
     };

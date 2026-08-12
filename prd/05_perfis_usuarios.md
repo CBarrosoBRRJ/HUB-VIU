@@ -1,5 +1,5 @@
 # PRD 05 — Perfis, Permissões e Isolamento de Dados
-**Versão:** 6.4 | **Status:** Implementado no front-end | **Data:** 12/08/2026
+**Versão:** 6.5 | **Status:** Implementado no front-end | **Data:** 12/08/2026
 
 [← Índice da documentação](README.md) · *Perfis, permissões e onboarding*
 
@@ -248,18 +248,55 @@ mais um componente para a pessoa aprender.
   "Novo projeto" **presente**, clica, e verifica que nenhuma linha nasceu e que o banner reagiu.
   Só um teste que atravessa o provider prova a guarda.
 
-### A porta da nomeação, validada no mesmo reporte
+### A porta da nomeação foi fechada
 
-*"Mesmo que a equipe só veja Backlog, ela está conseguindo ver a página de Talentos."* Conferido:
-não é furo — é a **porta da nomeação** (§3), decidida em 01/08/2026. A pessoa estava nomeada como
-responsável de área em fichas do seed, e quem é nomeado numa linha precisa poder abrir a própria
-linha; ela vê **só essas** (selo "Meus"). Sem a porta, nomear alguém de outra área produziria um
-responsável que não consegue abrir o próprio registro.
+*"Mesmo que a equipe só veja Backlog, ela está conseguindo ver a página de Talentos."*
 
-O que faltava era **legibilidade**: o selo "Meus" agora explica de onde veio o acesso — *"acesso
-por nomeação: você vê apenas os registros em que é responsável ou apoio — este quadro não veio da
-sua equipe"*. Para cortar o acesso de alguém, o gesto é tirar a nomeação do registro, não mexer na
-equipe.
+Na primeira leitura eu tratei isto como **explicação**: era a porta da nomeação, decidida em
+01/08/2026, e o que faltava seria legibilidade. Expliquei, melhorei o texto do selo "Meus" e segui.
+A operação voltou: *"ainda os mesmos erros, resolva"*.
+
+**Ela estava certa, e o erro do meu diagnóstico foi de categoria.** O argumento da porta continua
+verdadeiro no papel — quem é nomeado numa linha precisa poder abrir aquela linha. O que ele não
+sustenta é o efeito na tela de Equipes:
+
+> **Uma tela de configuração que promete controlar o acesso e é contornada por um caminho lateral
+> não configura nada.** E não havia gesto nenhum, em lugar nenhum, para fechar a porta lateral — o
+> que tornava o desvio impossível de corrigir por quem administra.
+
+Agora há **uma porta só: a equipe.** O que a nomeação faz passou a valer **dentro** do quadro que a
+equipe abriu: é ela que decide *quais linhas* o membro vê. O que ela não faz mais é **abrir
+quadro**.
+
+> **A consequência, dita sem meio-termo:** nomear alguém num registro cujo quadro a equipe dela não
+> libera passa a não dar acesso nenhum — a pessoa não vê aquela linha. O caminho é liberar o quadro
+> para a equipe, que é exatamente o controle que a operação pediu para valer. Cinco asserções em
+> três suítes afirmavam o contrário e foram reescritas; elas eram a regra antiga, não descuido.
+
+O parâmetro `nomeadoEmAlgum` de `nivelDeAcesso` **deixou de existir**, e isso é a prova de que a
+porta era mesmo única: sem a entrada lateral, ele não mudava mais nenhuma resposta. `nivelDoQuadro`
+parou de varrer contratos, talentos e oportunidades a cada chamada — o nível de um quadro é
+resposta de equipe e não depende de coleção nenhuma.
+
+## 2.11. Vínculo órfão: o contador que discordava da lista — 12/08/2026
+
+*"Mesmo sem equipe, aparece 1."* O card da equipe anunciava "2 pessoas · 1 responsável · 1 membro"
+e a tabela logo abaixo mostrava **zero**.
+
+A causa: o contador lê `membros.length`, e a tabela junta com a base de usuários. Quando um id de
+membro aponta para alguém que já não existe, os dois discordam.
+
+> **Um contador que discorda da lista que ele conta é pior que um número errado**: quem administra
+> passa a não saber em qual dos dois acreditar, e acesso é o assunto em que a dúvida custa caro.
+
+Excluir alguém já limpava os vínculos no mesmo gesto — isso funciona, e agora tem teste. O que não
+se corrigia sozinho era o que **já estava gravado** no navegador de quem usou uma versão anterior.
+
+`semVinculosOrfaos` ([`utils/equipes.ts`](../src/utils/equipes.ts)) é o reparo de leitura, terceiro
+da mesma família — `semIdsRepetidos` ([09 §3](09_fundacoes_tecnicas.md)) e `sanearCargos` são os
+outros dois. A regra que os une está em [09 §5](09_fundacoes_tecnicas.md): **defeito que escreveu
+dado precisa de reparo na leitura**, porque a persistência versiona por formato e não tem migração
+pontual.
 
 ## 3. Matriz de permissões
 

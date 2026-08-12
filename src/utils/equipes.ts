@@ -1,6 +1,6 @@
 /** Regras puras das equipes — sem UI e sem estado. */
 
-import { AppPage, Equipe, MembroEquipe, PapelEquipe } from '../types';
+import { Usuario, AppPage, Equipe, MembroEquipe, PapelEquipe } from '../types';
 
 /**
  * Coloca a pessoa na equipe com o papel indicado.
@@ -114,4 +114,44 @@ export function paginasDoUsuario(equipes: Equipe[], usuarioId: string): AppPage[
     for (const pagina of equipe.paginasPermitidas) paginas.add(pagina);
   }
   return [...paginas];
+}
+
+/**
+ * Descarta vínculos que apontam para pessoas que não existem mais — 12/08/2026.
+ *
+ * ## O que a operação viu
+ *
+ * *"Mesmo sem equipe, aparece 1."* O card da equipe anunciava "2 pessoas · 1 responsável · 1
+ * membro" e a tabela logo abaixo mostrava **zero** — porque o contador lê `membros.length` e a
+ * tabela junta com a base de usuários, onde aqueles ids já não estavam.
+ *
+ * Um contador que discorda da lista que ele conta é pior que um número errado: quem administra
+ * passa a não saber em qual dos dois acreditar, e o acesso é justamente o assunto em que a dúvida
+ * custa caro.
+ *
+ * ## Por que é reparo de leitura, e não migração
+ *
+ * Excluir alguém já limpa os vínculos no mesmo gesto — isso funciona e tem teste. O que não se
+ * corrige sozinho é o que **já está gravado** no navegador de quem usou uma versão anterior. A
+ * persistência versiona por **formato** e descarta tudo na virada: não há migração pontual, e
+ * derrubar a versão inteira por causa de um vínculo apagaria os dados de todo mundo.
+ *
+ * Mesma família do `semIdsRepetidos` ([09 §3](../../prd/09_fundacoes_tecnicas.md)) e do
+ * `sanearCargos`: **a garantia vale sempre, venha o dado de onde vier** — nenhum vínculo órfão
+ * entra na aplicação, e é a última linha antes de qualquer contagem.
+ *
+ * Devolve a **mesma lista por identidade** quando não há nada a corrigir, o que permite chamá-la
+ * na leitura sem criar referência nova a cada render.
+ */
+export function semVinculosOrfaos(equipes: Equipe[], usuarios: Usuario[]): Equipe[] {
+  const existem = new Set(usuarios.map((usuario) => usuario.id));
+  const orfao = (equipe: Equipe) => equipe.membros.some((m) => !existem.has(m.usuarioId));
+
+  if (!equipes.some(orfao)) return equipes;
+
+  return equipes.map((equipe) =>
+    orfao(equipe)
+      ? { ...equipe, membros: equipe.membros.filter((m) => existem.has(m.usuarioId)) }
+      : equipe,
+  );
 }

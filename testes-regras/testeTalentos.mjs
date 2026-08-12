@@ -161,9 +161,18 @@ check('admin sem equipe no quadro não o vê', nivelDeAcesso(ctx(admin), 'talent
 check('responsável da equipe vê o quadro todo', nivelDeAcesso(ctx(respDaArea), 'talentos'), 'total');
 // A mudança central: membro da equipe também passa a ver só o que é dele.
 check('membro da equipe vê só o dele', nivelDeAcesso(ctx(membroDaArea), 'talentos'), 'nomeado');
-check('fora da equipe e sem nomeação: nada', nivelDeAcesso(ctx(membroDeOutroQuadro), 'talentos', false), 'nenhum');
-check('fora da equipe mas nomeado: vê o dele', nivelDeAcesso(ctx(membroDeOutroQuadro), 'talentos', true), 'nomeado');
-check('conta inativa não entra nem nomeada', nivelDeAcesso(ctx(user('u8', 'membro', { situacao: 'inativo' })), 'talentos', true), 'nenhum');
+/*
+  **A porta da nomeação fechou em 12/08/2026**, por decisão da operação: *"mesmo que a equipe só
+  veja Backlog, ela está conseguindo ver a página de Talentos"*. Uma tela de configuração que
+  promete controlar o acesso e é contornada por um caminho lateral não configura nada.
+
+  O custo, aceito com a decisão: nomear alguém num registro de quadro que a equipe dela não libera
+  passa a não dar acesso nenhum. O caminho é liberar o quadro para a equipe.
+*/
+check('fora da equipe: nada — a nomeação não abre quadro',
+  nivelDeAcesso(ctx(membroDeOutroQuadro), 'talentos'), 'nenhum');
+check('conta inativa não entra de jeito nenhum',
+  nivelDeAcesso(ctx(user('u8', 'membro', { situacao: 'inativo' })), 'talentos'), 'nenhum');
 
 console.log('\n--- Filtro de linhas ---');
 const fichas = [
@@ -205,12 +214,12 @@ check('conta inativa não edita', podeEditarTalento(ctx(user('u8', 'responsavel'
 
 console.log('\n--- Criar exige a porta da equipe ---');
 check('membro da equipe cadastra', podeCriarRegistro(ctx(membroDaArea), 'talentos'), true);
-// u7 só está na equipe de Contratos: sua única entrada em Talentos é a nomeação. Quem entra
-// por essa porta vê a linha dele e nada além — abrir outra alargaria o próprio alcance.
+// u7 só está na equipe de Contratos. Com a porta da nomeação fechada, Talentos não abre para ele
+// de forma alguma — nem para cadastrar, nem para ver, nem para editar a ficha em que foi nomeado.
 check('nomeado de fora NÃO cadastra', podeCriarRegistro(ctx(membroDeOutroQuadro), 'talentos'), false);
-check('mas ele enxerga o quadro', podeVerPagina(ctx(membroDeOutroQuadro), 'talentos', true), true);
-check('e edita a ficha em que foi nomeado',
-  podeEditarTalento(ctx(membroDeOutroQuadro), talento({ responsaveis: { conteudo: ['u7'] } })), true);
+check('e não enxerga o quadro', podeVerPagina(ctx(membroDeOutroQuadro), 'talentos'), false);
+check('nem edita a ficha em que foi nomeado',
+  podeEditarTalento(ctx(membroDeOutroQuadro), talento({ responsaveis: { conteudo: ['u7'] } })), false);
 check('sem enxergar as outras fichas',
   podeEditarTalento(ctx(membroDeOutroQuadro), marina), false);
 

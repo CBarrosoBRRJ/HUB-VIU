@@ -17,11 +17,12 @@ import { EQUIPES_SEED } from '../data/equipes';
 import { TALENTOS_SEED } from '../data/talentos';
 import { MARCAS_SEED } from '../data/marcas';
 import { OPORTUNIDADES_SEED } from '../data/oportunidades';
-import { alternarPagina, definirMembro, getPapelNaEquipe, removerMembro } from '../utils/equipes';
+import {
+  semVinculosOrfaos, alternarPagina, definirMembro, getPapelNaEquipe, removerMembro } from '../utils/equipes';
 import {
   Contexto, podeCriarEquipe, podeDefinirAcessoDaEquipe, podeDefinirPerfil, podeDefinirSituacao,
   podeExcluirUsuario, podeGerenciarConcessoes, podeGerenciarDominios, podeGerenciarEmailsDeAcesso,
-  podeEditarProprioCadastro, podeAcao, podeConvidar, nivelDeAcesso, NivelAcesso, nomeadosDoContrato,
+  podeEditarProprioCadastro, podeAcao, podeConvidar, nivelDeAcesso, NivelAcesso,
 } from '../utils/permissoes';
 import { criarConvite, validarAceite, ErroAceite } from '../utils/convites';
 import { DOMINIOS_PADRAO, encontrarPorEmail, normalizarEmail, validarEmail } from '../utils/identidade';
@@ -30,7 +31,7 @@ import {
   criarLinkEquipe, ErroEntrada, linkVigenteDaEquipe, validarEntrada,
 } from '../utils/linkEquipe';
 import {
-  alternarResponsavelDaArea, encontrarTalentoPorNome, nomeadosDoTalento, nomeEmUso,
+  alternarResponsavelDaArea, encontrarTalentoPorNome, nomeEmUso,
   normalizarNomeDeMarca, REDES_VAZIAS,
 } from '../utils/talentos';
 import { alternarColuna, alternarVisao, alternarVisaoOculta } from '../utils/visoes';
@@ -39,7 +40,7 @@ import {
   comPendenciaAberta, comPendenciaChegada,
   comPendenciaReaberta, DESFECHOS_TERMINAIS, destravaDoTique,
   exclusividadeDe,
-  nomeadosDaOportunidade,
+  
   PapelNaArea, semPendencia, TiqueDeEscopo,
 } from '../utils/oportunidades';
 import { ingerirLote, OportunidadeBruta, ResumoLote } from '../utils/ingestao';
@@ -394,7 +395,13 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     cadastrado. Detalhes e limites em `utils/persistencia.ts`.
   */
   const [usuarios, setUsuariosDireto] = useState<Usuario[]>(() => sanearCargos(carregar('usuarios', USUARIOS_SEED)));
-  const [equipes, setEquipesDireto] = useState<Equipe[]>(() => carregar('equipes', EQUIPES_SEED));
+  /*
+    O saneamento precisa dos usuários, e por isso vem depois deles: `semVinculosOrfaos` descarta
+    membro que aponta para pessoa inexistente — ver a nota na própria função.
+  */
+  const [equipes, setEquipesDireto] = useState<Equipe[]>(
+    () => semVinculosOrfaos(carregar('equipes', EQUIPES_SEED), usuarios),
+  );
   const [concessoes, setConcessoesDireto] = useState<Concessao[]>(() => carregar('concessoes', []));
   /*
     Os quatro abaixo são os que **chegam de volta por link** — e por isso precisam sobreviver ao
@@ -1613,20 +1620,19 @@ export function DadosProvider({ children }: { children: ReactNode }) {
    * Sem os registros a regra não fecha: "ser nomeado em alguma linha" é uma das duas portas de
    * entrada, e só aqui se sabe se existe alguma.
    */
+  /*
+    Não varre mais os registros atrás de nomeação — 12/08/2026.
+
+    Ele montava, a cada chamada, "esta pessoa está nomeada em alguma linha deste quadro?" para
+    alimentar a porta lateral do `nivelDeAcesso`. Com a porta fechada, a varredura sobrou: o nível
+    de um quadro é resposta de **equipe**, e não depende de nenhuma coleção.
+
+    O ganho não é só de código — a sidebar deixa de depender de `contratos`, `talentos` e
+    `oportunidades` para desenhar a navegação.
+  */
   const nivelDoQuadro = useCallback(
-    (pagina: AppPage): NivelAcesso => {
-      const id = sessaoRef.current.usuario.id;
-      const nomeado =
-        pagina === 'contratos'
-          ? contratos.some((contrato) => nomeadosDoContrato(contrato).includes(id))
-          : pagina === 'talentos'
-            ? talentos.some((talento) => nomeadosDoTalento(talento).includes(id))
-            : pagina === 'backlog'
-              ? oportunidades.some((op) => nomeadosDaOportunidade(op).includes(id))
-              : false;
-      return nivelDeAcesso(sessaoRef.current, pagina, nomeado);
-    },
-    [contratos, talentos, oportunidades, usuarioAtual, equipes, concessoes, visualizandoComo],
+    (pagina: AppPage): NivelAcesso => nivelDeAcesso(sessaoRef.current, pagina),
+    [usuarioAtual, equipes, concessoes, visualizandoComo],
   );
 
   const atualizarTalento = useCallback(

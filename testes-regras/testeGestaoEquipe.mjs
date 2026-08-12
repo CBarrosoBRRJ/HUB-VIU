@@ -96,9 +96,16 @@ const semEquipe = removerMembro(equipes[0], 'u3');
 check('saiu da equipe', getPapelNaEquipe(semEquipe, 'u3'), null);
 check('mas segue nomeado nos contratos', contarRegistros('u3', contratos), 2);
 check('deixa de ser candidato do quadro', usuariosDoQuadro([semEquipe], 'contratos').includes('u3'), false);
-// Regra nova (01/08/2026): sair da equipe corta o quadro, **não** as linhas em que a pessoa
-// continua nomeada. É o mesmo princípio do histórico: o vínculo com o registro sobrevive à saída.
-check('mantém acesso à linha em que segue nomeada', podeEditarRegistro(ctx(membro, [semEquipe]), 'contratos', contratos[0]), true);
+/*
+  **A porta da nomeação fechou em 12/08/2026**, por decisão da operação: *"mesmo que a equipe só
+  veja Backlog, ela está conseguindo ver a página de Talentos"*. Uma tela de configuração que
+  promete controlar o acesso e é contornada por um caminho lateral não configura nada.
+
+  O custo, aceito com a decisão: nomear alguém num registro de quadro que a equipe dela não libera
+  passa a não dar acesso nenhum. O caminho é liberar o quadro para a equipe.
+*/
+check('sair da equipe corta o acesso, mesmo seguindo nomeada',
+  podeEditarRegistro(ctx(membro, [semEquipe]), 'contratos', contratos[0]), false);
 const alheio = { ...contratos[0], id: 'CT-003', responsaveisIds: ['u2'], parceirosIds: [] };
 
 // O aviso de saída precisa dizer a consequência de **acesso**, não só a de histórico: quem lê

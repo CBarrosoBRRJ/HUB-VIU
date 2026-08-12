@@ -167,7 +167,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                       {bloqueado && <Lock className="size-3 shrink-0 text-slate-600" />}
                       {item.nivel === 'nomeado' && (
                         <span
-                          title="Acesso por nomeação: você vê apenas os registros em que é responsável ou apoio — este quadro não veio da sua equipe"
+                          title="Sua equipe abre este quadro, e como membro você vê apenas os registros em que foi nomeado"
                           className="shrink-0 rounded bg-white/10 px-1 py-0.5 text-selo font-bold uppercase tracking-wide text-slate-400"
                         >
                           Meus

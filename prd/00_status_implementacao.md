@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 25.1 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 26.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 37 suítes · 1.568 verificações · **0 falhas** + 147 testes de UI (ver §5) |
+| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 149 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/` | 147 testes de UI, em seis arquivos | §5.3 |
+| `testes-ui/` | 149 testes de UI, em sete arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -263,7 +263,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 
 ## 5. Testes
 
-37 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
+38 suítes de regras puras em **`testes-regras/`, dentro do repositório**, executadas compilando
 `src/utils/` e `src/data/` para JS e rodando no Node, via `rodar.sh`:
 
 | Suíte | Cobre |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.568 verificações em 37 suítes de regra, mais 147 testes de UI. 0 falhas.**
+**Estado atual: 1.613 verificações em 38 suítes de regra, mais 149 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,8 +332,8 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**147 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
-nenhum mock. Vitest + jsdom + Testing Library. Em seis arquivos:
+**149 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
+nenhum mock. Vitest + jsdom + Testing Library. Em sete arquivos:
 
 | Arquivo | Testes | O que cobre |
 |---|---:|---|
@@ -343,6 +343,7 @@ nenhum mock. Vitest + jsdom + Testing Library. Em seis arquivos:
 | `aparencia.test.tsx` | 5 | a régua pessoal de Meu Perfil |
 | `documentacao.test.tsx` | 4 | **o PRD contra o código** (desde 12/08) |
 | `verComo.test.tsx` | 2 | o "Ver como" fiel e inerte — clica no botão que a simulação mostra e prova que nada grava |
+| `reproducao.test.tsx` | 2 | o cenário exato da produção da operação — vínculo órfão e exclusão em cascata |
 
 > **Três desses arquivos não clicam em nada: eles leem o código-fonte.** `tipografia` procura
 > tamanho cravado em pixel e faz a conta das camadas da grade; `documentacao` confere o PRD contra
@@ -538,6 +539,70 @@ forma, não no fim do dia.*
 O rastro de refatorações do dia: um comentário citava o `AREA_DA_ABA` já removido como se existisse,
 e outro prometia que `praca`, `alcanceEstimado` e `publicoAlvo` "continuam no modelo" — a auditoria
 da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem lê confia.
+
+---
+
+## 5.19. Uma porta só, e o dado reparado — 12/08/2026, décima quarta rodada
+
+A rodada em que a operação recusou uma **explicação minha** — e tinha razão.
+
+### O erro de categoria
+
+Na rodada anterior ela reportou que uma equipe com só o Backlog liberado enxergava Talentos. Eu
+conferi, vi que era a porta da nomeação (decidida em 01/08), tratei como **comportamento correto
+mal explicado**, melhorei o texto do selo "Meus" e segui. A resposta veio curta: *"ainda os mesmos
+erros, resolva"*.
+
+O argumento da porta continuava verdadeiro no papel. O que ele não sustentava era o efeito:
+
+> **Uma tela de configuração que promete controlar o acesso e é contornada por um caminho lateral
+> não configura nada** — e não havia gesto nenhum para fechar a porta lateral, o que tornava o
+> desvio impossível de corrigir por quem administra.
+
+Agora há **uma porta só: a equipe**. A nomeação decide *quais linhas* dentro do quadro que a equipe
+abriu; não abre mais quadro. O parâmetro `nomeadoEmAlgum` sumiu da assinatura de `nivelDeAcesso`, e
+esse sumiço é a prova de que a porta era única — sem a entrada lateral, ele não mudava mais nenhuma
+resposta ([05 §2.10](05_perfis_usuarios.md)).
+
+**A lição que fica:** quando a operação reporta o mesmo ponto duas vezes, a segunda não é a primeira
+repetida — é a informação de que a resposta não serviu. Explicar é resposta legítima **uma** vez.
+
+### O contador que discordava da lista
+
+*"Mesmo sem equipe, aparece 1."* O card dizia "2 pessoas" e a tabela mostrava zero: o contador lê
+`membros.length`, a tabela junta com a base de usuários, e ids órfãos separam os dois. Terceiro
+reparo de leitura da mesma família — `semVinculosOrfaos`, ao lado de `semIdsRepetidos` e
+`sanearCargos` ([05 §2.11](05_perfis_usuarios.md)).
+
+### E uma hipótese minha que o teste derrubou
+
+Suspeitei que excluir uma pessoa não limpava os vínculos, porque a decisão era lida de uma variável
+escrita dentro do updater do `setState`. Escrevi o teste para provar — **e ele passou**. A exclusão
+em cascata funciona; o defeito era só o dado antigo. O teste ficou.
+
+### "Validar tudo", literalmente
+
+Pedido junto: *"tem alguns erros nas regras, nos acessos, pode validar tudo?"*. Somar casos não
+responde a isso. `testeAcessoIntegro` varre o **espaço inteiro** — toda pessoa do seed × todo
+quadro × todo estado de equipe — afirmando propriedades, não exemplos:
+
+| Invariante |
+|---|
+| o quadro abre **se e somente se** alguma equipe da pessoa o libera |
+| nomeação decide linhas, **nunca** abre quadro |
+| sem leitura ⇒ sem criar; ninguém edita o que não enxerga |
+| coluna some **se e somente se** todas as equipes a ocultam |
+| o dono nunca perde aba nem coluna |
+| nenhum vínculo aponta para pessoa inexistente |
+
+### Os números
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Portas de entrada num quadro | 2 | **1** |
+| Coleções que a sidebar precisa varrer para desenhar | 3 | **0** |
+| Reparos de leitura na família | 2 | **3** |
+| Suítes de regras | 37 | **38** |
 
 ---
 
@@ -1837,7 +1902,7 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 37 suítes e os 147 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 4 | **Sem CI** | As 38 suítes e os 149 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
@@ -1855,7 +1920,7 @@ Ordenado por impacto real, não por facilidade.
 
 | Débito | Como foi fechado |
 |--------|------------------|
-| ~~Testes fora do repositório~~ | As 37 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
+| ~~Testes fora do repositório~~ | As 38 suítes vivem em `testes-regras/`, versionadas com o código que verificam. Falta só o CI, que virou o item 4 |
 | ~~PRD desatualizado sem ninguém notar~~ | Resolvido em 12/08/2026 por `documentacao.test.tsx`: link quebrado, variável CSS fantasma, símbolo sumido e documento sem versão passaram a **falhar a suíte**. O que o teste não cobre — se o texto está certo — segue sendo trabalho de quem escreve |
 | ~~Projeto não versionado em Git~~ | Resolvido em 12/08/2026: repositório publicado, histórico com mensagem por decisão. O que restou do débito — **nenhum gatilho automático** — é o item 4 |
 | ~~`strict` do TypeScript desligado~~ | Medido: 3 erros no projeto inteiro. Corrigidos, e `strict` + `noUnusedLocals` + `noUnusedParameters` entraram (§5.6) |
@@ -1986,7 +2051,7 @@ esquema. O dia 1 é `prisma migrate dev`.
 
 ### Fase 3 — Engenharia
 
-11. **Pôr as 37 suítes em CI** — o Git saiu do débito em 12/08/2026; as suítes já estão no repositório, falta o gatilho
+11. **Pôr as 38 suítes em CI** — o Git saiu do débito em 12/08/2026; as suítes já estão no repositório, falta o gatilho
 12. ~~Avaliar `strict: true`~~ — **feito em 03/08** (§5.6)
 13. Paginação/virtualização e debounce nas listas grandes
 14. UUID do banco no lugar dos contadores de sessão ([09 §5](09_fundacoes_tecnicas.md)) — o schema
@@ -2072,8 +2137,8 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 147 testes de UI
-cd testes-regras && bash rodar.sh   # 37 suítes de regra — espere "TOTAL DE FALHAS: 0"
+npm run test:ui                # 149 testes de UI
+cd testes-regras && bash rodar.sh   # 38 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
 

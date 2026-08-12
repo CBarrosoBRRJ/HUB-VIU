@@ -86,11 +86,18 @@ check('responsável edita o quadro todo', podeEditarRegistro(ctx(resp), 'contrat
 check('admin fora da equipe do quadro não edita',
   podeEditarRegistro(ctx(admin), 'contratos', alheio), false);
 check('sem acesso ao quadro não edita nada', podeEditarRegistro(ctx(forasteiro), 'contratos', meu), false);
-// Regra nova (01/08/2026): a nomeação é uma porta de entrada por si só. Nomear alguém de outra
-// área sem lhe dar acesso produziria um responsável incapaz de abrir o próprio registro.
-check('nomeado entra em quadro que a equipe dele não libera', podeEditarRegistro(ctx(membro), 'backlog', meu), true);
-check('mas só na linha dele — não no quadro todo', podeEditarRegistro(ctx(membro), 'backlog', alheio), false);
-check('quadro alheio sem nomeação segue fechado', podeVerPagina(ctx(membro), 'backlog'), false);
+/*
+  **A porta da nomeação fechou em 12/08/2026**, por decisão da operação: *"mesmo que a equipe só
+  veja Backlog, ela está conseguindo ver a página de Talentos"*. Uma tela de configuração que
+  promete controlar o acesso e é contornada por um caminho lateral não configura nada.
+
+  O custo, aceito com a decisão: nomear alguém num registro de quadro que a equipe dela não libera
+  passa a não dar acesso nenhum. O caminho é liberar o quadro para a equipe.
+*/
+check('nomeado NÃO entra em quadro que a equipe dele não libera',
+  podeEditarRegistro(ctx(membro), 'backlog', meu), false);
+check('nem na linha dele, nem no quadro todo', podeEditarRegistro(ctx(membro), 'backlog', alheio), false);
+check('quadro alheio segue fechado', podeVerPagina(ctx(membro), 'backlog'), false);
 
 // --- Solicitações ---
 check('quem não é admin solicita', [podeSolicitarAcesso(ctx(membro)), podeSolicitarAcesso(ctx(resp)), podeSolicitarAcesso(ctx(admin))], [true, true, false]);
