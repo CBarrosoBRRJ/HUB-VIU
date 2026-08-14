@@ -102,8 +102,19 @@ export function FluxoDoProcesso({
     );
   }
 
+  /*
+    Lado a lado só a partir de `2xl` (1536px) — 14/08/2026.
+
+    O corte era `xl` (1280px), e numa tela de 1440 o par ficava lado a lado com o fluxo espremido:
+    cinco cartões dividindo ~640px, "Aguardando Feedback" quebrando em três linhas — o print da
+    operação. Empilhado, cada bloco usa a largura inteira e respira; o custo (~35px a mais de
+    altura) é coberto pelo orçamento vertical, que já recolhe o mapa em tela curta.
+
+    1440 é exatamente a largura que a operação pediu para funcionar — o corte novo a deixa do lado
+    folgado.
+  */
   return (
-    <div className="mb-4 grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+    <div className="mb-4 grid shrink-0 gap-3 2xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
       {/*
         Fluxo — `flex-col` para o miolo poder se centrar no que sobra.
 

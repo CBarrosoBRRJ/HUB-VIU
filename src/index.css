@@ -783,6 +783,45 @@
 }
 
 /* Custom Scrollbar for Light Pastel Theme */
+/*
+  ================================================================================================
+  TODA BARRA DE ROLAGEM É FINA, POR PADRÃO — 14/08/2026
+  ================================================================================================
+
+  Pedido da operação, na forma de uma pista: *"-webkit-scrollbar"*. O que ela estava vendo: as
+  grades usam `custom-scrollbar` (6px, discreta), mas qualquer área de rolagem que não lembrasse
+  de pedir a classe saía com a barra padrão do Windows — grossa, cinza, destoando do resto.
+
+  Opt-in por classe tem o mesmo defeito do `denso` opt-in por página, corrigido ontem: a lista
+  nunca fecha, e cada rolagem nova nasce errada até alguém notar. Estilo de scrollbar é decisão de
+  produto, não de componente — então a regra vale para `*`, e a classe `custom-scrollbar` vira
+  redundância inofensiva onde já está escrita.
+
+  `scrollbar-width: thin` cobre o Firefox, que ignora `::-webkit-scrollbar`.
+*/
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;

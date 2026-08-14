@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Inbox, Timer, Workflow } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useDados } from '../context/DadosProvider';
@@ -85,10 +85,37 @@ export function BacklogAgenciados() {
     **É só o padrão inicial.** A escolha da pessoa é salva e passa a mandar a partir do primeiro
     clique: o layout responde ao tamanho da tela até alguém dizer o que prefere.
   */
-  const [fluxoRecolhido, setFluxoRecolhido] = useState(
-    () => carregar('backlogFluxoRecolhido', window.innerHeight < ALTURA_CONFORTAVEL),
-  );
-  useEffect(() => salvar('backlogFluxoRecolhido', fluxoRecolhido), [fluxoRecolhido]);
+  /*
+    ============================================================================================
+    ## Só a ESCOLHA é persistida — o default não — 14/08/2026
+    ============================================================================================
+
+    A correção da véspera ("o mapa nasce recolhido em tela curta") não valia para ninguém que já
+    tivesse aberto o app — e a operação voltou com o mesmo print: mapa aberto, zero linhas.
+
+    O furo: um `useEffect(() => salvar(...), [fluxoRecolhido])` persiste **a cada mudança de
+    estado, inclusive a montagem**. Na primeira visita de cada pessoa, o default da época foi
+    gravado como se fosse escolha dela — e a partir daí o "padrão inicial" novo nunca mais rodava,
+    porque havia sempre um valor salvo mandando.
+
+    > **A regra que fica:** persistir preferência dentro de `useEffect` observando o estado
+    > transforma qualquer default em escolha no primeiro render. Preferência se grava **no
+    > gesto** — é o clique que diz "isto é o que eu quero", não a montagem.
+
+    A chave antiga (`backlogFluxoRecolhido`) está contaminada por defaults gravados e **deixou de
+    ser lida** — impossível distinguir, nela, escolha de montagem. A nova (`backlogFluxoEscolha`)
+    só recebe escrita no clique do Recolher/Mostrar.
+  */
+  const [fluxoRecolhido, setFluxoRecolhido] = useState(() => {
+    const escolha = carregar<boolean | null>('backlogFluxoEscolha', null);
+    return escolha ?? window.innerHeight < ALTURA_CONFORTAVEL;
+  });
+
+  /** O gesto é o único lugar que grava: a partir daqui, a preferência da pessoa manda. */
+  function alternarFluxo(recolhido: boolean) {
+    setFluxoRecolhido(recolhido);
+    salvar('backlogFluxoEscolha', recolhido);
+  }
 
   // Membro vê só as linhas em que foi nomeado; responsável da equipe, o quadro todo.
   const permitidas = useMemo(
@@ -347,7 +374,7 @@ export function BacklogAgenciados() {
           etapaAtiva={etapa}
           onEtapaChange={setEtapa}
           recolhido={fluxoRecolhido}
-          onRecolhidoChange={setFluxoRecolhido}
+          onRecolhidoChange={alternarFluxo}
         />
 
         {/* `min-h-0` deixa o card encolher abaixo do conteúdo — é o que faz a lista rolar. */}

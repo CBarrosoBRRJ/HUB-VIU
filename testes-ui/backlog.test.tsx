@@ -1779,6 +1779,58 @@ describe('correções da rodada de 11/08/2026', () => {
     }
   });
 
+  it('a chave antiga do fluxo, contaminada por default, é ignorada', () => {
+    /*
+      A correção "o mapa nasce recolhido em tela curta" não valeu para NINGUÉM que já tivesse
+      aberto o app — a operação voltou com o mesmo print no dia seguinte. O furo: um `useEffect`
+      persistia o estado a cada mudança, **inclusive na montagem**, então o default da época ficou
+      gravado como se fosse escolha da pessoa.
+
+      A chave antiga não distingue escolha de montagem e deixou de ser lida. Este caso é o cenário
+      exato da produção: valor antigo dizendo "aberto", tela curta — e o mapa recolhe mesmo assim.
+    */
+    const alturaOriginal = window.innerHeight;
+    try {
+      window.innerHeight = 657;
+      localStorage.setItem('viu:v12:backlogFluxoRecolhido', 'false');
+      montar();
+
+      expect(screen.queryByTitle(/em Entrada$/), 'o valor contaminado não manda').toBeNull();
+    } finally {
+      window.innerHeight = alturaOriginal;
+      localStorage.removeItem('viu:v12:backlogFluxoRecolhido');
+    }
+  });
+
+  it('a escolha explícita manda sobre a altura — e só o gesto a grava', async () => {
+    /*
+      Preferência se grava **no clique**, nunca na montagem — é o gesto que diz "isto é o que eu
+      quero". As duas metades: a escolha gravada vence a regra da altura, e montar sem clicar não
+      grava nada.
+    */
+    const alturaOriginal = window.innerHeight;
+    try {
+      window.innerHeight = 657;
+      localStorage.setItem('viu:v12:backlogFluxoEscolha', 'false');
+      montar();
+
+      expect(screen.getByTitle(/em Entrada$/), 'quem escolheu aberto vê aberto, mesmo em tela curta')
+        .toBeTruthy();
+
+      cleanup();
+      localStorage.removeItem('viu:v12:backlogFluxoEscolha');
+      montar();
+      expect(localStorage.getItem('viu:v12:backlogFluxoEscolha'), 'montar não grava escolha')
+        .toBeNull();
+
+      fireEvent.click(screen.getByRole('button', { name: /mostrar fluxo/i }));
+      expect(localStorage.getItem('viu:v12:backlogFluxoEscolha'), 'o clique grava').toBe('false');
+    } finally {
+      window.innerHeight = alturaOriginal;
+      localStorage.removeItem('viu:v12:backlogFluxoEscolha');
+    }
+  });
+
   it('o cabeçalho compacta sozinho em tela curta, em qualquer quadro', () => {
     /*
       O `denso` era opt-in por página e só o Backlog o usava — Contratos e Talentos gastavam ~195px

@@ -619,6 +619,48 @@ dividida vê o cabeçalho responder na hora.
 > quando `denso` é verdadeiro, e a ordem dos hooks muda entre renderizações. É exatamente o que o
 > React proíbe, e o tipo de bug que só aparece quando a condição muda em produção.
 
+### A correção que não valeu para ninguém — 14/08/2026, segunda volta
+
+A operação voltou no dia seguinte com o mesmo print: mapa aberto, zero linhas. A suspeita dela era
+cache; **a produção estava atualizada** (conferida por marcador no bundle servido). O furo era meu,
+e mais interessante que cache:
+
+```ts
+useEffect(() => salvar('backlogFluxoRecolhido', fluxoRecolhido), [fluxoRecolhido]);
+```
+
+Este efeito persiste a cada mudança de estado — **inclusive na montagem**. Na primeira visita de
+cada pessoa, o default da época foi gravado como se fosse escolha dela. Resultado: o "padrão
+inicial por altura" da véspera nunca rodou para nenhum usuário existente, porque havia sempre um
+valor salvo mandando.
+
+> **A regra que fica:** persistir preferência dentro de `useEffect` observando o estado transforma
+> qualquer default em escolha no primeiro render. Preferência se grava **no gesto** — é o clique
+> que diz "isto é o que eu quero", não a montagem.
+
+A chave antiga (`backlogFluxoRecolhido`) está contaminada e **deixou de ser lida** — nela é
+impossível distinguir escolha de montagem. A nova (`backlogFluxoEscolha`) só recebe escrita no
+clique do Recolher/Mostrar. Quarto reparo da família dos dados gravados por defeito, e o primeiro
+resolvido por **abandono de chave** em vez de saneamento — não há o que sanear num valor que nunca
+significou nada.
+
+### O par empilha até 1536px — o pedido dos 1440
+
+*"Tornar responsivo telas de 1440px."* O corte do lado-a-lado (fluxo × finalização) era `xl`
+(1280px): numa tela de 1440, os cinco cartões do fluxo dividiam ~640px e "Aguardando Feedback"
+quebrava em três linhas — o print da operação. O corte subiu para `2xl` (1536px): em 1440 o par
+**empilha**, cada bloco usa a largura inteira, e o custo de ~35px de altura é coberto pelo
+orçamento vertical, que já recolhe o mapa em tela curta.
+
+### Toda barra de rolagem é fina, por padrão
+
+Pedido na forma de uma pista: *"-webkit-scrollbar"*. As grades usavam `custom-scrollbar` (6px),
+mas qualquer área de rolagem que não pedisse a classe saía com a barra padrão do Windows — grossa,
+destoando. Opt-in por classe tem o mesmo defeito do `denso` opt-in por página, corrigido na
+véspera: **a lista nunca fecha**. A regra agora vale para `*` no `index.css` (com
+`scrollbar-width: thin` para o Firefox), e a classe virou redundância inofensiva onde já está
+escrita.
+
 ### O que a correção revelou na suíte
 
 Cinco testes do cabeçalho quebraram na hora, e estavam certos: eles inspecionam os cartões do mapa,
