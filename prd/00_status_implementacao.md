@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 158 testes de UI (ver §5) |
+| Testes | ✅ 39 suítes · 1.624 verificações · **0 falhas** + 161 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/` | 158 testes de UI, em oito arquivos | §5.3 |
+| `testes-ui/` | 161 testes de UI, em nove arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.613 verificações em 38 suítes de regra, mais 158 testes de UI. 0 falhas.**
+**Estado atual: 1.624 verificações em 39 suítes de regra, mais 161 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,8 +332,8 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**158 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
-nenhum mock. Vitest + jsdom + Testing Library. Em oito arquivos:
+**161 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
+nenhum mock. Vitest + jsdom + Testing Library. Em nove arquivos:
 
 | Arquivo | Testes | O que cobre |
 |---|---:|---|
@@ -345,6 +345,7 @@ nenhum mock. Vitest + jsdom + Testing Library. Em oito arquivos:
 | `verComo.test.tsx` | 3 | o "Ver como": fiel na tela, o dono age e assina, o admin não age |
 | `reproducao.test.tsx` | 2 | o cenário exato da produção da operação — vínculo órfão e exclusão em cascata |
 | `shell.test.tsx` | 3 | a camada de emergência do shell — folha rolável, páginas sem amputação, piso nas grades |
+| `paginacao.test.tsx` | 3 | a grade pagina em 20 — semeia 25 linhas, porque o seed padrão nunca pagina |
 
 > **Três desses arquivos não clicam em nada: eles leem o código-fonte.** `tipografia` procura
 > tamanho cravado em pixel e faz a conta das camadas da grade; `documentacao` confere o PRD contra
@@ -1912,8 +1913,8 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 38 suítes e os 158 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
-| 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez. **Nota de 14/08/2026:** quando vier, é decisão de *performance* — paginação como navegação foi debatida e descartada ([03 §1.0.5](03_padroes_ui.md)) | §7 |
+| 4 | **Sem CI** | As 39 suítes e os 161 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 5 | **Sem virtualização** | A paginação de navegação chegou em 14/08/2026 (20/página no Backlog — [08 §5.10](08_backlog_e_integracoes.md)), o que também limita o DOM a ~20 linhas. O que resta deste débito é virtualização se um recorte de página única crescer — improvável antes do backend | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
 | 8 | **Arquivos de tabela grandes** (1.500+ linhas) | Custo de leitura; sem defeito associado | §3 |
@@ -2147,8 +2148,8 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 158 testes de UI
-cd testes-regras && bash rodar.sh   # 38 suítes de regra — espere "TOTAL DE FALHAS: 0"
+npm run test:ui                # 161 testes de UI
+cd testes-regras && bash rodar.sh   # 39 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
 

@@ -33,6 +33,8 @@ import { formatDate, todayISO } from '../../utils/dates';
 import { baixarXlsx, ColunaExportada } from '../../utils/exportacao';
 import { EditableCell } from '../ui/EditableCell';
 import { CelulaOculta } from '../ui/CelulaOculta';
+import { ControlesDePagina } from '../ui/ControlesDePagina';
+import { paginar } from '../../utils/paginar';
 import { BarraRolagemHorizontal } from '../ui/BarraRolagemHorizontal';
 import { SelecaoComCadastro } from '../ui/SelecaoComCadastro';
 import { BuscaQuadro } from '../ui/BuscaQuadro';
@@ -575,11 +577,31 @@ export function BacklogTable({
     }
   }
 
+  /**
+   * 20 projetos por página — 14/08/2026, faixa pedida pela operação ("15 a 20").
+   *
+   * O topo da faixa, de propósito: página curta demais transforma a triagem — que é varredura —
+   * numa sequência de cliques. 20 linhas custam ~1.100px: numa tela comum ainda rola um pouco,
+   * num monitor grande cabe quase inteiro.
+   */
+  const PROJETOS_POR_PAGINA = 20;
+  const [paginaPedida, setPaginaPedida] = useState(1);
+
   const ordenadas = useMemo(() => {
     if (!sort) return oportunidades;
     const fator = sort.direction === 'asc' ? 1 : -1;
     return [...oportunidades].sort((a, b) => fator * compararPorCampo(a, b, sort.field));
   }, [oportunidades, sort]);
+
+  /*
+    A página é a ÚLTIMA etapa do recorte: etapa, filtros, busca e ordenação agem antes; aqui só se
+    janela o resultado. `paginar` devolve a página clampada — trocar de busca na página 3 de uma
+    lista que agora tem 1 não deixa estado inválido, sem nenhum efeito corretivo.
+  */
+  const janela = useMemo(
+    () => paginar(ordenadas, paginaPedida, PROJETOS_POR_PAGINA),
+    [ordenadas, paginaPedida],
+  );
 
   function toggleSort(field: string) {
     setSort((atual) => {
@@ -600,7 +622,7 @@ export function BacklogTable({
 
   function toggleTodas() {
     setSelecionados(
-      selecao.length === oportunidades.length ? new Set() : new Set(oportunidades.map((o) => o.id)),
+      selecao.length === janela.itens.length ? new Set() : new Set(janela.itens.map((o) => o.id)),
     );
   }
 
@@ -672,7 +694,11 @@ export function BacklogTable({
    */
   function novoRegistro() {
     const id = onCriar();
-    if (id) setRecemCriada(id);
+    if (id) {
+      setRecemCriada(id);
+      // A linha nova nasce no topo da lista — a página 1 é onde ela está.
+      setPaginaPedida(1);
+    }
   }
 
   /*
@@ -685,8 +711,9 @@ export function BacklogTable({
     Derivar da interseção com as linhas visíveis se corrige sozinha, sem lista para manter.
   */
   const selecao = useMemo(
-    () => oportunidades.filter((o) => selecionados.has(o.id)).map((o) => o.id),
-    [oportunidades, selecionados],
+    // Com paginação, "visível" é a página atual — a regra não mudou, a tela é que encolheu.
+    () => janela.itens.filter((o) => selecionados.has(o.id)).map((o) => o.id),
+    [janela, selecionados],
   );
   const temSelecao = selecao.length > 0;
 
@@ -2006,7 +2033,7 @@ export function BacklogTable({
             whileHover={oportunidades.length > 0 ? { y: -1 } : undefined}
             whileTap={{ scale: 0.97 }}
             data-dica="Exportar para Excel"
-            data-dica-sub="Baixa as linhas e colunas visíveis em arquivo Excel (.xlsx)"
+            data-dica-sub="Baixa o recorte atual em Excel (.xlsx) — todas as páginas, colunas visíveis"
             data-dica-sempre
             className={`${FORMA_BOTAO_BARRA} border-slate-200 text-slate-600 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 disabled:cursor-not-allowed disabled:text-slate-300`}
           >
@@ -2023,9 +2050,9 @@ export function BacklogTable({
             className={`${FORMA_BOTAO_BARRA} border-slate-200 text-slate-600 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300`}
           >
             <CheckSquare className="size-3" />
-            {selecao.length === oportunidades.length && oportunidades.length > 0
-              ? `Desmarcar Todas (${oportunidades.length})`
-              : `Marcar Visíveis (${oportunidades.length})`}
+            {selecao.length === janela.itens.length && janela.itens.length > 0
+              ? `Desmarcar Todas (${janela.itens.length})`
+              : `Marcar Visíveis (${janela.itens.length})`}
           </motion.button>
 
           {/*
@@ -2264,7 +2291,7 @@ export function BacklogTable({
           </thead>
 
           <tbody>
-            {ordenadas.map(renderLinha)}
+            {janela.itens.map(renderLinha)}
 
             {oportunidades.length === 0 && (
               <tr>
@@ -2285,7 +2312,12 @@ export function BacklogTable({
 
       <BarraRolagemHorizontal alvoRef={areaRolagem} />
 
-      {oportunidades.length > 0 && <RodapeTotais oportunidades={oportunidades} />}
+      {oportunidades.length > 0 && (
+        <RodapeTotais
+          oportunidades={oportunidades}
+          paginacao={<ControlesDePagina resultado={janela} onPagina={setPaginaPedida} />}
+        />
+      )}
 
       {temSelecao && (
         <div className="shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">

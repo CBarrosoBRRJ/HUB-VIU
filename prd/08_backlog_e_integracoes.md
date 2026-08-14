@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.9 | **Status:** Front-end totalmente implementado e auditado | **Data:** 14/08/2026
+**Versão:** 8.10 | **Status:** Front-end totalmente implementado e auditado | **Data:** 14/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -668,6 +668,38 @@ e o jsdom monta uma janela de 768px — curta pelos novos critérios, então o m
 **A suposição "os testes rodam numa tela confortável" existia desde sempre e era invisível.** Agora
 está escrita em `testes-ui/setup.ts`, e o comportamento em tela curta ganhou teste próprio, que
 ajusta a janela por conta.
+
+## 5.10. A grade pagina em 20 — 14/08/2026
+
+Pedido da operação, com a faixa dela: *"poderíamos pensar em algo como 15 a 20 projetos, passar
+para outra página? Seria uma solução viável para o dia a dia?"* — e com dezenas de linhas na base
+real, é: rolar uma lista sem fim deixa de ser varredura e vira caminhada.
+
+**20 por página** — o topo da faixa pedida, de propósito: página curta demais transforma a triagem
+numa sequência de cliques. Os controles (`‹ 1–20 de 54 ›`) moram no rodapé de totais e **só
+aparecem quando há mais de uma página** — paginação numa lista que cabe é ruído.
+
+### As regras que a acompanham
+
+| Regra | Por quê |
+|---|---|
+| a página é a **última** etapa do recorte | etapa, filtros, busca e ordenação agem antes; a página só janela o resultado |
+| totais **não** são paginados | "Total no grupo" fala do recorte inteiro, senão mentiria |
+| **Exportar ignora a página** | baixa o recorte inteiro — ninguém quer colar N planilhas; a dica do botão diz isso |
+| "Marcar Visíveis" marca a **página** | a regra de sempre ("a seleção vale para o que está na tela") com a tela menor — marcar o que está fora de vista devolveria o defeito que a regra original matou |
+| criar volta à página 1 | a linha nova nasce no topo; nascer em edição numa página que não a mostra seria um gesto no vazio |
+| a página pedida é desejo, a exibida é fato | `paginar` clampa — trocar a busca na página 3 de uma lista que agora tem meia não deixa estado inválido, sem `setState` corretivo |
+
+A regra pura mora em [`utils/paginar.ts`](../src/utils/paginar.ts) (`testePaginacao` cobre janela,
+clamp e bordas); o comportamento na grade, em `paginacao.test.tsx` — que semeia **25 linhas**,
+porque o seed padrão nunca pagina e é assim que a paginação quebraria em silêncio.
+
+> **Escopo:** Backlog, pelo combinado de trabalhar página por página. Contratos e Talentos têm a
+> mesma conversa quando a operação pedir — `ControlesDePagina` e `paginar` já nasceram genéricos.
+
+> **Nota de percurso:** a paginação foi debatida e *recusada* dois dias antes, quando o problema
+> era o acesso à barra horizontal — ela não resolvia aquilo. Entrou quando o problema certo
+> apareceu. A ordem importa: primeiro o diagnóstico, depois a ferramenta.
 
 ## 6. As oito seções da grade contínua
 

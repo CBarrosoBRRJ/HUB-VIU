@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Oportunidade } from '../../types';
 import { INPUTS, totaisDoRodape } from '../../utils/oportunidades';
 
@@ -11,7 +12,13 @@ import { INPUTS, totaisDoRodape } from '../../utils/oportunidades';
  * das três faixas, porque somar projetos resolvidos ao "no prazo" inflaria o número que deveria
  * medir pressão.
  */
-export function RodapeTotais({ oportunidades }: { oportunidades: Oportunidade[] }) {
+export function RodapeTotais({
+  oportunidades, paginacao,
+}: {
+  /** SEMPRE o recorte inteiro, nunca a página: totais paginados fariam "Total no grupo" mentir. */
+  oportunidades: Oportunidade[];
+  paginacao?: ReactNode;
+}) {
   const totais = totaisDoRodape(oportunidades);
   const emFarol = totais.slaAtrasados + totais.slaAtencao + totais.slaNoPrazo;
 
@@ -53,6 +60,9 @@ export function RodapeTotais({ oportunidades }: { oportunidades: Oportunidade[] 
           </span>
         </span>
       </div>
+
+      {/* A paginação mora no meio do rodapé: perto dos totais que ela janela, sem linha própria. */}
+      {paginacao}
 
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-slate-400">Input:</span>
