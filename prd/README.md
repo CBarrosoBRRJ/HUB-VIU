@@ -61,6 +61,7 @@ Ao mexer num arquivo, o documento que explica as decisões dele:
 | `utils/persistencia.ts` | [09 §3](09_fundacoes_tecnicas.md) |
 | `utils/ids.ts` | [09 §5](09_fundacoes_tecnicas.md) |
 | `utils/navegacao.ts` · `App.tsx` | [09 §8](09_fundacoes_tecnicas.md); o shell de dois planos: [03 §1.0.0–1.0.1](03_padroes_ui.md) |
+| `components/Header.tsx` · `components/ui/useJanelaCurta.ts` | [08 §5.9](08_backlog_e_integracoes.md) — o orçamento vertical: cabeçalho compacto e mapa recolhido em tela curta |
 | `index.css` · `components/Sidebar.tsx` | [03 §1.0.0](03_padroes_ui.md) — **shell congelado**; tipografia: [03 §1.2](03_padroes_ui.md), régua da grade: [03 §1.2.6](03_padroes_ui.md) |
 | `utils/vigencia.ts` · `utils/talentosStatus.ts` | [02 §5–6](02_quadro_talentos.md) |
 | `utils/equipes.ts` · `utils/saida.ts` | [04 §4](04_pagina_equipes.md), [04 §7](04_pagina_equipes.md); `semVinculosOrfaos`: [05 §2.11](05_perfis_usuarios.md) |
@@ -150,6 +151,7 @@ por reler o registro correspondente.
 | Popovers em portal — `overflow` recorta filho posicionado | [03 §4](03_padroes_ui.md) |
 | `layoutId` do motion precisa ser único por instância | [03 §7.3](03_padroes_ui.md) |
 | Pesos de coluna somam um total fixo por aba | [03 §3](03_padroes_ui.md), [07 §6](07_visoes_e_relacoes.md) |
+| **Em tela curta, a lista tem prioridade** — o cabeçalho compacta e o mapa recolhe; a escolha da pessoa manda a partir do primeiro clique | [08 §5.9](08_backlog_e_integracoes.md) |
 | **Shell e tipografia estão congelados** — só mudam a pedido da operação | [03 §1.0.0](03_padroes_ui.md), [03 §1.2](03_padroes_ui.md) |
 | **Só o dono está acima do modelo de acesso** — `admin` administra, mas lê e escreve pelo que as equipes dele dão | [05 §2.9](05_perfis_usuarios.md) |
 | **A equipe é a única porta do quadro.** A nomeação decide *quais linhas* dentro dele; não abre quadro | [05 §2.10](05_perfis_usuarios.md) |

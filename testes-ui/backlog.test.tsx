@@ -1779,6 +1779,28 @@ describe('correções da rodada de 11/08/2026', () => {
     }
   });
 
+  it('o cabeçalho compacta sozinho em tela curta, em qualquer quadro', () => {
+    /*
+      O `denso` era opt-in por página e só o Backlog o usava — Contratos e Talentos gastavam ~195px
+      de cabeçalho numa janela onde a lista já não cabia. O argumento original ("o Meu Perfil
+      respira melhor com o cabeçalho cheio") vale em tela alta e **se inverte em tela baixa**: nada
+      respira quando nada cabe.
+
+      A página diz o que prefere; a janela pode puxar para o compacto, nunca para o alto.
+    */
+    const alturaOriginal = window.innerHeight;
+    try {
+      window.innerHeight = 657;
+      montar();
+
+      // O traço decorativo abaixo do título é o que só existe no cabeçalho cheio.
+      const cabecalho = screen.getByRole('banner');
+      expect(cabecalho.className, 'o padding cede em tela curta').toContain('py-3.5');
+    } finally {
+      window.innerHeight = alturaOriginal;
+    }
+  });
+
   it('em tela confortável o mapa nasce aberto', () => {
     // O contraponto: a regra é sobre altura, não uma escolha nova de padrão.
     montar();

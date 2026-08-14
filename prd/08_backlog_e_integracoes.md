@@ -594,6 +594,31 @@ vizinho.
 > **A lição:** piso rígido em contêiner elástico não protege — **transfere o problema para quem
 > está do lado**. Sobreposição é pior que qualquer truncamento.
 
+### E o mesmo defeito estava nos quadros que ninguém conferiu
+
+A reclamação era sobre o Backlog. Ao verificar os outros, **Contratos e Talentos gastavam ~195px de
+cabeçalho** na mesma janela — 75px a mais que o Backlog, que é mais de uma linha de lista.
+
+A causa era o `denso` ser **opt-in por página**, e só o Backlog o ter pedido. O argumento original
+continua verdadeiro e incompleto: *"o Meu Perfil e o Cadastro de Clientes respiram melhor com o
+cabeçalho cheio"* — vale em tela alta, e **se inverte em tela baixa: nada respira quando nada
+cabe.**
+
+Agora o `denso` é **piso, não palavra final**: a página diz o que prefere, e a janela curta puxa
+qualquer cabeçalho para o compacto — nunca para o alto. Um quadro que já se declarou denso não
+volta a crescer por causa do tamanho da tela.
+
+O limiar mora em [`useJanelaCurta`](../src/components/ui/useJanelaCurta.ts), **um número para os
+dois efeitos** (cabeçalho compacto e mapa recolhido): são duas respostas à mesma pergunta —
+*"cabe?"* —, e dois números produziriam a faixa intermediária onde um cede e o outro não, que
+ninguém saberia explicar. O hook reage ao redimensionamento, então quem trabalha com a janela
+dividida vê o cabeçalho responder na hora.
+
+> **Um erro meu no caminho, que vale registrar:** escrevi `denso || useJanelaCurta()`, que parece
+> equivalente a chamar o hook e combinar depois — e não é. O `||` curto-circuita, a chamada some
+> quando `denso` é verdadeiro, e a ordem dos hooks muda entre renderizações. É exatamente o que o
+> React proíbe, e o tipo de bug que só aparece quando a condição muda em produção.
+
 ### O que a correção revelou na suíte
 
 Cinco testes do cabeçalho quebraram na hora, e estavam certos: eles inspecionam os cartões do mapa,

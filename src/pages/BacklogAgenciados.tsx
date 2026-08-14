@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { useDados } from '../context/DadosProvider';
 import { BacklogTable } from '../components/backlog/BacklogTable';
 import { FluxoDoProcesso } from '../components/backlog/FluxoDoProcesso';
+import { ALTURA_CONFORTAVEL } from '../components/ui/useJanelaCurta';
 import { ehDono, nomeadosDoBacklog, registrosVisiveis } from '../utils/permissoes';
 import {
   TITULO_PROVISORIO,
@@ -28,15 +29,7 @@ import { carregar, salvar } from '../utils/persistencia';
  */
 export { TITULO_PROVISORIO };
 
-/**
- * Altura de janela a partir da qual o mapa do processo nasce **aberto**.
- *
- * A moldura acima da grade custa ~585px com o mapa aberto; quatro linhas custam ~208px. Abaixo de
- * ~793px a lista fica com menos de quatro linhas, e uma lista de trabalho com três linhas não é
- * uma lista. Arredondado para 820 — a conta é estimativa, e arredondar para cima erra do lado
- * seguro.
- */
-const ALTURA_PARA_MAPA_ABERTO = 820;
+// O limiar mora em `useJanelaCurta` — um número para as duas respostas à pergunta "cabe?".
 
 /**
  * Backlog de Agenciados — as oportunidades antes de virarem contrato.
@@ -93,7 +86,7 @@ export function BacklogAgenciados() {
     clique: o layout responde ao tamanho da tela até alguém dizer o que prefere.
   */
   const [fluxoRecolhido, setFluxoRecolhido] = useState(
-    () => carregar('backlogFluxoRecolhido', window.innerHeight < ALTURA_PARA_MAPA_ABERTO),
+    () => carregar('backlogFluxoRecolhido', window.innerHeight < ALTURA_CONFORTAVEL),
   );
   useEffect(() => salvar('backlogFluxoRecolhido', fluxoRecolhido), [fluxoRecolhido]);
 
