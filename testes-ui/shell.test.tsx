@@ -79,8 +79,13 @@ describe('a camada de emergência do shell', () => {
         por CSS de scrollbar: no Chrome ≥121, `scrollbar-width` definido desliga os pseudo webkit,
         e a regra que escondia por pseudo falhou em silêncio — a operação viu as duas barras.
       */
+      /*
+        `-mb-[17px]`, não `h-[calc(100%+17px)]`: a versão com `%` era circular quando o card
+        cresce com o conteúdo (pai dimensionado pelo filho → `100%` cai em `auto`) e o corte
+        nunca acontecia — medido no cenário da operação, wrapper e scroller com a mesma altura.
+      */
       expect(codigo, `${grade}: a nativa horizontal é clipada por geometria`)
-        .toContain('h-[calc(100%+17px)]');
+        .toContain('-mb-[17px]');
       expect(codigo, `${grade}: e nenhuma regra morta de pseudo volta a prometer o esconder`)
         .not.toContain('sem-barra-horizontal');
     }

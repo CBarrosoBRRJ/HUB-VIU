@@ -401,10 +401,18 @@ A operação voltou com o mesmo problema, e a investigação achou **duas** caus
    a barra nativa quanto o design do espelho.
 
 A resposta tirou o esconder do CSS de scrollbar e o levou para a **geometria**: o scroller interno
-é 17px mais alto que um wrapper `overflow-clip`, e a base dele — onde a barra nativa mora — fica
-sob o corte; o `padding-bottom` devolve os 17px ao conteúdo. Não há sistema para falhar, em nenhum
-navegador. O espelho reativa o webkit localmente (`scrollbar-width: auto` no elemento) para o
-design de 10px valer.
+fecha 17px mais alto que um wrapper `overflow-clip`, e a base dele — onde a barra nativa mora —
+fica sob o corte; o `padding-bottom` devolve os 17px ao conteúdo. Não há sistema para falhar, em
+nenhum navegador. O espelho reativa o webkit localmente (`scrollbar-width: auto` no elemento) para
+o design de 10px valer.
+
+> **E a primeira geometria também falhou** — medida no cenário real da operação (53 linhas):
+> `h-[calc(100%+17px)]` depende de o pai ter altura definida, e no modo emergência o card cresce
+> com o conteúdo — `100%` de um pai dimensionado pelo filho é **circular**, cai em `auto`, e o
+> corte nunca acontecia (wrapper e scroller medidos com a mesma altura). A margem negativa
+> (`-mb-[17px]`) não tem a dependência: o scroller desconta 17px da própria contribuição de
+> altura, em qualquer modo. Quinta volta da mesma seção; a soma das lições: **verificação visual
+> não basta — medir o DOM é o que separa "parece corrigido" de "corrigido"**.
 
 > **A lição:** estilo de scrollbar não se mistura — moderno e webkit, **por elemento**, um exclui o
 > outro. E regra de CSS que falha não avisa: das quatro voltas desta seção, duas foram regras

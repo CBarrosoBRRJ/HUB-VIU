@@ -633,13 +633,19 @@ export function ContratosTable({
         ignora TODOS os pseudo-elementos webkit. Dois sistemas que não coexistem, e a regra falhava
         em silêncio — a operação viu as duas barras.
 
-        Aqui não há sistema para falhar: o scroller interno é 17px mais alto que este wrapper, e a
-        base dele — onde a barra nativa mora — fica sob o `overflow-clip`. O `pb` devolve os 17px
-        ao conteúdo, então a última linha não fica atrás do corte. Rolagem real preservada: os
-        `sticky` de cabeçalho e colunas congeladas continuam ancorando no scroller.
+        Aqui não há sistema para falhar — mas a PRIMEIRA geometria falhou, e vale registrar:
+        `h-[calc(100%+17px)]` depende de o pai ter altura definida, e no modo emergência o card
+        cresce com o conteúdo — `100%` de um pai dimensionado pelo filho é circular e cai em
+        `auto`; o corte nunca acontecia (medido: wrapper e scroller com a MESMA altura).
+
+        A margem negativa não tem essa dependência: o scroller desconta 17px da própria
+        contribuição de altura (`-mb`), o wrapper fecha 17px mais curto que ele em QUALQUER modo —
+        altura definida ou de conteúdo — e o `overflow-clip` corta exatamente a faixa da barra
+        nativa. O `pb` devolve os 17px ao conteúdo, então a última linha não fica atrás do corte.
+        Rolagem real preservada: os `sticky` continuam ancorando no scroller.
       */}
-      <div className="min-h-52 flex-1 overflow-clip">
-        <div ref={areaRolagem} className="h-[calc(100%+17px)] overflow-auto pb-[17px]">
+      <div className="flex min-h-52 flex-1 flex-col overflow-clip">
+        <div ref={areaRolagem} className="-mb-[17px] flex-1 overflow-auto pb-[17px]">
         {/*
           `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
           o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
