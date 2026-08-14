@@ -91,7 +91,7 @@ export function Talentos() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Talentos"
         subtitle="Cadastro dos talentos agenciados — exclusivos e de interveniência — com contato, redes, dados comerciais e quem responde por cada frente."

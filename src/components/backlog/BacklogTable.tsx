@@ -2061,7 +2061,12 @@ export function BacklogTable({
           </p>
         </div>
       ) : (
-      <div ref={areaRolagem} className="min-h-0 flex-1 overflow-auto custom-scrollbar">
+      <div ref={areaRolagem} className="min-h-52 flex-1 overflow-auto custom-scrollbar">
+        {/*
+          `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
+          o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
+          que deixava a área colapsar a zero e o excedente ser amputado pelo overflow do shell.
+        */}
         {/*
           `table-fixed` com largura em **px** — não confundir com o `table-fixed` de porcentagem
           que já foi abandonado (colunas somando 82% esticavam "3x" a 350px em aba curta).

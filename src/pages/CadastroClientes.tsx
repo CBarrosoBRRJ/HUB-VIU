@@ -22,7 +22,7 @@ export function CadastroClientes() {
   const pendentes = marcas.filter((marca) => marca.cadastroPendente).length;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Cadastro de Clientes"
         subtitle="Marcas, anunciantes e agências — a lista de onde as colunas dos quadros puxam cliente, segmento e contato."

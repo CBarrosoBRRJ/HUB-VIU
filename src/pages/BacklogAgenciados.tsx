@@ -352,7 +352,7 @@ export function BacklogAgenciados() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         /*
           Denso: é o quadro com mais disputa por altura — mapa do processo, 13 abas e uma lista

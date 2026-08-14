@@ -190,11 +190,33 @@ function Workspace() {
         */}
         <div aria-hidden className="pointer-events-none absolute inset-0 brilho-do-plano" />
         <Sidebar activePage={paginaAtiva ?? activePage} onNavigate={setActivePage} />
-        <main className="relative z-10 m-2 flex flex-1 flex-col overflow-hidden rounded-xl bg-[#f4f6fa] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/6">
+        {/*
+          ======================================================================================
+          ## A folha rola quando não cabe — e SÓ ela — 14/08/2026
+          ======================================================================================
+
+          Reporte da operação: a área de trabalho era travada na altura da tela com
+          `overflow-hidden`, e quando o conteúdo se reorganizava numa tela menor, o excedente era
+          **amputado, não escondido** — rodapé, botões e linhas ficavam inalcançáveis, sem barra
+          nenhuma para chegar até eles.
+
+          A regra combinada: **fixa enquanto cabe, rolando quando não cabe** — e a barra mora na
+          folha. Sidebar e plano ficam parados: o fundo é moldura, e moldura não se move.
+
+          Não há "modo" nem breakpoint: quem decide é o CSS. As grades têm um piso de altura
+          (`min-h-52`, ~4 linhas) e param de encolher ali; se moldura + piso couberem, o conteúdo
+          preenche exato e barra nenhuma existe — comportamento idêntico ao anterior. Se não
+          couberem, o conteúdo excede e a rolagem surge sozinha.
+
+          Para isso a folha deixou de ser flex container com filho de altura travada: a página
+          usa `min-h-full` — estica até a folha quando sobra, cresce além dela quando falta.
+          `overflow-x-hidden` continua: rolagem lateral é assunto interno de cada grade.
+        */}
+        <main className="relative z-10 m-2 flex-1 overflow-y-auto overflow-x-hidden rounded-xl bg-[#f4f6fa] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/6">
           {Pagina ? (
             <Pagina />
           ) : (
-            <div className="flex flex-1 items-center justify-center p-6 text-center">
+            <div className="flex min-h-full items-center justify-center p-6 text-center">
               <p className="max-w-sm text-sm text-slate-500">
                 Esta pessoa ainda não faz parte de nenhuma equipe com acesso a quadros.
               </p>

@@ -34,7 +34,7 @@ export function Equipes() {
   const equipeAtiva = equipes.find((equipe) => equipe.id === equipeAtivaId);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Equipes"
         subtitle="Organize as pessoas em equipes e defina quais quadros do Workspace cada uma enxerga."

@@ -88,7 +88,7 @@ export function MeuPerfil() {
   if (!eu) return null;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Meu perfil"
         subtitle="Seus dados de cadastro, foto e e-mail de acesso."

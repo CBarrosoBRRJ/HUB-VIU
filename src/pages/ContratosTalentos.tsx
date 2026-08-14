@@ -118,7 +118,7 @@ export function ContratosTalentos() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Contratos de Agenciados"
         subtitle="Gestão dos contratos dos talentos agenciados — da minuta à assinatura, com controle de vigência e renovações."

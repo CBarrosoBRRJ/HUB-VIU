@@ -40,7 +40,7 @@ export function Usuarios() {
   const ativa = abas.some((item) => item.id === aba) ? aba : 'pessoas';
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-full flex-col">
       <Header
         title="Usuários"
         subtitle="Base de pessoas da plataforma, seus acessos e os convites em aberto."

@@ -1,5 +1,5 @@
 # PRD 03 — Padrões de Interface
-**Versão:** 5.8 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 12/08/2026
+**Versão:** 5.9 | **Status:** Vigente · **shell e tipografia congelados** | **Data:** 14/08/2026
 
 [← Índice da documentação](README.md) · *Padrões de interface — vale para toda tela nova*
 
@@ -48,6 +48,7 @@ O que está congelado — os **invariantes**, não os pixels:
 | | Invariante |
 |---|---|
 | **Dois planos, e só dois** | plano escuro ao fundo, folha clara flutuando. Uma terceira superfície entre eles aparece como linha, por mais sutil que seja o tom (§1.0.1) |
+| **A folha é fixa enquanto cabe, e rola quando não cabe** | emenda de 14/08/2026, aprovada pela operação: a barra de emergência mora **na folha** — sidebar e plano nunca se movem (§1.0.5) |
 | **A sidebar é o plano** | sem fundo próprio, sem borda, sem véu, sem aresta. Ela participa do plano; não flutua sobre ele |
 | **O vão existe** | a folha respira 8px por todos os lados. Sem ele, ela volta a parecer uma coluna *ao lado* da sidebar |
 | **Um escuro só** | `--color-plano` serve sidebar, moldura e faixas de abas. Nenhum segundo escuro entra no produto |
@@ -307,6 +308,49 @@ nenhuma cor nova.
 > não existe no peso em que esta paleta trabalha (claridade ~0,52) — nessa faixa ele é ocre, que é
 > exatamente o `acento-acao` que já existe. Forçá-lo mais claro quebraria o L constante, que é a
 > regra que segura a paleta inteira. O amarelo é da **marca**; a interface fica com o parente dele.
+
+### 1.0.5. Responsividade em camadas — e a garantia de que nada é inalcançável — 14/08/2026
+
+Reporte da operação, no fechamento de uma semana de queixas de tela: a folha de trabalho era
+travada na altura da viewport com `overflow-hidden`, e quando o conteúdo se reorganizava numa tela
+menor, o excedente era **amputado, não escondido** — rodapé, botões e linhas ficavam inalcançáveis,
+sem barra nenhuma. A pior variante do problema: as correções de responsividade *agravavam* isso,
+porque reorganizar deixa o conteúdo mais alto exatamente onde há menos altura.
+
+#### O sistema — cinco camadas, nenhuma menciona dispositivo
+
+| # | Camada | Pergunta que responde |
+|---|--------|----------------------|
+| 1 | raiz fluida (§1.2) | a tela é grande ou pequena? |
+| 2 | reorganização por largura — o par empilha < 1536px; rótulo quebra, não trunca | cabe lado a lado? |
+| 3 | economia por altura — cabeçalho compacto e mapa recolhido < 820px | sobra altura para a lista? |
+| 4 | **piso + rolagem de emergência na folha** | e quando nada mais cabe? |
+| 5 | a pessoa manda — régua pessoal e escolhas gravadas **no gesto** | e se ela preferir diferente? |
+
+Não há "modo tablet" nem lista de resoluções: cada camada responde a uma pergunta **contínua**, e
+uma tela que ainda não existe já é atendida.
+
+#### A camada 4, por dentro
+
+A regra combinada com a operação: **fixa enquanto cabe, rolando quando não cabe — e a barra mora na
+folha.** Sidebar e plano ficam parados; o fundo é moldura, e moldura não se move.
+
+Não existe breakpoint nem JavaScript decidindo "agora rola" — quem decide é o CSS:
+
+- as grades têm um **piso** (`min-h-52`, ~4 linhas) e param de encolher ali;
+- a página usa `min-h-full` — estica até a folha quando sobra, cresce além quando falta;
+- a folha é `overflow-y-auto`: se moldura + piso cabem, o conteúdo preenche exato e **barra nenhuma
+  existe** (comportamento idêntico ao anterior); se não cabem, a rolagem surge sozinha.
+
+O custo, dito ao aprovar: na tela apertada, rolar a folha tira o cabeçalho do quadro de vista — é
+trocar "invisível e inalcançável" por "fora de vista, a um scroll de distância".
+
+> **Celular continua sendo outra conversa.** Estas camadas tornam o produto *utilizável e completo*
+> em qualquer dispositivo; uma grade de 70+ colunas num telefone só fica *ótima* com um redesenho
+> próprio (linha vira card). Registrado para não parecer promessa.
+
+`shell.test.tsx` trava a estrutura de que o mecanismo depende: a folha como único scroller de
+emergência, nenhuma página amputando a própria altura, e o piso em toda grade.
 
 ### 1.1.0. A paleta de status — construída por regra, não escolhida a dedo — 12/08/2026
 

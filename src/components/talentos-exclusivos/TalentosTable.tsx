@@ -713,7 +713,12 @@ export function TalentosTable({
         `sticky` em tabela vale no `<th>`, não no `<thead>` — daí o posicionamento célula a
         célula, com altura fixa (`h-9`) para que a linha de criação saiba onde parar.
       */}
-      <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
+      <div className="min-h-52 flex-1 overflow-auto custom-scrollbar">
+        {/*
+          `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
+          o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
+          que deixava a área colapsar a zero e o excedente ser amputado pelo overflow do shell.
+        */}
         {/*
           `table-fixed` com larguras explícitas: sem isto o navegador redistribui a sobra entre as
           colunas e o cabeçalho sai do lugar ao trocar de aba, porque cada aba tem outro número

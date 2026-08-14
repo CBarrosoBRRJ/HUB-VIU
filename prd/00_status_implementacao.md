@@ -20,7 +20,7 @@
 | Onboarding | ✅ Convite nominal por link (24h, uso único), link coletivo de equipe com rotação diária, conta única por e-mail, domínios autorizados — **os três fluxos por link só passaram a funcionar em 03/08** (§5.6) |
 | Autenticação | ⏸️ Decidido **SSO corporativo**, sem senha — simulado até existir backend |
 | Verificação de tipos | ✅ `tsc --noEmit` sem erros, agora em **`strict: true`** com `noUnusedLocals` · build de produção OK |
-| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 155 testes de UI (ver §5) |
+| Testes | ✅ 38 suítes · 1.613 verificações · **0 falhas** + 158 testes de UI (ver §5) |
 | **Confirmação e desfazer** | ✅ Diálogo próprio nos **12 pontos** de confirmação (o `window.confirm` saiu do produto) + **`Ctrl+Z`** no dado dos três quadros (§5.13) |
 | **Legibilidade** | ✅ **Tipografia aprovada e congelada em 11/08/2026** ([03 §1.2](03_padroes_ui.md)) — escala em `rem`, raiz fluida, régua pessoal, fontes por SO, contraste AA e movimento reduzido. **Não se altera sem pedido explícito** |
 | Layout por faixa de largura | ❌ Débito nº 11 — a grade ainda rola na horizontal num notebook de 1366px |
@@ -207,7 +207,7 @@ matriz completa em [`05_perfis_usuarios.md`](05_perfis_usuarios.md).
 | `components/backlog/EtiquetaSelect.tsx` | Etiqueta colorida de lista fechada | [03 §10](03_padroes_ui.md) |
 | `utils/marcas.ts` | Leitura do cadastro de marcas pela linha | [08 §6](08_backlog_e_integracoes.md) |
 | `pages/CadastroClientes.tsx` | Página de cadastro — em branco | §2.1.1 |
-| `testes-ui/` | 155 testes de UI, em sete arquivos | §5.3 |
+| `testes-ui/` | 158 testes de UI, em oito arquivos | §5.3 |
 | `components/ui/CelulaNumero.tsx` | Quantidade inteira — vazio ≠ zero | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaData.tsx` | Data em pt-BR, guardada em ISO | [08 §6](08_backlog_e_integracoes.md) |
 | `components/ui/CelulaLink.tsx` | Endereço externo — mostra o destino, não a URL | [08 §6](08_backlog_e_integracoes.md) |
@@ -314,7 +314,7 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 > nem chegava a rodar por erro de importação — falha silenciosa, a pior categoria. Ele também
 > recompila antes de cada execução: sem isso a suíte testaria o `.js` da rodada anterior.
 
-**Estado atual: 1.613 verificações em 38 suítes de regra, mais 155 testes de UI. 0 falhas.**
+**Estado atual: 1.613 verificações em 38 suítes de regra, mais 158 testes de UI. 0 falhas.**
 
 > A contagem **caiu** de 1.353 em 03/08, e isso é esperado: a rodada de ajustes do Backlog (§5.7)
 > removeu quatro colunas de contagem, duas abas e uma coluna redundante. Menos superfície, menos
@@ -332,8 +332,8 @@ linha — e verifica as invariantes do modelo em vez de números fixos:
 
 ### 5.3. Os testes de UI — `testes-ui/`, dentro do repositório
 
-**155 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
-nenhum mock. Vitest + jsdom + Testing Library. Em sete arquivos:
+**158 testes** sobre a aplicação montada: `DadosProvider` verdadeiro, `BacklogTable` verdadeiro,
+nenhum mock. Vitest + jsdom + Testing Library. Em oito arquivos:
 
 | Arquivo | Testes | O que cobre |
 |---|---:|---|
@@ -344,6 +344,7 @@ nenhum mock. Vitest + jsdom + Testing Library. Em sete arquivos:
 | `documentacao.test.tsx` | 4 | **o PRD contra o código** (desde 12/08) |
 | `verComo.test.tsx` | 3 | o "Ver como": fiel na tela, o dono age e assina, o admin não age |
 | `reproducao.test.tsx` | 2 | o cenário exato da produção da operação — vínculo órfão e exclusão em cascata |
+| `shell.test.tsx` | 3 | a camada de emergência do shell — folha rolável, páginas sem amputação, piso nas grades |
 
 > **Três desses arquivos não clicam em nada: eles leem o código-fonte.** `tipografia` procura
 > tamanho cravado em pixel e faz a conta das camadas da grade; `documentacao` confere o PRD contra
@@ -1911,14 +1912,14 @@ Ordenado por impacto real, não por facilidade.
 | 1 | **Sem banco rodando** | Nada compartilhado: cada navegador tem sua realidade. O **esquema** já existe (§8) | [09 §3](09_fundacoes_tecnicas.md) |
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
-| 4 | **Sem CI** | As 38 suítes e os 155 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
+| 4 | **Sem CI** | As 38 suítes e os 158 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
 | 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
 | 8 | **Arquivos de tabela grandes** (1.500+ linhas) | Custo de leitura; sem defeito associado | §3 |
 | 9 | **Gesto de "marcar revisada" sem interface** | Dá para entrar no filtro "A conferir" e não dá para sair | §5.6 |
 | 10 | **Seed com datas absolutas** | A demonstração **esvazia sozinha**: a regra dos 20 dias arquiva o seed conforme o calendário anda. Em 11/08 o Backlog já abre com 9 linhas em vez de 12 | §5.13 |
-| 11 | **Layout não se adapta à largura da tela** *(altura resolvida em 14/08/2026 — [08 §5.9](08_backlog_e_integracoes.md))* | 19 classes responsivas no projeto inteiro; a grade pede 1340px mais a sidebar de 256px, e num notebook de 1366px já rola na horizontal. A tipografia foi resolvida (§5.14); o layout, não | §5.14 |
+| 11 | ~~Layout não se adapta à tela~~ | **Resolvido em 14/08/2026** pelo sistema de camadas: reorganização por largura, economia por altura e rolagem de emergência na folha. O que resta é decisão futura, não defeito — um redesenho próprio para celular | [03 §1.0.5](03_padroes_ui.md) | | 19 classes responsivas no projeto inteiro; a grade pede 1340px mais a sidebar de 256px, e num notebook de 1366px já rola na horizontal. A tipografia foi resolvida (§5.14); o layout, não | §5.14 |
 | 12 | **Desfazer não alcança a administração** | Decisão, não esquecimento (§5.13 e [03 §8.2](03_padroes_ui.md)) — mas quem desfaz no quadro vai tentar desfazer em Usuários | [03 §8.2](03_padroes_ui.md) |
 
 > **Os três primeiros são o mesmo assunto: falta o servidor.** Não adianta atacar do 5 em diante
@@ -2146,7 +2147,7 @@ npm install
 npm run dev                    # porta 3001 (strictPort — 3000 é de outro projeto)
 npm run typecheck              # tipos, em modo strict
 npm run build                  # build de produção
-npm run test:ui                # 155 testes de UI
+npm run test:ui                # 158 testes de UI
 cd testes-regras && bash rodar.sh   # 38 suítes de regra — espere "TOTAL DE FALHAS: 0"
 npx prisma validate            # modelo de dados
 ```
