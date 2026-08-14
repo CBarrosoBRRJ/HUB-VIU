@@ -33,6 +33,7 @@ import { formatDate, todayISO } from '../../utils/dates';
 import { baixarXlsx, ColunaExportada } from '../../utils/exportacao';
 import { EditableCell } from '../ui/EditableCell';
 import { CelulaOculta } from '../ui/CelulaOculta';
+import { BarraRolagemHorizontal } from '../ui/BarraRolagemHorizontal';
 import { SelecaoComCadastro } from '../ui/SelecaoComCadastro';
 import { BuscaQuadro } from '../ui/BuscaQuadro';
 import {
@@ -1891,7 +1892,17 @@ export function BacklogTable({
       o único que não tira nada da tela. Os outros três: o fluxo recolhível (216px), as linhas mais
       densas (96px) e o cabeçalho compacto (50px).
     */
-    <div className="grade-fluida flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+/*
+      `flex-1` + `overflow-clip` desde 14/08/2026 — antes era `h-full min-h-0 overflow-hidden`, e
+      os três juntos quebravam a rolagem de emergência POR DENTRO: o card não crescia além do miolo
+      (`h-full`), encolhia abaixo do próprio conteúdo (`min-h-0`) e amputava o excedente
+      (`overflow-hidden`) — o rodapé sumia sem a folha ter o que rolar.
+
+      Agora o card cresce com o conteúdo (o piso da grade empurra) e o `clip` corta o canto
+      arredondado igual ao `hidden`, com uma diferença que importa: **clip não cria scroll
+      container**, então o `sticky` da barra de colunas atravessa até a folha.
+    */
+    <div className="grade-fluida flex flex-1 flex-col overflow-clip rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/*
         Abas temáticas.
 
@@ -2061,7 +2072,7 @@ export function BacklogTable({
           </p>
         </div>
       ) : (
-      <div ref={areaRolagem} className="min-h-52 flex-1 overflow-auto custom-scrollbar">
+      <div ref={areaRolagem} className="min-h-52 flex-1 overflow-auto custom-scrollbar sem-barra-horizontal">
         {/*
           `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
           o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
@@ -2252,6 +2263,8 @@ export function BacklogTable({
       )}
 
       {oportunidades.length > 0 && <RodapeTotais oportunidades={oportunidades} />}
+
+      <BarraRolagemHorizontal alvoRef={areaRolagem} />
 
       {temSelecao && (
         <div className="shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">

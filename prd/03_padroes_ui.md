@@ -349,8 +349,34 @@ trocar "invisível e inalcançável" por "fora de vista, a um scroll de distânc
 > em qualquer dispositivo; uma grade de 70+ colunas num telefone só fica *ótima* com um redesenho
 > próprio (linha vira card). Registrado para não parecer promessa.
 
+#### A barra horizontal mora na dobra — 14/08/2026, segunda volta
+
+Com a folha rolando, apareceu o efeito seguinte, reportado pela operação: a barra horizontal nativa
+da grade mora na base do contêiner — que agora pode estar **abaixo da dobra**. Para deslocar as
+colunas, a pessoa rolava até o fundo, usava a barra e voltava.
+
+A resposta é o padrão das ferramentas que a equipe já usa (Airtable, Monday): a nativa horizontal
+some (`.sem-barra-horizontal`) e um **espelho sincronizado** assume, com `position: sticky` na base
+do visível — sempre à vista, sempre a um toque ([`BarraRolagemHorizontal`](../src/components/ui/BarraRolagemHorizontal.tsx)).
+Quando tudo cabe, ele fica exatamente onde a nativa ficaria: ninguém nota a troca. As abas seguem
+sendo o salto grosso (clicar em "Financeiro" rola até a seção); a barra é o ajuste fino.
+
+> **Paginação foi debatida e descartada para isto** — ela ataca a rolagem vertical, e o problema
+> era o acesso à horizontal: numa tabela paginada as 70 colunas continuam existindo, e a barra
+> continuaria na base da página N. Segue no débito nº 5 como decisão futura de **performance**.
+
+> **O furo que a implementação revelou:** a cadeia da rolagem de emergência estava quebrada POR
+> DENTRO. O card da grade era `h-full min-h-0 overflow-hidden` — não crescia além do miolo,
+> encolhia abaixo do próprio conteúdo e amputava o excedente antes de a folha ter o que rolar. E o
+> `overflow-hidden` prenderia o sticky do espelho ao card. A tríade virou `flex-1` +
+> `overflow-clip`: o clip corta o canto arredondado igual ao hidden, **sem criar scroll
+> container** — o sticky atravessa até a folha, e o conteúdo empurra em vez de ser cortado.
+> Limite aceito e registrado: Firefox não esconde um eixo só da barra nativa; lá ela convive com o
+> espelho.
+
 `shell.test.tsx` trava a estrutura de que o mecanismo depende: a folha como único scroller de
-emergência, nenhuma página amputando a própria altura, e o piso em toda grade.
+emergência, nenhuma página amputando a própria altura, o piso em toda grade — e, desde a segunda
+volta, o card em `overflow-clip` com o espelho presente nas três grades.
 
 ### 1.1.0. A paleta de status — construída por regra, não escolhida a dedo — 12/08/2026
 

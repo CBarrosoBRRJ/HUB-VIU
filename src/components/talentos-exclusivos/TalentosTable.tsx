@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowDown, ArrowUp, AtSign, Banknote, CheckSquare, ChevronsUpDown, FileSpreadsheet, FileText, IdCard, Lock,
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { RedesTalento, Talento, TalentContract } from '../../types';
 import { useDados } from '../../context/DadosProvider';
+import { BarraRolagemHorizontal } from '../ui/BarraRolagemHorizontal';
 import {
   AREAS, areasDefinidas, ContagemTalentos, contratosDoTalento, FiltroTalento, getTipo, REDES,
   redesPreenchidas, responsaveisDaArea, TIPOS,
@@ -110,6 +111,7 @@ export function TalentosTable({
   );
 
   const [aba, setAba] = useState(abas[0]?.id ?? 'talentos:identificacao');
+  const areaRolagem = useRef<HTMLDivElement>(null);
 
   const [sort, setSort] = useState<{ field: SortField; direction: 'asc' | 'desc' } | null>(null);
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
@@ -567,7 +569,17 @@ export function TalentosTable({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+/*
+      `flex-1` + `overflow-clip` desde 14/08/2026 — antes era `h-full min-h-0 overflow-hidden`, e
+      os três juntos quebravam a rolagem de emergência POR DENTRO: o card não crescia além do miolo
+      (`h-full`), encolhia abaixo do próprio conteúdo (`min-h-0`) e amputava o excedente
+      (`overflow-hidden`) — o rodapé sumia sem a folha ter o que rolar.
+
+      Agora o card cresce com o conteúdo (o piso da grade empurra) e o `clip` corta o canto
+      arredondado igual ao `hidden`, com uma diferença que importa: **clip não cria scroll
+      container**, então o `sticky` da barra de colunas atravessa até a folha.
+    */
+    <div className="flex flex-1 flex-col overflow-clip rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Abas: cada uma revela um grupo de colunas do mesmo quadro. */}
       <div role="navigation" aria-label="Seções do quadro" className="flex shrink-0 flex-wrap items-center gap-1 bg-plano px-3 py-2.5">
         {abas.map((item) => {
@@ -713,7 +725,7 @@ export function TalentosTable({
         `sticky` em tabela vale no `<th>`, não no `<thead>` — daí o posicionamento célula a
         célula, com altura fixa (`h-9`) para que a linha de criação saiba onde parar.
       */}
-      <div className="min-h-52 flex-1 overflow-auto custom-scrollbar">
+      <div ref={areaRolagem} className="min-h-52 flex-1 overflow-auto custom-scrollbar sem-barra-horizontal">
         {/*
           `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
           o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
@@ -826,6 +838,8 @@ export function TalentosTable({
           </tbody>
         </table>
       </div>
+
+      <BarraRolagemHorizontal alvoRef={areaRolagem} />
 
       {temSelecao && (
         <div className="shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">

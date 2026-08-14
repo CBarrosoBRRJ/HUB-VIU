@@ -59,5 +59,23 @@ describe('a camada de emergência do shell', () => {
     const semPiso = grades.filter((g) => !readFileSync(g, 'utf8').includes('min-h-52'));
 
     expect(semPiso, 'grade sem piso colapsa a zero e o excedente volta a ser amputado').toEqual([]);
+
+    /*
+      **O card usa `overflow-clip`, nunca `overflow-hidden`** — 14/08/2026. Os dois cortam o canto
+      arredondado igual; a diferença é que `hidden` cria scroll container, e isso quebra DUAS
+      coisas ao mesmo tempo: prende o `sticky` da barra de colunas ao card (que não rola) e amputa
+      o excedente antes de a folha ter o que rolar. Foi o furo que a barra na dobra revelou.
+    */
+    for (const grade of grades) {
+      const codigo = readFileSync(grade, 'utf8');
+      expect(codigo, `${grade}: o card não pode voltar a ser scroll container`)
+        .not.toMatch(/flex-col overflow-hidden rounded-2xl/);
+      expect(codigo, `${grade}: o clip corta o canto sem prender o sticky`)
+        .toContain('overflow-clip rounded-2xl');
+      expect(codigo, `${grade}: a barra de colunas mora na dobra`)
+        .toContain('BarraRolagemHorizontal');
+      expect(codigo, `${grade}: a nativa horizontal cede o lugar ao espelho`)
+        .toContain('sem-barra-horizontal');
+    }
   });
 });

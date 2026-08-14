@@ -102,9 +102,14 @@ export function Talentos() {
         ]}
       />
 
-      <main className="flex min-h-0 flex-1 flex-col bg-[#f4f6fa] p-6">
+      {/*
+        Sem `min-h-0` desde 14/08/2026: era ele que impedia o miolo de crescer além da folha — a
+        cadeia da rolagem de emergência precisa que o conteúdo POSSA exceder para a folha ter o
+        que rolar. Quando cabe, o `flex-1` estica igual a antes.
+      */}
+      <main className="flex flex-1 flex-col bg-[#f4f6fa] p-6">
         {/* `min-h-0` deixa o card encolher abaixo do conteúdo — é o que faz a lista rolar. */}
-        <div className="min-h-0 flex-1">
+        <div className="flex flex-1 flex-col">
           <TalentosTable
             talentos={visiveis}
             total={doFiltro.length}

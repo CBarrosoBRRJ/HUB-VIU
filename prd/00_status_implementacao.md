@@ -1913,7 +1913,7 @@ Ordenado por impacto real, não por facilidade.
 | 2 | **Sem autenticação** | A sessão troca por um seletor "Entrar como (demo)" | [05 §7](05_perfis_usuarios.md) |
 | 3 | **Regras só no cliente** | Toda permissão desta documentação é **máscara**, não barreira | [05 §10](05_perfis_usuarios.md) |
 | 4 | **Sem CI** | As 38 suítes e os 158 testes de UI rodam só quando alguém lembra. O Git foi resolvido em 12/08/2026 — o projeto está versionado e publicado —, mas nada dispara a bateria a cada push | — |
-| 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez | §7 |
+| 5 | **Sem paginação nem virtualização** | 500 linhas montam de uma vez. **Nota de 14/08/2026:** quando vier, é decisão de *performance* — paginação como navegação foi debatida e descartada ([03 §1.0.5](03_padroes_ui.md)) | §7 |
 | 6 | **Busca sem debounce** | Filtra a cada tecla sobre a lista inteira | §7 |
 | 7 | **Feriados fora do cálculo de dias úteis** | Prazo otimista em semanas com feriado | [09 §4](09_fundacoes_tecnicas.md) |
 | 8 | **Arquivos de tabela grandes** (1.500+ linhas) | Custo de leitura; sem defeito associado | §3 |

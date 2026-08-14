@@ -842,6 +842,18 @@
 }
 
 /*
+  A barra horizontal NATIVA da grade some — quem assume é o espelho fixo na dobra
+  (`BarraRolagemHorizontal`), 14/08/2026. A vertical fica. Esconder a barra não desabilita a
+  rolagem: gesto de trackpad, shift+scroll e o scrollTo das abas continuam funcionando.
+
+  Firefox não permite esconder um eixo só (`scrollbar-width` afeta os dois); lá a nativa convive
+  com o espelho — duplicada e funcional, registrado como limite aceito.
+*/
+.sem-barra-horizontal::-webkit-scrollbar:horizontal {
+  display: none;
+}
+
+/*
   A mesma barra, no plano escuro da sidebar. O trilho claro do `custom-scrollbar` aparecia ali como
   um risco branco no meio do fundo — a barra de rolagem também tem plano.
 */
