@@ -1919,7 +1919,7 @@ Ordenado por impacto real, não por facilidade.
 | 8 | **Arquivos de tabela grandes** (1.500+ linhas) | Custo de leitura; sem defeito associado | §3 |
 | 9 | **Gesto de "marcar revisada" sem interface** | Dá para entrar no filtro "A conferir" e não dá para sair | §5.6 |
 | 10 | **Seed com datas absolutas** | A demonstração **esvazia sozinha**: a regra dos 20 dias arquiva o seed conforme o calendário anda. Em 11/08 o Backlog já abre com 9 linhas em vez de 12 | §5.13 |
-| 11 | ~~Layout não se adapta à tela~~ | **Resolvido em 14/08/2026** pelo sistema de camadas: reorganização por largura, economia por altura e rolagem de emergência na folha. O que resta é decisão futura, não defeito — um redesenho próprio para celular | [03 §1.0.5](03_padroes_ui.md) | | 19 classes responsivas no projeto inteiro; a grade pede 1340px mais a sidebar de 256px, e num notebook de 1366px já rola na horizontal. A tipografia foi resolvida (§5.14); o layout, não | §5.14 |
+| 11 | ~~Layout não se adapta à tela~~ | **Resolvido em 14/08/2026** pelo sistema de camadas: reorganização por largura, economia por altura e rolagem de emergência na folha. O que resta é decisão futura, não defeito — um redesenho próprio para celular | [03 §1.0.5](03_padroes_ui.md) |
 | 12 | **Desfazer não alcança a administração** | Decisão, não esquecimento (§5.13 e [03 §8.2](03_padroes_ui.md)) — mas quem desfaz no quadro vai tentar desfazer em Usuários | [03 §8.2](03_padroes_ui.md) |
 
 > **Os três primeiros são o mesmo assunto: falta o servidor.** Não adianta atacar do 5 em diante
