@@ -374,6 +374,20 @@ sendo o salto grosso (clicar em "Financeiro" rola até a seção); a barra é o 
 > Limite aceito e registrado: Firefox não esconde um eixo só da barra nativa; lá ela convive com o
 > espelho.
 
+#### Uma barra só, com cara de controle — 14/08/2026, terceira volta
+
+A operação viu **duas** barras horizontais e mandou o print. A segunda não reproduziu em navegador
+limpo — vem de fora do app (portal além da borda ou extensão esticando o documento). A resposta
+cobre a causa conhecida e as futuras: **o documento nunca rola na horizontal** (`html, body {
+overflow-x: clip }`) — o app não tem uso legítimo para isso, toda rolagem lateral é interna às
+grades. E o `.sem-barra-horizontal` ganhou `height: 0` de cinto, para ambientes que ignorem o
+`display: none`.
+
+O design da barra de colunas subiu de "detalhe tolerado" para **controle**: é o único ponto de
+rolagem horizontal da grade, então ganhou thumb de 10px, trilho suave com respiro lateral e hover
+que escurece (`.barra-de-colunas`, no `index.css`) — em vez da barra fina global de 6px, que é
+dimensionada para rolagens que raramente se tocam.
+
 `shell.test.tsx` trava a estrutura de que o mecanismo depende: a folha como único scroller de
 emergência, nenhuma página amputando a própria altura, o piso em toda grade — e, desde a segunda
 volta, o card em `overflow-clip` com o espelho presente nas três grades.

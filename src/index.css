@@ -851,6 +851,47 @@
 */
 .sem-barra-horizontal::-webkit-scrollbar:horizontal {
   display: none;
+  height: 0; /* cinto além do display: ambientes que ignorem um respeitam o outro */
+}
+
+/*
+  O documento NUNCA rola na horizontal — 14/08/2026.
+
+  A operação viu uma segunda barra horizontal abaixo do rodapé, que não reproduzimos em navegador
+  limpo: barra do próprio documento, provocada por algo fora do app (portal posicionado além da
+  borda, extensão injetando elemento largo). O app não tem nenhum uso legítimo de rolagem
+  horizontal do documento — toda rolagem lateral é interna às grades —, então o corte vale para
+  qualquer causa, conhecida ou futura. `clip` em vez de `hidden`: não cria scroll container.
+*/
+html,
+body {
+  overflow-x: clip;
+}
+
+/*
+  A barra de colunas — o único controle horizontal da grade, com cara de controle.
+
+  O espelho herda a barra fina global (6px), que é discreta demais para o ÚNICO ponto de rolagem
+  horizontal: aqui o thumb é maior (10px), com respiro lateral e um trilho que aparece suave.
+  Hover escurece — é um controle que se usa, não um detalhe que se tolera.
+*/
+.barra-de-colunas::-webkit-scrollbar {
+  height: 10px;
+}
+
+.barra-de-colunas::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.6);
+  border-radius: 9999px;
+  margin: 0 8px;
+}
+
+.barra-de-colunas::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.55);
+  border-radius: 9999px;
+}
+
+.barra-de-colunas::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.8);
 }
 
 /*

@@ -86,10 +86,10 @@ export function BarraRolagemHorizontal({ alvoRef }: { alvoRef: RefObject<HTMLDiv
     */
     <div
       data-testid="barra-de-colunas"
-      className={`sticky bottom-0 z-10 shrink-0 bg-white ${temOverflow ? '' : 'hidden'}`}
+      className={`sticky bottom-0 z-10 shrink-0 border-t border-slate-100 bg-white ${temOverflow ? '' : 'hidden'}`}
     >
-      <div ref={espelhoRef} className="overflow-x-auto overflow-y-hidden">
-        <div style={{ width: larguraConteudo }} className="h-2" />
+      <div ref={espelhoRef} className="barra-de-colunas overflow-x-auto overflow-y-hidden py-1">
+        <div style={{ width: larguraConteudo }} className="h-px" />
       </div>
     </div>
   );
