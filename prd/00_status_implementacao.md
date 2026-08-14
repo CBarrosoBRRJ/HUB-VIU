@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 26.0 | **Data:** 12/08/2026 | **Base:** código em `src/`
+**Versão:** 27.0 | **Data:** 14/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -541,6 +541,49 @@ forma, não no fim do dia.*
 O rastro de refatorações do dia: um comentário citava o `AREA_DA_ABA` já removido como se existisse,
 e outro prometia que `praca`, `alcanceEstimado` e `publicoAlvo` "continuam no modelo" — a auditoria
 da tarde os havia apagado. Comentário desatualizado é pior que nenhum: quem lê confia.
+
+---
+
+## 5.20. O dia do usuário final — 14/08/2026, décima quinta rodada
+
+A primeira rodada guiada por reclamações de quem **usa** o produto, não só de quem o encomenda — o
+print do Gustavo ("não consigo nem ver o que tem nas linhas") abriu o dia, e cada correção puxou a
+seguinte. O resumo, com os detalhes nos documentos que governam cada decisão:
+
+| O que veio | O que ficou | Onde |
+|---|---|---|
+| "não vejo as linhas" (1366×657: **zero** linhas) | o orçamento vertical: a moldura custava ~585px e ninguém tinha feito a conta; o mapa cede primeiro, o cabeçalho compacta sozinho | [08 §5.9](08_backlog_e_integracoes.md) |
+| "ainda estão reclamando — será cache?" | não era: era um `useEffect` que **persistia o default como escolha** na montagem. Preferência se grava no gesto | [08 §5.9](08_backlog_e_integracoes.md) |
+| "responsivo em 1440px" + "-webkit-scrollbar" | o par empilha até 1536px; scrollbar fina por padrão em tudo | [08 §5.9](08_backlog_e_integracoes.md) |
+| a folha amputava o que não cabia | o sistema de camadas, com a rolagem de emergência **na folha** — sidebar e plano imóveis; débito nº 11 fechado | [03 §1.0.5](03_padroes_ui.md) |
+| "a barra horizontal fica lá embaixo" | a barra de colunas mora **na dobra** (espelho sticky); a nativa some por **geometria** | [03 §1.0.5](03_padroes_ui.md) |
+| "15 a 20 projetos por página?" | a grade pagina em **20**, com as regras que a mantêm honesta (totais e exportação seguem o recorte) | [08 §5.10](08_backlog_e_integracoes.md) |
+
+### As cinco voltas da barra, e o que custaram
+
+A barra horizontal levou **cinco voltas** na mesma seção do PRD 03, e as lições valem mais que a
+barra:
+
+1. `min-content` transbordava sobre o vizinho — *piso rígido em contêiner elástico transfere o
+   problema para o lado*;
+2. o esconder por `::-webkit-scrollbar` estava **morto no Chrome ≥121** — `scrollbar-width`
+   definido desliga os pseudo webkit; *os dois sistemas de scrollbar não coexistem por elemento*;
+3. o documento ganhou `overflow-x: clip` — *o app não tem uso legítimo de rolagem horizontal do
+   documento, então o corte vale para causas futuras*;
+4. o clip por `height: calc(100%+17px)` era **circular** quando o card cresce com o conteúdo —
+   `100%` de um pai dimensionado pelo filho cai em `auto`; a margem negativa não depende de nada;
+5. a soma: **verificação visual não basta** — dois screenshots "pareciam certos"; medir o DOM
+   (alturas, quem rola, onde cada caixa termina) é o que separa "parece corrigido" de "corrigido".
+
+### Os números
+
+| Medida | Antes | Depois |
+|--------|------:|-------:|
+| Linhas visíveis a 1366×657 | 0 | **3** *(e 20/página desde a paginação)* |
+| Débitos fechados | — | **nº 11** (layout × tela) *(e o nº 5 encolheu para virtualização)* |
+| Suítes de regras | 38 | **39** |
+| Testes de UI | 155 | **161** |
+| Reclamações de usuário final atendidas | — | **3** *(altura, barras, paginação)* |
 
 ---
 
