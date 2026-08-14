@@ -725,7 +725,21 @@ export function TalentosTable({
         `sticky` em tabela vale no `<th>`, não no `<thead>` — daí o posicionamento célula a
         célula, com altura fixa (`h-9`) para que a linha de criação saiba onde parar.
       */}
-      <div ref={areaRolagem} className="min-h-52 flex-1 overflow-auto custom-scrollbar sem-barra-horizontal">
+      {/*
+        A barra horizontal NATIVA some por GEOMETRIA, não por CSS de scrollbar — 14/08/2026.
+
+        A primeira tentativa a escondia com `::-webkit-scrollbar:horizontal` — e estava morta no
+        Chrome ≥121: quando `scrollbar-width` está definido (o global fino de 13/08), o navegador
+        ignora TODOS os pseudo-elementos webkit. Dois sistemas que não coexistem, e a regra falhava
+        em silêncio — a operação viu as duas barras.
+
+        Aqui não há sistema para falhar: o scroller interno é 17px mais alto que este wrapper, e a
+        base dele — onde a barra nativa mora — fica sob o `overflow-clip`. O `pb` devolve os 17px
+        ao conteúdo, então a última linha não fica atrás do corte. Rolagem real preservada: os
+        `sticky` de cabeçalho e colunas congeladas continuam ancorando no scroller.
+      */}
+      <div className="min-h-52 flex-1 overflow-clip">
+        <div ref={areaRolagem} className="h-[calc(100%+17px)] overflow-auto pb-[17px]">
         {/*
           `min-h-52` (~4 linhas): o piso da camada de emergência. A grade para de encolher aqui, e
           o que a tela não comportar vira rolagem DA FOLHA — nada fica inalcançável. Era `min-h-0`,
@@ -837,6 +851,7 @@ export function TalentosTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <BarraRolagemHorizontal alvoRef={areaRolagem} />

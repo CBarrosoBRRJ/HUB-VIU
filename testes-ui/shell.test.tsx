@@ -74,8 +74,15 @@ describe('a camada de emergência do shell', () => {
         .toContain('overflow-clip rounded-2xl');
       expect(codigo, `${grade}: a barra de colunas mora na dobra`)
         .toContain('BarraRolagemHorizontal');
-      expect(codigo, `${grade}: a nativa horizontal cede o lugar ao espelho`)
-        .toContain('sem-barra-horizontal');
+      /*
+        A nativa some por GEOMETRIA (scroller 17px mais alto que o wrapper `overflow-clip`), não
+        por CSS de scrollbar: no Chrome ≥121, `scrollbar-width` definido desliga os pseudo webkit,
+        e a regra que escondia por pseudo falhou em silêncio — a operação viu as duas barras.
+      */
+      expect(codigo, `${grade}: a nativa horizontal é clipada por geometria`)
+        .toContain('h-[calc(100%+17px)]');
+      expect(codigo, `${grade}: e nenhuma regra morta de pseudo volta a prometer o esconder`)
+        .not.toContain('sem-barra-horizontal');
     }
   });
 });

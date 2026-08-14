@@ -849,10 +849,17 @@
   Firefox não permite esconder um eixo só (`scrollbar-width` afeta os dois); lá a nativa convive
   com o espelho — duplicada e funcional, registrado como limite aceito.
 */
-.sem-barra-horizontal::-webkit-scrollbar:horizontal {
-  display: none;
-  height: 0; /* cinto além do display: ambientes que ignorem um respeitam o outro */
-}
+/*
+  A regra `.sem-barra-horizontal` viveu aqui por algumas horas e saiu — 14/08/2026.
+
+  Ela escondia a barra nativa via `::-webkit-scrollbar:horizontal`, e estava MORTA no Chrome ≥121:
+  com `scrollbar-width` definido (o global fino, acima), o navegador ignora todos os
+  pseudo-elementos webkit — os dois sistemas de estilo de scrollbar não coexistem no mesmo
+  elemento. A regra falhava em silêncio, e a operação via a barra que ela prometia esconder.
+
+  O esconder virou **geometria** (wrapper `overflow-clip` nas grades): não há sistema para falhar.
+  A lição fica: estilo de scrollbar não se mistura — ou moderno, ou webkit, por elemento.
+*/
 
 /*
   O documento NUNCA rola na horizontal — 14/08/2026.
@@ -875,6 +882,16 @@ body {
   horizontal: aqui o thumb é maior (10px), com respiro lateral e um trilho que aparece suave.
   Hover escurece — é um controle que se usa, não um detalhe que se tolera.
 */
+.barra-de-colunas {
+  /*
+    Reativa os pseudo-elementos webkit NESTE elemento: `auto` remove o `scrollbar-width: thin`
+    global que os desligava (Chrome ≥121). No Firefox, que não tem os pseudo, fica a barra
+    clássica — maior, funcional, aceitável.
+  */
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+
 .barra-de-colunas::-webkit-scrollbar {
   height: 10px;
 }

@@ -388,6 +388,28 @@ rolagem horizontal da grade, então ganhou thumb de 10px, trilho suave com respi
 que escurece (`.barra-de-colunas`, no `index.css`) — em vez da barra fina global de 6px, que é
 dimensionada para rolagens que raramente se tocam.
 
+#### "Não corrigiu" — e a quarta volta encontrou duas causas empilhadas — 14/08/2026
+
+A operação voltou com o mesmo problema, e a investigação achou **duas** causas ao mesmo tempo:
+
+1. **a produção estava commits atrás** — o redeploy não tinha pegado a barra nova (verificado por
+   marcador no bundle servido);
+2. **a correção tinha um defeito que só existe no Chrome moderno.** Desde o Chrome 121, quando
+   `scrollbar-width` está definido num elemento, o navegador **ignora todos os pseudo-elementos
+   `::-webkit-scrollbar`** dele — os dois sistemas de estilo de scrollbar não coexistem. O global
+   fino de 13/08 (`* { scrollbar-width: thin }`) desligou, em silêncio, tanto a regra que escondia
+   a barra nativa quanto o design do espelho.
+
+A resposta tirou o esconder do CSS de scrollbar e o levou para a **geometria**: o scroller interno
+é 17px mais alto que um wrapper `overflow-clip`, e a base dele — onde a barra nativa mora — fica
+sob o corte; o `padding-bottom` devolve os 17px ao conteúdo. Não há sistema para falhar, em nenhum
+navegador. O espelho reativa o webkit localmente (`scrollbar-width: auto` no elemento) para o
+design de 10px valer.
+
+> **A lição:** estilo de scrollbar não se mistura — moderno e webkit, **por elemento**, um exclui o
+> outro. E regra de CSS que falha não avisa: das quatro voltas desta seção, duas foram regras
+> mortas em silêncio.
+
 `shell.test.tsx` trava a estrutura de que o mecanismo depende: a folha como único scroller de
 emergência, nenhuma página amputando a própria altura, o piso em toda grade — e, desde a segunda
 volta, o card em `overflow-clip` com o espelho presente nas três grades.
