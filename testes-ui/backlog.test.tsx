@@ -1390,19 +1390,43 @@ describe('cabeçalho legível', () => {
     expect(tabela.style.minWidth).toBe('100%');
   });
 
-  it('as âncoras ficam congeladas, e aparecem uma vez só', () => {
-    montar();
+  it('as âncoras aparecem uma vez só — e o congelado depende da largura da janela', () => {
     /*
       O que a grade contínua existe para resolver: as quatro colunas de identificação se repetiam
       nas nove abas, e a leitura recomeçava a cada troca.
-    */
-    const fixas = colunasCongeladas().filter(Boolean); // a 1ª é o checkbox, sem rótulo
-    expect(fixas).toEqual(['Ações', 'Status', 'Projeto', 'Entrada', 'Talento']);
 
-    // Uma vez só em toda a grade — se voltarem a se repetir, aparecem aqui duplicadas.
+      **Desde 14/08/2026 o conjunto congelado responde à largura.** A reclamação da equipe: as
+      âncoras cheias custam ~780px, e num notebook a faixa rolante virava uma fresta de ~260px.
+      Em janela estreita (< 1600), Entrada e Talento descongelam e rolam no início da faixa —
+      continuam existindo UMA vez; o que muda é estarem grudadas ou não.
+
+      O jsdom monta 1024 de largura: o regime padrão dos testes é o ENXUTO.
+    */
+    montar();
+    const fixas = colunasCongeladas().filter(Boolean); // a 1ª é o checkbox, sem rótulo
+    expect(fixas, 'em tela estreita, o congelado é o mínimo identitário')
+      .toEqual(['Ações', 'Status', 'Projeto']);
+
+    // Uma vez só em toda a grade — congeladas ou não, duplicar é regressão.
     const todos = screen.getAllByRole('columnheader').map((th) => th.textContent?.trim());
     for (const ancora of ['Status', 'Projeto', 'Entrada', 'Talento']) {
       expect(todos.filter((n) => n === ancora), `âncora ${ancora}`).toHaveLength(1);
+    }
+
+    // E as soltas vêm PRIMEIRO na faixa rolante — mudaram de regime, não de lugar na leitura.
+    const posEntrada = todos.indexOf('Entrada');
+    const posProjeto = todos.indexOf('Projeto');
+    expect(posEntrada, 'Entrada logo após as congeladas').toBeGreaterThan(posProjeto);
+
+    cleanup();
+    const larguraOriginal = window.innerWidth;
+    try {
+      window.innerWidth = 1920;
+      montar();
+      expect(colunasCongeladas().filter(Boolean), 'em tela larga, o conjunto cheio de sempre')
+        .toEqual(['Ações', 'Status', 'Projeto', 'Entrada', 'Talento']);
+    } finally {
+      window.innerWidth = larguraOriginal;
     }
   });
 });

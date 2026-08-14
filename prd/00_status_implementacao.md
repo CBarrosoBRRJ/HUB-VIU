@@ -1,6 +1,6 @@
 # PRD 00 — Status de Implementação
 ## Plataforma de Gestão e Talentos — Globo VIU Agenciamento
-**Versão:** 27.0 | **Data:** 14/08/2026 | **Base:** código em `src/`
+**Versão:** 27.1 | **Data:** 14/08/2026 | **Base:** código em `src/`
 
 [← Índice da documentação](README.md) · *Retrato factual do repositório*
 
@@ -558,6 +558,7 @@ seguinte. O resumo, com os detalhes nos documentos que governam cada decisão:
 | a folha amputava o que não cabia | o sistema de camadas, com a rolagem de emergência **na folha** — sidebar e plano imóveis; débito nº 11 fechado | [03 §1.0.5](03_padroes_ui.md) |
 | "a barra horizontal fica lá embaixo" | a barra de colunas mora **na dobra** (espelho sticky); a nativa some por **geometria** | [03 §1.0.5](03_padroes_ui.md) |
 | "15 a 20 projetos por página?" | a grade pagina em **20**, com as regras que a mantêm honesta (totais e exportação seguem o recorte) | [08 §5.10](08_backlog_e_integracoes.md) |
+| "as colunas fixadas deixam a parte que corre pequena" | em tela estreita as âncoras encolhem ao mínimo identitário — Entrada e Talento rolam; a faixa útil vai de ~260px para ~455px num 1366 | [08 §6.0](08_backlog_e_integracoes.md) |
 
 ### As cinco voltas da barra, e o que custaram
 
@@ -583,7 +584,7 @@ barra:
 | Débitos fechados | — | **nº 11** (layout × tela) *(e o nº 5 encolheu para virtualização)* |
 | Suítes de regras | 38 | **39** |
 | Testes de UI | 155 | **161** |
-| Reclamações de usuário final atendidas | — | **3** *(altura, barras, paginação)* |
+| Reclamações de usuário final atendidas | — | **4** *(altura, barras, paginação, âncoras)* |
 
 ---
 

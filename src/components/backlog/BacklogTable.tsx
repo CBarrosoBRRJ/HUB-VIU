@@ -34,6 +34,7 @@ import { baixarXlsx, ColunaExportada } from '../../utils/exportacao';
 import { EditableCell } from '../ui/EditableCell';
 import { CelulaOculta } from '../ui/CelulaOculta';
 import { ControlesDePagina } from '../ui/ControlesDePagina';
+import { useJanelaEstreita } from '../ui/useJanelaCurta';
 import { paginar } from '../../utils/paginar';
 import { BarraRolagemHorizontal } from '../ui/BarraRolagemHorizontal';
 import { SelecaoComCadastro } from '../ui/SelecaoComCadastro';
@@ -270,15 +271,21 @@ export function BacklogTable({
 
     Uma seção que perde todas as colunas some junto: aba sem coluna não é aba.
   */
+  /*
+    Em tela estreita as âncoras encolhem ao mínimo identitário — Entrada e Talento passam a rolar
+    no início da faixa. Ver `gradeContinua`; o corte e a conta, em `LARGURA_PARA_ANCORAS_CHEIAS`.
+  */
+  const janelaEstreita = useJanelaEstreita();
+
   const { ancoras, secoes } = useMemo(() => {
-    const grade = gradeContinua(visoesVisiveis);
+    const grade = gradeContinua(visoesVisiveis, janelaEstreita);
     return {
       ancoras: grade.ancoras,
       secoes: grade.secoes
         .map((secao) => ({ ...secao, colunas: secao.colunas.filter((c) => !colunasOcultas.includes(c.id)) }))
         .filter((secao) => secao.colunas.length > 0),
     };
-  }, [visoesVisiveis, colunasOcultas]);
+  }, [visoesVisiveis, colunasOcultas, janelaEstreita]);
   const colunasRolantes = useMemo(() => secoes.flatMap((secao) => secao.colunas), [secoes]);
   /*
     O cinto, não a regra: nenhuma coluna oculta chega até aqui depois do filtro acima. Ele fica

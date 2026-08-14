@@ -1270,7 +1270,23 @@ export function larguraDaColuna(coluna) {
  * Recebe só as visões que a sessão enxerga: uma aba sem permissão não vira seção, e portanto não
  * deixa buraco no scroll. A permissão continua sendo por aba — o que mudou foi a navegação.
  */
-export function gradeContinua(visoesVisiveis) {
+/**
+ * Em tela estreita, o congelado encolhe ao **mínimo que identifica a linha** — 14/08/2026.
+ *
+ * Reclamação da equipe: as âncoras cheias custam ~780px, e num notebook de 1366px a faixa rolante
+ * ficava com ~260px — três colunas por vez, trabalho por uma fresta. O congelamento não era o
+ * problema; o problema era ele ter tamanho fixo num espaço que varia.
+ *
+ * Com `ancorasEnxutas`, Entrada e Talento **descongelam**: saem das âncoras e entram no início da
+ * primeira seção rolante — continuam sendo as primeiras colunas que se veem, só não ficam
+ * grudadas. Elas são as certas para soltar porque são **contexto espelhável**; o que identifica a
+ * linha enquanto o resto rola é Status + Projeto (e o farol de SLA, que mora nas Ações).
+ *
+ * A dedup não muda: as duas continuam aparecendo **uma vez** — o filtro das seções segue tirando
+ * todos os espelhos, e as soltas entram explicitamente num lugar só.
+ */
+const CONGELADAS_ENXUTAS = ['status'];
+export function gradeContinua(visoesVisiveis, ancorasEnxutas = false) {
     const doQuadro = visoesVisiveis.filter((id) => COLUNAS_BACKLOG[id]);
     /*
       As âncoras saem da **primeira** aba visível, e não de uma lista fixa.
@@ -1280,14 +1296,22 @@ export function gradeContinua(visoesVisiveis) {
       alcance de quem abriu.
     */
     const primeira = doQuadro[0];
-    const ancoras = primeira
-        ? colunasDaVisao(primeira).filter(ehAncora)
+    const sufixo = (coluna) => coluna.id.split(':')[2];
+    const congela = (coluna) => ancorasEnxutas
+        ? CONGELADAS_ENXUTAS.includes(sufixo(coluna))
+        : ehAncora(coluna);
+    const ancoras = primeira ? colunasDaVisao(primeira).filter(congela) : [];
+    const soltas = primeira
+        ? colunasDaVisao(primeira).filter((coluna) => ehAncora(coluna) && !congela(coluna))
         : [];
     const secoes = doQuadro.map((visaoId) => ({
         visaoId,
         label: visaoId.split(':')[1],
         colunas: colunasDaVisao(visaoId).filter((coluna) => !ehAncora(coluna)),
     }));
+    if (soltas.length > 0 && secoes[0]) {
+        secoes[0] = { ...secoes[0], colunas: [...soltas, ...secoes[0].colunas] };
+    }
     return { ancoras, secoes };
 }
 /** Colunas que o admin pode ocultar — as fixas ficam de fora. */

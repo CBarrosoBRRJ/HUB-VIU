@@ -39,3 +39,32 @@ export function useJanelaCurta(): boolean {
 
   return curta;
 }
+
+/**
+ * Largura de janela abaixo da qual as âncoras congeladas encolhem ao mínimo — 14/08/2026.
+ *
+ * ## De onde sai o número
+ *
+ * Âncoras cheias ≈ 780px (seleção 44 + ações 72 + status ~130 + projeto 340 + entrada ~74 +
+ * talento ~120). Uma faixa rolante digna de trabalho ≈ 450px. Somando sidebar (256) e margens
+ * (~65): 780 + 450 + 321 ≈ 1550 — arredondado para 1600, errando para o lado que devolve espaço.
+ *
+ * Abaixo disso, Entrada e Talento descongelam (`gradeContinua`, `ancorasEnxutas`) e a faixa
+ * rolante ganha ~195px. Num 1366, ela vai de ~260px para ~455px.
+ */
+export const LARGURA_PARA_ANCORAS_CHEIAS = 1600;
+
+/** A janela é estreita a ponto de o congelado precisar encolher? Reage ao redimensionamento. */
+export function useJanelaEstreita(): boolean {
+  const [estreita, setEstreita] = useState(() => window.innerWidth < LARGURA_PARA_ANCORAS_CHEIAS);
+
+  useEffect(() => {
+    function medir() {
+      setEstreita(window.innerWidth < LARGURA_PARA_ANCORAS_CHEIAS);
+    }
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+
+  return estreita;
+}

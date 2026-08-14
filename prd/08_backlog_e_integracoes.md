@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.10 | **Status:** Front-end totalmente implementado e auditado | **Data:** 14/08/2026
+**Versão:** 8.11 | **Status:** Front-end totalmente implementado e auditado | **Data:** 14/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -702,6 +702,29 @@ porque o seed padrão nunca pagina e é assim que a paginação quebraria em sil
 > apareceu. A ordem importa: primeiro o diagnóstico, depois a ferramenta.
 
 ## 6. As oito seções da grade contínua
+
+### 6.0. As âncoras encolhem em tela estreita — 14/08/2026
+
+Reclamação da equipe: *"as colunas fixadas... quando a tela é pequena, a parte que corre é pequena
+e não dá boa abrangência de trabalho"*. A conta confirma: as âncoras cheias custam **~780px**, e
+num notebook de 1366px a faixa rolante ficava com **~260px** — três colunas por vez, trabalho por
+uma fresta. O congelamento não era o problema; o problema era ele ter **tamanho fixo num espaço
+que varia**.
+
+Abaixo de **1600px** de largura de janela (`LARGURA_PARA_ANCORAS_CHEIAS`, com a conta no próprio
+arquivo), **Entrada e Talento descongelam**: saem das âncoras e rolam no **início** da faixa —
+continuam sendo as primeiras colunas que se veem, uma vez só; o que muda é estarem grudadas ou
+não. A faixa rolante vai de ~260px para **~455px** num 1366.
+
+O critério do que fica congelado é o **mínimo que identifica a linha** enquanto o resto rola:
+**Projeto** (a chave), **Status** e o **farol de SLA** (na coluna Ações). Entrada e Talento são os
+certos para soltar porque são contexto espelhável — valioso, mas não identitário.
+
+Sem botão, sem modo: mais uma camada do sistema de responsividade ([03 §1.0.5](03_padroes_ui.md)),
+respondendo à pergunta contínua *"sobra largura para trabalhar?"* — e reagindo ao redimensionamento
+ao vivo. O regime **enxuto é o padrão da suíte de testes** (o jsdom monta 1024 de largura), e o
+teste das âncoras cobre os dois regimes explicitamente.
+
 
 Faixa `bg-plano`, no padrão dos demais quadros — o mesmo tom da sidebar desde 12/08/2026 ([03 §1.0.1](03_padroes_ui.md)). Desde a grade contínua ([03 §3.5](03_padroes_ui.md))
 as abas são **seções de uma tabela só**: as âncoras — seleção · Ações · Status · **Projeto** ·

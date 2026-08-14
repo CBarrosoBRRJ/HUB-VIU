@@ -154,6 +154,7 @@ por reler o registro correspondente.
 | `layoutId` do motion precisa ser único por instância | [03 §7.3](03_padroes_ui.md) |
 | Pesos de coluna somam um total fixo por aba | [03 §3](03_padroes_ui.md), [07 §6](07_visoes_e_relacoes.md) |
 | **Em tela curta, a lista tem prioridade** — o cabeçalho compacta e o mapa recolhe; a escolha da pessoa manda a partir do primeiro clique | [08 §5.9](08_backlog_e_integracoes.md) |
+| **Em tela estreita, o congelado encolhe ao mínimo identitário** — Entrada e Talento descongelam e rolam no início da faixa | [08 §6.0](08_backlog_e_integracoes.md) |
 | **Nada no produto é jamais inalcançável** — quando não cabe, a folha rola; a barra mora nela, sidebar e plano imóveis | [03 §1.0.5](03_padroes_ui.md) |
 | **Preferência se grava no gesto**, nunca na montagem — `useEffect` que persiste estado transforma default em escolha | [08 §5.9](08_backlog_e_integracoes.md) |
 | Estilo de scrollbar não se mistura: moderno e webkit, **por elemento**, um exclui o outro (Chrome ≥121) | [03 §1.0.5](03_padroes_ui.md) |
