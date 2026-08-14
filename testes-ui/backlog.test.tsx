@@ -1573,9 +1573,21 @@ describe('correções da rodada de 11/08/2026', () => {
     */
     const cartaoDaEtapa = (rotulo: string) => screen.getByTitle(new RegExp(`em ${rotulo}$`));
 
+    /*
+      **O piso caiu de `min-content` para `0`** — 14/08/2026.
+
+      `min-content` prometia proteger o rótulo do corte e cobrava um preço que só apareceu num
+      print de usuário: piso que o grid não pode furar significa que, em janela estreita, a fileira
+      **transborda por cima do bloco vizinho**. Sobreposição é pior que qualquer truncamento.
+
+      A proteção do rótulo continua — agora por quebra de linha, não por largura mínima. O que este
+      caso trava é a divisão por igual, que era o ponto original ("eu corto assimetria").
+    */
     const etapas = cartaoDaEtapa('Entrada').parentElement!;
     expect(etapas.style.gridTemplateColumns, 'as etapas dividem a largura por igual')
-      .toMatch(/repeat\(5,\s*minmax\(min-content,\s*1fr\)\)/);
+      .toMatch(/repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
+    expect(etapas.style.gridTemplateColumns, 'e nenhuma coluna tem piso que force transbordo')
+      .not.toContain('min-content');
 
     const desfechos = screen.getByText('Declinado').closest('button')!.parentElement!;
     expect(desfechos.className, 'as linhas dos desfechos têm a mesma altura')
@@ -1742,6 +1754,35 @@ describe('correções da rodada de 11/08/2026', () => {
     expect(colunasDePessoas.length).toBeGreaterThan(0);
     const semArea = colunasDePessoas.filter((coluna) => !coluna.area).map((coluna) => coluna.id);
     expect(semArea, 'coluna de pessoas sem área não recebe os papéis').toEqual([]);
+  });
+
+  it('em tela curta o mapa nasce recolhido — a lista tem prioridade', () => {
+    /*
+      Reclamação de um usuário, com print (14/08/2026): *"como não tem resolução suficiente, não
+      consigo nem ver o que tem nas linhas"*. Em 1366×657 a moldura acima da grade (cabeçalho,
+      mapa, abas, ações, cabeçalho de colunas, rodapé) somava ~585px e **sobrava zero linha
+      inteira**.
+
+      O mapa cede primeiro porque é resumo do que a lista já contém, e o botão de reabrir sempre
+      existiu. Abaixo de 820px de altura ele nasce fechado.
+    */
+    const alturaOriginal = window.innerHeight;
+    try {
+      window.innerHeight = 657;
+      montar();
+
+      expect(screen.queryByTitle(/em Entrada$/), 'o mapa não abre sozinho em tela curta').toBeNull();
+      expect(screen.getByRole('button', { name: /mostrar fluxo/i }), 'e há como abri-lo')
+        .toBeTruthy();
+    } finally {
+      window.innerHeight = alturaOriginal;
+    }
+  });
+
+  it('em tela confortável o mapa nasce aberto', () => {
+    // O contraponto: a regra é sobre altura, não uma escolha nova de padrão.
+    montar();
+    expect(screen.getByTitle(/em Entrada$/), 'o mapa aparece quando há altura').toBeTruthy();
   });
 
   it('os três botões da barra de ações têm a mesma forma', () => {

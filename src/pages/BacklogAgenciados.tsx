@@ -29,6 +29,16 @@ import { carregar, salvar } from '../utils/persistencia';
 export { TITULO_PROVISORIO };
 
 /**
+ * Altura de janela a partir da qual o mapa do processo nasce **aberto**.
+ *
+ * A moldura acima da grade custa ~585px com o mapa aberto; quatro linhas custam ~208px. Abaixo de
+ * ~793px a lista fica com menos de quatro linhas, e uma lista de trabalho com três linhas não é
+ * uma lista. Arredondado para 820 — a conta é estimativa, e arredondar para cima erra do lado
+ * seguro.
+ */
+const ALTURA_PARA_MAPA_ABERTO = 820;
+
+/**
  * Backlog de Agenciados — as oportunidades antes de virarem contrato.
  *
  * É a porta de entrada da operação: recebe demanda por três caminhos (manual, agente de e-mail e
@@ -59,7 +69,32 @@ export function BacklogAgenciados() {
    * Aberto por padrão: o mapa do processo é a primeira leitura de quem chega ao quadro, e escondê-lo
    * de quem nunca o viu esconderia também que a etapa é clicável.
    */
-  const [fluxoRecolhido, setFluxoRecolhido] = useState(() => carregar('backlogFluxoRecolhido', false));
+  /*
+    ==============================================================================================
+    ## O mapa nasce recolhido quando não sobra altura para a lista — 14/08/2026
+    ==============================================================================================
+
+    Reclamação de um usuário, com print: *"como não tem resolução suficiente, não consigo nem ver o
+    que tem nas linhas"* — e, na tela menor, *"nem a primeira linha dá para ver"*. Reproduzido em
+    1366×657: **zero linhas inteiras**.
+
+    A conta explica sozinha. Acima da grade há cabeçalho (~120px no modo denso), mapa do processo
+    (~275px), barra de abas, barra de ações, cabeçalho de colunas e rodapé — perto de **585px de
+    moldura**. Numa janela de 657px sobram 72px, e uma linha tem ~52px.
+
+    **A página foi desenhada supondo que altura é de graça, e não é.** Quem cede primeiro é o mapa:
+    ele é um resumo do que a lista já contém, existe o botão "Recolher" desde sempre, e recolhido
+    ele custa ~50px em vez de 275.
+
+    O corte em 820px vem da própria conta: 585 de moldura + quatro linhas (~208px) ≈ 793. Abaixo
+    disso, o mapa aberto deixaria menos de quatro linhas — pouco demais para uma lista de trabalho.
+
+    **É só o padrão inicial.** A escolha da pessoa é salva e passa a mandar a partir do primeiro
+    clique: o layout responde ao tamanho da tela até alguém dizer o que prefere.
+  */
+  const [fluxoRecolhido, setFluxoRecolhido] = useState(
+    () => carregar('backlogFluxoRecolhido', window.innerHeight < ALTURA_PARA_MAPA_ABERTO),
+  );
   useEffect(() => salvar('backlogFluxoRecolhido', fluxoRecolhido), [fluxoRecolhido]);
 
   // Membro vê só as linhas em que foi nomeado; responsável da equipe, o quadro todo.

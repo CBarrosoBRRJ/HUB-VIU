@@ -29,6 +29,21 @@ import { afterEach, beforeEach, vi } from 'vitest';
  */
 export const AGORA_NOS_TESTES = new Date(2026, 7, 4, 12, 0, 0);
 
+/**
+ * A janela da suíte é **confortável em altura** — 14/08/2026.
+ *
+ * O jsdom monta uma janela de 1024×768, que é uma tela **curta** pelos critérios do produto: desde
+ * 14/08 o mapa do processo nasce recolhido abaixo de 820px de altura, para que sobrem linhas para
+ * a lista ([08 §6](../prd/08_backlog_e_integracoes.md)).
+ *
+ * Cinco testes do cabeçalho quebraram na hora — e estavam certos: eles inspecionam os cartões do
+ * mapa, e o mapa não estava lá. **A suposição existia desde sempre e era invisível**; agora está
+ * escrita. Os testes que verificam o mapa presumem uma tela onde ele aparece, e o comportamento em
+ * tela curta tem teste próprio, que ajusta a janela por conta.
+ */
+export const ALTURA_DA_JANELA_NOS_TESTES = 900;
+window.innerHeight = ALTURA_DA_JANELA_NOS_TESTES;
+
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true, now: AGORA_NOS_TESTES });
 });

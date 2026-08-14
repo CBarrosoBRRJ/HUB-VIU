@@ -1,5 +1,5 @@
 # PRD 08 — Backlog de Agenciados e Integrações
-**Versão:** 8.8 | **Status:** Front-end totalmente implementado e auditado | **Data:** 12/08/2026
+**Versão:** 8.9 | **Status:** Front-end totalmente implementado e auditado | **Data:** 14/08/2026
 
 [← Índice da documentação](README.md) · *Oportunidades, status, SLA e ingestão*
 
@@ -538,6 +538,69 @@ há a mesma tabela um scroll adiante, e o valor que casou está lá. O contrato 
   linha em que os dois aparecem, em qualquer campo.
 
 ---
+
+## 5.9. O orçamento vertical da página — 14/08/2026
+
+Reclamação de um **usuário**, com print — a primeira que não veio da operação:
+
+> *"Aqui um print de como aparece para mim o nosso site. Como não tem resolução suficiente, não
+> consigo nem ver o que tem nas linhas."* E, na tela menor: *"se reduzir mais a tela, nem a
+> primeira linha dá para ver."*
+
+Reproduzido em 1366×657, em navegador limpo: **zero linhas inteiras**. Ele estava sendo literal.
+
+### A conta que ninguém tinha feito
+
+| Bloco | Altura |
+|---|---:|
+| cabeçalho da página (já no modo denso) | ~120px |
+| mapa do processo + finalização | ~275px |
+| barra de abas | ~35px |
+| barra de ações | ~45px |
+| cabeçalho de colunas | ~40px |
+| rodapé de totais | ~35px |
+| **moldura** | **~585px** |
+
+Numa janela de 657px sobram 72px, e uma linha custa ~52px. **A página foi desenhada supondo que
+altura é de graça** — e a suposição nunca apareceu porque o desenho foi calibrado em monitores
+grandes.
+
+### Quem cede primeiro é o mapa
+
+Ele é um **resumo do que a lista já contém**, e o botão "Recolher" existe desde que ele nasceu.
+Recolhido custa ~50px em vez de 275. Abaixo de **820px de altura de janela**, nasce fechado.
+
+O corte vem da própria conta: 585 de moldura + quatro linhas (~208px) ≈ 793, arredondado para cima.
+Abaixo disso o mapa aberto deixaria menos de quatro linhas, e uma lista de trabalho com três linhas
+não é uma lista.
+
+> **É só o padrão inicial.** A escolha da pessoa é salva e passa a mandar do primeiro clique em
+> diante: o layout responde ao tamanho da tela **até alguém dizer o que prefere**.
+
+Resultado medido, mesma janela de 1366×657: de **0 para 3 linhas** inteiras.
+
+### O transbordo, que era o segundo defeito no mesmo print
+
+Os cartões do fluxo **vazavam por cima do bloco de Finalização** — dois painéis sobrepostos e
+ilegíveis. A causa era uma proteção que virou armadilha: `minmax(min-content, 1fr)` nas colunas,
+somado a `whitespace-nowrap` no rótulo.
+
+`min-content` é um **piso que o grid não pode furar**. Quando a janela estreitava, as colunas
+paravam de encolher e a fileira saía do contêiner. O piso existia para proteger o rótulo do corte
+("Aguardando F…", 11/08/2026) — e a proteção continua, só que por **quebra de linha**: as colunas
+encolhem até zero e o rótulo passa para a segunda linha. Nada some, nada trunca, nada invade o
+vizinho.
+
+> **A lição:** piso rígido em contêiner elástico não protege — **transfere o problema para quem
+> está do lado**. Sobreposição é pior que qualquer truncamento.
+
+### O que a correção revelou na suíte
+
+Cinco testes do cabeçalho quebraram na hora, e estavam certos: eles inspecionam os cartões do mapa,
+e o jsdom monta uma janela de 768px — curta pelos novos critérios, então o mapa não estava lá.
+**A suposição "os testes rodam numa tela confortável" existia desde sempre e era invisível.** Agora
+está escrita em `testes-ui/setup.ts`, e o comportamento em tela curta ganhou teste próprio, que
+ajusta a janela por conta.
 
 ## 6. As oito seções da grade contínua
 

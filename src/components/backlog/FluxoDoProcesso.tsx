@@ -163,9 +163,19 @@ export function FluxoDoProcesso({
           fileira que representa **um processo sequencial** — e a desigualdade sugeria peso onde só
           há ordem.
 
-          `minmax(min-content, 1fr)` dá o melhor dos dois: as colunas se dividem por igual enquanto
-          couberem, e nenhuma encolhe abaixo do próprio rótulo — a garantia que o `min-w-fit`
-          existia para dar, depois do "Aguardando F…" cortado (11/08/2026).
+`minmax(min-content, 1fr)` foi a primeira resposta, e ela **transbordava** — 14/08/2026.
+
+          `min-content` é um piso que o grid não pode furar: quando a janela estreitava, as colunas
+          paravam de encolher e a fileira **vazava por cima do bloco de Finalização**, ao lado. Um
+          usuário mandou o print: dois painéis sobrepostos, ilegíveis.
+
+          O piso existia para proteger o rótulo do corte ("Aguardando F…", 11/08/2026), e a
+          proteção continua — só que por **quebra de linha** em vez de largura mínima. As colunas
+          agora encolhem até zero (`minmax(0, 1fr)`) e o rótulo passa para a segunda linha quando
+          precisa. Nada some, nada trunca, e nada invade o vizinho.
+
+          > A lição: piso rígido em contêiner elástico não protege — **transfere o problema para
+          > quem está do lado**. Sobreposição é pior que qualquer truncamento.
 
           O número de colunas sai do catálogo: uma etapa nova entra na conta sozinha.
         */}
@@ -177,7 +187,7 @@ export function FluxoDoProcesso({
             desenho o que o número e o texto já afirmavam, e num bloco pequeno repetição é ruído.
           */
           className="grid gap-3"
-          style={{ gridTemplateColumns: `repeat(${ETAPAS_FLUXO.length}, minmax(min-content, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${ETAPAS_FLUXO.length}, minmax(0, 1fr))` }}
         >
           {ETAPAS_FLUXO.map((etapa) => {
             const status = getStatus(etapa.status);
@@ -238,8 +248,12 @@ export function FluxoDoProcesso({
                 </span>
 
                 <span className="mt-0.5 flex items-center justify-between gap-2">
-                  {/* Sem `truncate`: o `min-w-fit` do cartão garante que o rótulo inteiro cabe. */}
-                  <span className="whitespace-nowrap text-xs font-semibold text-slate-700">
+                  {/*
+                    Sem `truncate` e sem `nowrap`: o rótulo **quebra** quando a coluna aperta, que é
+                    o que substituiu o piso de largura mínima (ver a nota do grid). "Aguardando
+                    Feedback" em duas linhas continua inteiro; cortado, não.
+                  */}
+                  <span className="min-w-0 text-xs font-semibold leading-tight text-slate-700">
                     {status.label}
                   </span>
                   {/*
